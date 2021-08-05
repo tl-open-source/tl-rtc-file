@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>tlp2p</title>
+
+    <link rel="stylesheet" href="https://www.layuicdn.com/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="css/index.min.css" media="all">
+    <link rel="stylesheet" href="css/comm.min.css" media="all">
+    <link rel="stylesheet" href="css/swiper-bundle.min.css" media="all">
+    <script type="text/javascript" src="js/swiper-bundle.min.js"></script>
+    <script type="text/javascript" src="js/socket.io.js"></script>
+    <script type="text/javascript" src="js/vue.min.js"></script>
+    <script type="text/javascript" src="js/axios.js"></script>
+    <script>
+        window.Bus = new Vue({});
+    </script>
+</head>
+<body>
+    
+    <div class="verticalPannel">
+        <iframe frameborder="0" scrolling="no" src="./vertical.html" width="100%" height="30px"></iframe>
+    </div>
+
+    
+    <div id="fileApp" v-cloak>
+        <div class="tool" @click="clickLogs">
+            <svg  t="1611756829585" class="icon" viewBox="0 0 1024 1024" >
+                <path d="M551.1 549.6m-306 0a306 306 0 1 0 612 0 306 306 0 1 0-612 0Z" fill="#25B195" p-id="4321"></path>
+                <path d="M512.7 871.2c-49.6 0-97.8-9.7-143.1-28.9-43.8-18.5-83.1-45-116.9-78.8-33.8-33.8-60.3-73.1-78.8-116.9-19.2-45.3-28.9-93.5-28.9-143.1s9.7-97.8 28.9-143.1c18.5-43.8 45-83.1 78.8-116.9 33.8-33.8 73.1-60.3 116.9-78.8 45.3-19.2 93.5-28.9 143.1-28.9s97.8 9.7 143.1 28.9c43.8 18.5 83.1 45 116.9 78.8 33.8 33.8 60.3 73.1 78.8 116.9 19.2 45.3 28.9 93.5 28.9 143.1s-9.7 97.8-28.9 143.1c-18.5 43.8-45 83.1-78.8 116.9-33.8 33.8-73.1 60.3-116.9 78.8-45.3 19.2-93.5 28.9-143.1 28.9z m0-694.5C332.5 176.7 186 323.3 186 503.5s146.6 326.7 326.7 326.7c180.2 0 326.7-146.6 326.7-326.7S692.9 176.7 512.7 176.7z" fill="#666767" p-id="4322"></path>
+                <path d="M512.7 629.8c9.6 0 17.2 2.9 22.7 8.7 6.4 6.4 9.6 14.3 9.6 23.6s-3.1 17-9.2 23.1c-6.4 6.4-14.1 9.6-23.1 9.6-9 0-16.7-3.2-23.1-9.6-6.1-5.8-9.2-13.5-9.2-23.1 0-9.3 3.2-17.2 9.6-23.6 6.1-5.8 13.7-8.7 22.7-8.7z m0-317.7c9.6 0 17 2.9 22.2 8.7 5.1 5.8 7.7 13.5 7.7 23.1 0 7.1-8.2 89.3-24.6 246.8h-10.6C491 433.3 482.8 351 482.8 343.9c0-9.6 2.6-17.4 7.7-23.1 5.2-5.8 12.6-8.7 22.2-8.7z" fill="#595857" p-id="4323"></path>
+            </svg>
+        </div>
+
+        <div style="text-align: center;font-size: 20px;color: beige;">注 : 仅用于学习用途, 请勿他用</div>
+        <div class="roomClass" >
+            <input type="text" name="title" maxlength="15" autocomplete="off" class="layui-input cusInput" v-model="roomId" placeholder="输入房间编号">
+            <div class="layui-btn-container center">
+                <button type="button"   :class="[{'layui-btn-disabled':createDisabled}]" @click="createRoom()" :disabled="createDisabled"> 创建/加入房间 </button>
+                <button type="button" class="exitBtn" :class="[{'layui-btn-disabled':exsitDisabled}]" @click="exitRoom()" :disabled="exsitDisabled"> 退出房间 </button>
+            </div>
+        </div>
+
+        <div class="layui-col-sm6 layui-col-md3" id="self">
+            <input type="file" ref="self-file" v-model="fileName" v-show="false">
+            <button class="sendFileBtn" @click="clickChooseFile" v-show="uploadDisabled">
+                <svg viewBox="0 0 1024 1024" style="width: 30px;height: 30px;margin-left: -8px;margin-right: 10px;">
+                    <path d="M840.65 540.62h-655.9c-12.18 0-22.05-9.87-22.05-22.05v-5.9c0-12.18 9.87-22.05 22.05-22.05h655.9c12.18 0 22.05 9.87 22.05 22.05v5.9c0 12.18-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1269"></path>
+                    <path d="M517.69 863.19h-5.9c-12.18 0-22.05-9.87-22.05-22.05v-655.9c0-12.18 9.87-22.05 22.05-22.05h5.9c12.18 0 22.05 9.87 22.05 22.05v655.9c0 12.17-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1270"></path>
+                </svg>
+                <div style="font-size: 14px;word-break: keep-all;">选择文件</div>
+            </button>
+            <button class="sendFileBtn" style="background-color: #79b0e8;" @click="submitChooseFile" v-show="!uploadDisabled">
+                <svg viewBox="0 0 1024 1024" style="width: 30px;height: 25px;margin-left: -8px;margin-right: 10px;">
+                    <path d="M341.333333 277.333333l115.2-115.2c8.533333-8.533333 17.066667-12.8 29.866667-17.066666v473.6c0 17.066667 12.8 29.866667 25.6 29.866666s25.6-12.8 25.6-29.866666V140.8c8.533333 4.266667 21.333333 8.533333 29.866667 17.066667L682.666667 277.333333c4.266667 4.266667 12.8 8.533333 21.333333 8.533334s12.8-4.266667 21.333333-8.533334c12.8-12.8 12.8-29.866667 0-38.4l-115.2-115.2C554.666667 68.266667 469.333333 68.266667 418.133333 119.466667L302.933333 234.666667c-12.8 12.8-12.8 29.866667 0 38.4s25.6 12.8 38.4 4.266666z" fill="#191A1A" p-id="2860"></path>
+                    <path d="M738.133333 435.2h-72.533333c-17.066667 0-29.866667 12.8-29.866667 25.6s12.8 25.6 29.866667 25.6h72.533333c42.666667 0 76.8 34.133333 76.8 76.8V810.666667c0 42.666667-34.133333 76.8-76.8 76.8H285.866667c-42.666667 0-76.8-34.133333-76.8-76.8v-243.2c0-42.666667 34.133333-76.8 76.8-76.8h72.533333c17.066667 0 25.6-12.8 25.6-25.6s-12.8-25.6-25.6-25.6H285.866667c-72.533333 0-132.266667 59.733333-132.266667 132.266666V810.666667c0 72.533333 59.733333 132.266667 132.266667 132.266666h456.533333c72.533333 0 132.266667-59.733333 132.266667-132.266666v-243.2c0-72.533333-59.733333-132.266667-136.533334-132.266667z" fill="#191A1A" p-id="2861"></path>
+                </svg>
+                <div style="font-size: 14px;word-break: keep-all;">开始发送</div>
+            </button>
+            <div v-show="fileName" class="chooseFileName">{{fileName}}</div>
+            
+        </div>
+
+        <div class="maskBottom" @click="clickSendFile"  :style="{top: numSendFile + '%'}" v-show="false">
+            <div class="sendFilePannel" v-show="sendFileList && sendFileList.length > 0">
+                <div class="sendFileHeader">发送的文件</div>
+                <ul class="sendFiles" :style="showSendFileList? 'overflow-y: scroll;':''">
+                    <li class="sendFile" v-for="file in sendFileList">
+                        <div class="sendFileType">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                        </div>
+                        <div class="sendFileInfo" v-if="chooseFile">
+                            <div class="sendFileName">{{file.name}}</div>
+                            <div class="sendFileOther">{{getFileSizeStr(file.size)}} | {{file.toIdStr}}</div>
+                        </div>
+                        <div class="sendInfoBackgroud"></div>
+                        <div></div>
+                    </li>
+                </ul>
+            </div>
+            <div class="noSendFile" v-show="!sendFileList || sendFileList.length === 0"></div>
+        </div>
+
+        <div class="maskBottom" @click="clickSendFile"  :style="{top: numSendFile + '%'}">
+            <div class="layui-col-sm2" style="width: 100%;">
+                <div class="layui-card">
+                    <div class="layui-card-header">发送的文件</div>
+                    <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
+                        <table class="layui-table">
+                            <thead>
+                                <tr><th>用户名ID</th><th>名称</th><th>格式</th><th>大小</th></tr> 
+                            </thead>
+                            <tbody ref="files">
+                                <tr v-for="file in sendFileList">
+                                    <td><span>自己</span></td>
+                                    <td><span>{{file.name}}</span></td>
+                                    <td><span>{{file.type}}</span></td>
+                                    <td><span>{{getFileSizeStr(file.size)}}</span></td>
+                                </tr>
+                                <div style="display: flex;padding:5px;">
+                                    <span style="word-break: keep-all;font-size: 12px;">进度：</span>
+                                    <progress ref="sendProgress" :value="offset" max="0" style="width: 100%;margin: auto;"></progress>
+                                </div>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="maskBottom" @click="clickReceiveFile"  :style="{top: numReceiveFile + '%'}">
+            <div class="layui-col-sm2" style="width: 100%;">
+                <div class="layui-card">
+                    <div class="layui-card-header">接收的文件</div>
+                    <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
+                        <table class="layui-table">
+                            <thead>
+                                <tr><th>用户名ID</th><th>文件名称</th><th>文件格式</th><th>文件大小</th></tr> 
+                            </thead>
+                            <tbody ref="files">
+                                <div style="display: flex;padding:5px;">
+                                    <span style="word-break: keep-all;font-size: 12px;">进度：</span>
+                                    <progress ref="receiveProgress" :value="offset" max="0" style="width: 100%;margin: auto;"></progress>
+                                </div>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="maskRight" @click="clickLogs"  :style="{left: numLogs + '%'}">
+            <div class="layui-col-sm2" style="width: 100%;">
+                <div class="layui-card">
+                    <div class="layui-card-header">执行日志</div>
+                </div>
+                <div class="layui-card" style="background-image: linear-gradient(to top, #D8D9DB 0%, #fff 80%, #FDFDFD 100%);">
+                    <div :style="{height: logsHeight+'px',overflow: 'scroll'}">
+                         <div class="layui-card-body logs" v-for="log in logs">
+                             {{log}}
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- <div id="canvasPannel">
+            <iframe frameborder="0" scrolling="no" src="./room.html" width="100%" height="200px"></iframe>
+        </div> -->
+
+        <div class="userRoom swiper-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide userBlocK" v-for="remote in remoteMap">
+                    <svg style="margin-left: 5px;" viewBox="0 0 1024 1024" width="64" height="64">
+                        <path d="M310.956564 662.25202zM307.071733 652.841638zM303.914275 643.972652c0.219038 0.669513 0.471139 1.326628 0.69431 1.992009-0.231437-0.661248-0.471139-1.322495-0.69431-1.992009zM539.239951 781.611372a3.0872 3.0872 0 0 0 0.962942-0.181843c-0.698443 0.086789-1.401019 0.136382-2.103594 0.219038l1.140652-0.037195zM315.841531 672.418704zM292.044878 564.370822a1501.734968 1501.734968 0 0 0-0.169445-17.436277c-0.02893 5.926433 0.02893 11.737148 0.169445 17.436277zM729.39414 534.32951c-0.169445 10.910588-0.376085 22.056745-0.376085 33.368215 0 21.507083-2.49621 41.373445-7.021624 59.661078 7.401842-28.264209 9.476507-58.218732 7.397709-93.029293z" fill="#002738" p-id="2725"></path>
+                        <path d="M507.843081 8.435042c-280.451702 0-507.838272 227.266719-507.838272 507.722553 0 187.54226 101.608982 351.250672 252.745422 439.200756 0.421545-1.169582 0.818294-2.359828 1.25637-3.52941 16.915544-45.564103 44.76234-81.97819 79.184418-109.176136 22.445228-17.886752 48.200828-32.198633 76.609685-42.39838-58.995698-51.403747-60.739739-65.430465-40.489026-63.53351a193.757989 193.757989 0 0 1-47.122168-53.015538c0.396749 0.648849 0.739771 1.310097 1.144785 1.963079-193.113273-186.203234-50.234165-534.188995 184.508786-411.072929l0.23557 0.115718c161.344451-84.825688 283.667019 58.342716 280.381444 212.863916-0.938145 70.860962-28.115428 143.685003-89.785046 196.799729 0.442209-0.789365 0.830692-1.582862 1.268769-2.368093-13.46879 22.879172-31.000121 41.844584-51.180576 56.966493 10.183215 3.32277 5.996691 19.816769-28.22288 61.500174h-0.264499c27.788937 10.046833 53.019671 24.02809 75.084682 41.456101 34.029462 26.623488 61.73161 62.17382 78.911653 106.630332 144.858718-89.433758 241.413288-249.592096 241.413288-432.406435-0.004133-280.451702-227.38657-507.718421-507.842405-507.71842z" fill="#002738" p-id="2726"></path>
+                        <path d="M538.103431 781.648567c0.702576-0.082656 1.405151-0.13225 2.103595-0.219038 10.551034-3.149192 88.218715-49.08938 108.560349-42.452106 20.180455-15.121909 37.711786-34.087322 51.180576-56.966494 9.943513-18.072728 17.167645-36.000807 22.052612-54.652126 4.529547-18.287633 7.021625-38.149862 7.021625-59.661078 0-11.311469 0.20664-22.46176 0.376085-33.368215-0.793497-13.369603-2.18625-27.445914-4.1204-42.423176-95.711479 5.856175-163.658818-27.883991-217.426526-82.002987-75.208666 51.312825-146.904453 80.949123-214.029366 82.002987-1.074528 19.498543-1.843228 37.761379-1.938282 55.028211 0.086789 5.740457 0.152914 11.555304 0.169445 17.436277 0.739771 29.082503 3.979885 55.276179 11.865264 79.605963 0.227304 0.669513 0.462873 1.326628 0.69431 1.992009 0.776966 2.310234 1.603526 4.595672 2.467281 6.872844 1.103457 2.851631 2.248242 5.661934 3.459152 8.422643 0.144648 0.326491 0.276897 0.661248 0.425678 0.987739 1.330761 2.98388 2.73178 5.901636 4.186525 8.773931 0.23557 0.462873 0.462873 0.934012 0.698443 1.392753 1.186113 2.297836 2.434218 4.53368 3.694722 6.757126 0.867888 1.512604 1.731643 3.029341 2.653256 4.533679a193.757989 193.757989 0 0 0 47.122168 53.015539c31.421667 2.93842 115.805145 44.21681 121.429884 43.716742 19.167919 2.52514 28.243545 1.789502 47.353604 1.206777zM695.356412 841.933698c35.033732 27.66082 62.062234 63.967454 78.804201 106.692324l0.10332-0.066125c-17.17591-44.45238-44.873925-80.002712-78.907521-106.626199zM333.191019 842.656937c-34.422078 27.197947-62.264741 63.612034-79.184418 109.176137 16.485733-43.753937 43.708476-80.907795 79.184418-109.176137z" fill="#FCE9EA" p-id="2727"></path>
+                        <path d="M695.356412 841.933698c-22.065011-17.428011-47.295745-31.413401-75.084682-41.456101l-210.363573-0.119852-0.107453-0.095054c-28.408856 10.199747-54.164456 24.511628-76.609685 42.398379-35.471809 28.272474-62.698685 65.422199-79.184418 109.176136-0.438077 1.165449-0.834825 2.355695-1.25637 3.52941 74.964831 43.629953 162.104886 68.633384 255.09285 68.633384 97.670425 0 188.88542-27.590562 266.317532-75.365712-16.741966-42.737269-43.770468-79.03977-78.804201-106.70059z" fill="#B0C11D" p-id="2728"></path><path d="M620.27173 800.473464h0.264499c34.219571-41.683405 38.406096-58.177404 28.222881-61.500174-20.341634-6.633141-98.009315 39.307046-108.56035 42.452106a3.124396 3.124396 0 0 1-0.962942 0.181843l-1.136519 0.037195c-19.11006 0.586857-28.181553 1.318363-47.36187-1.206777-5.624739 0.500069-90.008217-40.778322-121.429884-43.716742-20.250712-1.896954-18.510804 12.133896 40.489026 63.53351l0.107453 0.095055 210.367706 0.123984z" fill="#FF5947" p-id="2729"></path>
+                        <path d="M315.841531 672.418704c-0.239702-0.458741-0.462873-0.92988-0.698442-1.392753a180.789268 180.789268 0 0 1-4.186525-8.773931l-0.425679-0.987739a184.876605 184.876605 0 0 1-5.926432-15.295487c-0.223171-0.665381-0.475272-1.322495-0.694311-1.992009-7.885379-24.329784-11.125493-50.523461-11.865264-79.605963a563.192974 563.192974 0 0 1-0.169445-17.436277c0.095054-17.266832 0.859622-35.529668 1.938283-55.028211 67.124912-1.053864 138.8207-30.694294 214.029365-82.002987v-135.30782c-234.742951-123.116065-377.622059 224.869696-184.508786 411.072929-0.409147-0.648849-0.748037-1.310097-1.144785-1.963079-0.921614-1.500206-1.785369-3.016943-2.653257-4.53368-1.281168-2.235844-2.521007-4.488219-3.694722-6.752993zM698.675049 684.379023c61.669618-53.118858 88.846901-125.938767 89.785046-196.799729-1.49194 69.976543-28.727082 142.279852-89.785046 196.799729z" fill="#FECF77" p-id="2730"></path>
+                        <path d="M507.843081 409.903347c53.77184 54.123128 121.715047 87.863295 217.426526 82.002987 1.93415 14.977262 3.326903 29.053573 4.1204 42.423176 2.078798 34.810561 0.004133 64.765084-7.397709 93.029293-4.884968 18.651319-12.109099 36.579399-22.052613 54.652126-0.433944 0.785232-0.822427 1.578729-1.268769 2.368094 61.053831-54.515744 88.293106-126.823186 89.785046-196.799729 3.285575-154.525334-119.036993-297.689604-280.381444-212.863916l-0.23557-0.115719v135.303688z" fill="#FF9F31" p-id="2731"></path>
+                    </svg>
+                    <div class="layui-badge layui-bg-blue layuiadmin-badge remoteId">{{remote.id}}</div>
+                </div>
+            </div>
+            <div class="swiper-scrollbar"></div>
+        </div>
+
+
+        <menu class="menu">
+            <button ref="btnHome" @click="clickHome" class="menu__item" :class="currentMenu === 1 ? 'active' : ''" style="--bgColorBody: #ffb457; --bgColorItem: #ff8c00;">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M3.8,6.6h16.4"></path>
+                    <path d="M20.2,12.1H3.8"></path>
+                    <path d="M3.8,17.5h16.4"></path>
+                </svg>
+            </button>
+            <button ref="btnRoom" @click="clickRoom" class="menu__item" :class="currentMenu === 2 ? 'active' : ''" style="--bgColorBody: rgb(112, 161, 255); --bgColorItem: rgb(112, 161, 255)">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M6.7,4.8h10.7c0.3,0,0.6,0.2,0.7,0.5l2.8,7.3c0,0.1,0,0.2,0,0.3v5.6c0,0.4-0.4,0.8-0.8,0.8H3.8
+                    C3.4,19.3,3,19,3,18.5v-5.6c0-0.1,0-0.2,0.1-0.3L6,5.3C6.1,5,6.4,4.8,6.7,4.8z"></path>
+                    <path d="M3.4,12.9H8l1.6,2.8h4.9l1.5-2.8h4.6"></path>
+                </svg>
+            </button>
+            
+            <!-- <button ref="btnFile" @click="clickFile"  class="menu__item" :class="currentMenu === 3 ? 'active' : ''" style="--bgColorBody: #ffe797; --bgColorItem: #e0b115;"> 
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M5.1,3.9h13.9c0.6,0,1.2,0.5,1.2,1.2v13.9c0,0.6-0.5,1.2-1.2,1.2H5.1c-0.6,0-1.2-0.5-1.2-1.2V5.1
+                    C3.9,4.4,4.4,3.9,5.1,3.9z"></path>
+                    <path d="M4.2,9.3h15.6"></path>
+                    <path d="M9.1,9.5v10.3"></path>
+                </svg>
+            </button> -->
+            <div class="menu__border" style="transform: translate3d(108px, 0px, 0px);"></div>
+        </menu>
+
+        <div class="svg-container">
+            <svg viewBox="0 0 202.9 45.5">
+                <clippath id="menu" clipPathUnits="objectBoundingBox" transform="scale(0.0049285362247413 0.021978021978022)">
+                    <path d="M6.7,45.5c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7
+                        c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5
+                        c9.2,3.6,17.6,4.2,23.3,4H6.7z"></path>
+                </clippath>
+            </svg>
+        </div>
+
+    </div>
+
+
+    <script type="text/javascript" src="js/index.min.js"></script>
+    <script src="https://www.layuicdn.com/layui/layui.js"></script>
+    <script>
+        setTimeout(()=>{
+            let clientWidth = document.body.clientWidth;
+            let slidesPerView = parseInt((clientWidth / 100))-1;
+            var mySwiper = new Swiper ('.swiper-container', {
+                direction: 'horizontal', // 垂直切换选项
+                loop: false, // 循环模式选项
+                slidesPerView: slidesPerView,
+                // effect : "coverflow", //切换样式
+                observer:true,
+                scrollbar: {
+                    el: '.swiper-scrollbar',
+                }
+            })
+            mySwiper.scrollbar.$dragEl.css('background','#ff6600');
+            mySwiper.scrollbar.$el.css('height','4px');
+            window.swiper = mySwiper;
+        },1000)
+        
+        layui.config({}).extend({}).use(['form','layer'],function(){
+            layer.open({
+                type: 1
+                ,title: false
+                ,closeBtn: false
+                ,area: '300px;'
+                ,shade: 0.8
+                ,id: 'layui-info-msg'
+                ,btn: ['知道了']
+                ,btnAlign: 'c'
+                ,moveType: 1 //
+                ,content: `
+                    <div style="padding: 30px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;">
+                        <div style="text-align: center;line-height: 40px;">1. 双方输入相同房间号加入</div>
+                        <div style="text-align: center;line-height: 40px;">2. 双方选择需要的文件发送</div>
+                        <div style="text-align: center;line-height: 40px;">3. 右下角是你接收到的文件</div>
+                        <div style="text-align: center;line-height: 40px;">4. 左下角是你发送过的文件</div>
+                        <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 服务器配置带宽不高（有需要可 <a style="color: wheat;" target="_blank" href="https://new.tsmblogs.cn">联系我</a> 提高带宽），传输只能保持在500kb/s ~ 600kb/s</div>
+                    </div>
+                `
+                ,success: function(layero){
+                }
+            });
+        });
+    </script>
+</body>
+</html>

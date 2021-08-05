@@ -1,0 +1,68 @@
+{
+    "ws" : {
+         "port": 8444,
+         "ssl_port": 8444,
+         "ws_online": "your online socket ip/host like wss://xxx.xxx.xxx, if just local test, dont need"
+    },
+    "node" : {
+          "port" : 9092
+     },
+    "webrtc" : {
+          "iceServers": [{
+               "urls": "stun:stun.xten.com"
+          }],
+         "options" : {
+              "offerToReceiveAudio": 1,
+              "offerToReceiveVideo": 1
+          }
+    },
+    "router" : {
+         "filter" : {
+              "whiteDir" : ["socket","tables","worker","module","room","user"],
+              "whiteFile" : ["router.js"]
+         },
+         "res" : {
+               "/" : "res/"
+         }
+    },
+    "db" : {
+         "open" : false,
+         "mysql" : {
+              "host" : "your db host",
+              "port" : 3306,
+              "dbName" : "your dbName",
+              "user" : "your name",
+              "password" : "your pwd",
+              "other" : {
+                   "sequelize" : {
+                        "dialect": "mysql",
+                        "host": "your ip",
+                        "port": 3306,
+                        "logging": false,
+                        "pool": {
+                             "max": 5,
+                             "min": 0,
+                             "acquire": 30000,
+                             "idle": 10000
+                        },
+                        "timezone": "+08:00",
+                        "define": {
+                             "freezeTableName": true, 
+                             "underscored": true,
+                             "charset": "utf8",
+                             "collate": "utf8_general_ci",
+                             "timestamps": false, 
+                             "paranoid": true 
+                        }
+                   }
+              }
+         },
+         "oracle" : {
+              "host" : "localhost",
+              "port" : 3306,
+              "user" : "root",
+              "password" : "xxxxxx",
+              "other" : {}
+         }
+    }
+}
