@@ -7,6 +7,7 @@ const conf = require("./conf/cfg"); //conf
 const utils = require("./utils/request"); //utils
 const socket = require("./src/socket/index") //socket handler
 
+let tables = {};
 if(conf.db.open){
   // db init
   let {tables,sql,Sql} = db.excute(conf);
