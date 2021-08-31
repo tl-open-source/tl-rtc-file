@@ -22,7 +22,8 @@
               "whiteFile" : ["router.js"]
          },
          "res" : {
-               "/" : "res/"
+               "/" : "res/",
+               "/static" : "static/"
          }
     },
     "db" : {

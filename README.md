@@ -6,34 +6,38 @@
 
 ## 准备
 
+    电脑安装好node，npm后进入项目目录
+    
     npm install
 
-    cd build/webpack/ & npm install
+    进入build目录 : cd build/webpack/  
+
+    安装一些依赖 : npm install
 
 ## 测试环境 
 
-    npm run dev & npm run devsocket
+    本地局域网启动file-res : npm run dev
 
-## 线上环境
+    本地局域网启动file-socket : npm run devsocket
 
-    npm run svr & npm run svrsocket
+## 线上环境 （需要配置wss）
+
+    公网环境启动file-res : npm run svr 
+
+    公网环境启动file-socket : npm run svrsocket
 
 
-## 修改res
-
-    cd build/webpack & npm run build 保持开启即可
-
-## 接入db
+## 配置db
 
     修改conf/cfg.json中相应db配置即可, 如open, dbName, host, port, user, pwd 等
 
 
-## 接入wss
+## 配置wss
 
     修改conf/cfg.json中相应ws配置即可，如port, ws_online等
 
 
-## 配置turnserver
+## 配置turnserver （私有部署）
 
     ubuntu:
 
@@ -45,3 +49,9 @@
 
     4. chomd +x bin/startTurnServer.sh && ./startTurnServer.sh     #启动turnserver，文件内容按需修改
 
+
+## 需要自行修改res目录
+
+    cd build/webpack 
+
+    npm run build 保持后台开启即可

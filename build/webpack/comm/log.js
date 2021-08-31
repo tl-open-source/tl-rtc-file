@@ -23,15 +23,15 @@ class Log {
     }
 
     log(content, tag = '1.0.0') {
-       fancyLog(this.addColor(`[BLOG-CLI] ${tag}: `, 'log') + content);
+       fancyLog(this.addColor(`[TL-RTC-FILE] ${tag}: `, 'log') + content);
     }
 
     warn(content, tag = '1.0.0') {
-        fancyLog(this.addColor(`[BLOG-CLI] ${tag}: `, 'warn') + content);
+        fancyLog(this.addColor(`[TL-RTC-FILE] ${tag}: `, 'warn') + content);
     }
 
     error(content, tag = '1.0.0') {
-        fancyLog(this.addColor(`[BLOG-CLI] ${tag}: `, 'error') + content);
+        fancyLog(this.addColor(`[TL-RTC-FILE] ${tag}: `, 'error') + content);
     }
 }
 

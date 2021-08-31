@@ -12,7 +12,6 @@ const Log = require("./log");
 const {
     JS_PATH,
     CSS_PATH,
-    JS_SINGLE_PATH
 } = require("./path");
 
 // 将后缀 .src.css .src.js .js .css 截断

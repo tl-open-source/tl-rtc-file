@@ -67,7 +67,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node devBuild.js"
+    "dev": "node buildDev.js",
+    "pro": "node buildPro.js"
   },
   "keywords": [],
   "author": "",

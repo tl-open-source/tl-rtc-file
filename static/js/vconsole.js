@@ -1,0 +1,1 @@
+var vConsole = new VConsole();

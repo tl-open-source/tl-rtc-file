@@ -1,6 +1,6 @@
 // file.js
 var file = null;
-axios.get("/api/comm/initData",{}).then((initData)=>{
+axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
     let resData = initData.data;
     file = new Vue({
         el : '#fileApp',
@@ -20,7 +20,6 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                 numSendFile: 150,
                 numReceiveFile : 150,
                 numLogs : 150,
-                tool_bg : false,
                 currentMenu : 1,
                 logsHeight : 0,
                 
@@ -31,14 +30,15 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                 rtcConns : {}, //远程连接
                 remoteMap : {}, //远程连接map
     
-                chunkSize : 256 * 1024, //一块512字节
+                chunkSize : 256 * 1024, //一块256kb
                 offset : 0, //当前文件分片位移
                 fileName : null, //文件名称
                 allSended : false,//当前文件是否全部发送给房间内所有用户
-                allReceiveSize : 0, //统计收到文件的大小
+                currentReceiveSize : 0, //统计收到文件的大小
                 currentSendingId : "", //当前正在发送的文件
                 chooseFile : null,  //选择的文件
-                sendFileList : [],
+                sendFileList : [], //发过文件的列表
+                receiveFileList : [], //接收文件的列表
                 logs : [],  //记录日志
             }
         },
@@ -91,22 +91,34 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                     if(idList.length > 0){
                         toIdStr += "发送给房间的 "+idList[0]+" ...等"+idList.length+"人";
                     }
-                    let fileData = {
-                        name : this.chooseFile.name,
-                        size : this.chooseFile.size,
-                        type : this.chooseFile.type,
-                        toIdStr : toIdStr,
+                    for(let id in this.remoteMap){
+                        this.sendFileList.push({
+                            id : id,
+                            name : this.chooseFile.name,
+                            size : this.chooseFile.size,
+                            type : this.chooseFile.type,
+                            process : 0,
+                            done : false,
+                            toIdStr : toIdStr,
+                        });
                     }
-                    this.sendFileList.push(fileData);
                 }
             },
-            allReceiveSize : function(newV,oldV){
-                this.allReceiveSize = newV;
+            currentReceiveSize : function(newV,oldV){
+                this.currentReceiveSize = newV;
             },
             remoteMap : {
-                handler : function(newV,oldV){
-                    
-                },
+                handler : function(newV,oldV){},
+                deep : true,
+                immediate : true
+            },
+            receiveFileList : {
+                handler : function (newV, oldV) {},
+                deep : true,
+                immediate : true
+            },
+            sendFileList : {
+                handler : function (newV, oldV) {},
                 deep : true,
                 immediate : true
             }
@@ -210,35 +222,6 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                     this.clickReceiveFile()
                 }
             },
-            //生成下载标签
-            genDownUrlTableDom : function(id, domA, fileType, fileSize){
-                let tr = document.createElement("tr");
-                let thDom_id = document.createElement("td");
-                let span_id = document.createElement("span");
-                span_id.innerText = id;
-                thDom_id.appendChild(span_id);
-    
-                let thDom_fileName = document.createElement("td");
-                let span_fileName = document.createElement("span");
-                span_fileName.appendChild(domA);
-                thDom_fileName.appendChild(span_fileName);
-    
-                let thDom_fileType = document.createElement("td");
-                let span_fileType = document.createElement("span");
-                span_fileType.innerText = fileType;
-                thDom_fileType.appendChild(span_fileType);
-    
-                let thDom_fileSize = document.createElement("td");
-                let span_fileSize = document.createElement("span");
-                span_fileSize.innerText = this.getFileSizeStr(fileSize);
-                thDom_fileSize.appendChild(span_fileSize);
-    
-                tr.appendChild(thDom_id);
-                tr.appendChild(thDom_fileName);
-                tr.appendChild(thDom_fileType);
-                tr.appendChild(thDom_fileSize);
-                this.$refs['files'].appendChild(tr);
-            },
             //文件大小
             getFileSizeStr : function (size){
                 let sizeStr = (size/1048576).toString();
@@ -248,14 +231,6 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                     tail = sizeStr.split(".")[1].substr(0,3);
                 }
                 return head + '.' + tail + "M";
-            },
-            //文件进度
-            getFileSizePercent : function (offset, size){
-                if(size === 0) return 0;
-                let percent = (offset / size) * 100;
-                let percentStr = percent.toString();
-                let head = percentStr.split(".")[0];
-                return head;
             },
             //点击下载文件
             clickReceiveFile : function(){
@@ -283,14 +258,6 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                 }else{
                     this.numLogs = 150;
                 }
-            },
-            //点击更换背景色
-            clickToolBg : function(){
-                this.tool_bg = !this.tool_bg;
-            },
-            //点击切换tab
-            changeMenu : function(index){
-                this.menu = index;
             },
             //创建房间
             createRoom : function () {
@@ -323,33 +290,8 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                     rtcConnect.close();
                     rtcConnect = null;
                 }
-                this.resetData();
-            },
-            //推出后重置数据
-            resetData : function(){
-                this.isJoined = false;
-                this.showReceiveFile = false;
-                this.showSendFile = false;
-                this.numSendFile= 150;
-                this.numReceiveFile = 150;
-                this.tool_bg = false;
-                this.currentMenu = 1;
-                
-                this.nickName = "";
-                this.socketId = 0; //本人的id
-                this.roomId = "10086"; //房间号
-                this.fileReader = null;
-                this.rtcConns = {}; //远程连接
-                this.remoteMap = {}; //远程连接map
-    
-                this.chunkSize = 16 * 1024; //一块16kb字节
-                this.offset = 0;
-                this.fileName = null;
-                this.allSended = false;//当前文件是否全部发送给房间内所有用户
-                this.allReceiveSize = 0;
-                this.currentSendingId = ""; //当前正在发送的文件
-                this.chooseFile = null;  //选择的文件
-                this.sendFileList = [];
+
+                window.location.reload();
             },
             //获取rtc缓存连接
             getRtcConnect : function(id){
@@ -512,12 +454,24 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
     
                         sendChannel.send(event.target.result);
                         this.offset += event.target.result.byteLength;
+                        let currentSendFile = this.offset;
+                        
+                        //更新发送进度
+                        this.updateSendProcess(needSendingId, {
+                            process : parseInt((currentSendFile/this.chooseFile.size)*100)
+                        })
     
-                        //接受完一份重置相关数据 并且开启下一个
+                        //发送完一份重置相关数据 并且开启下一个
                         if(this.offset === this.chooseFile.size){
                             console.log(needSendingId+"发送完毕");
                             this.addPopup("正在发送给"+needSendingId.substr(0,4)+",100%。");
                             this.logs.push("正在发送给"+needSendingId.substr(0,4)+",100%。")
+
+                            //更新发送进度
+                            this.updateSendProcess(needSendingId, {
+                                done : true
+                            })
+
                             this.offset = 0;
                             this.setRemoteInfo(needSendingId,{status : 2})
                             this.submitChooseFile();
@@ -587,26 +541,31 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                 this.$refs['receiveProgress'].value = receivedSize;
     
                 this.setRemoteInfo(id,{receiveBuffer : receiveBuffer,receivedSize : receivedSize})
-                this.allReceiveSize += event.data.byteLength;
+                this.currentReceiveSize += event.data.byteLength;
     
                 //收到分片后反馈ack
-                this.receivedAck(id,receivedSize);
+                this.receivedAck(id, receivedSize);
+
+                //更新接收进度
+                this.updateReceiveProcess(id, {
+                    process : parseInt((receivedSize/size)*100)
+                });
     
                 if(receivedSize === size){
                     console.log("接收完毕");
                     this.logs.push("接收完毕...");
                     this.$refs['receiveProgress'].value = 0;
                     this.addPopup("文件[ "+name+" ]接收完毕，可点击右下角查看。");
-                    const received = new Blob(receiveBuffer);
-                    //下载标签
-                    let a = document.createElement("a");
-                    a.href = URL.createObjectURL(received,{type: type});
-                    a.download = name;
-                    a.innerHTML = name;
-                    a.style="color: #ff5722;text-decoration: underline;";
-                    this.genDownUrlTableDom(id, a, type, size);
+                    
+                    //更新接收进度
+                    this.updateReceiveProcess(id, {
+                        style : 'color: #ff5722;text-decoration: underline;',
+                        href : URL.createObjectURL(new Blob(receiveBuffer),{type: type}),
+                        done : true
+                    });
                     //清除接收的数据缓存
                     this.setRemoteInfo(id,{receiveBuffer : [], receivedSize : 0})
+                    this.currentReceiveSize = 0;
                 }
             },
             //关闭连接
@@ -623,14 +582,32 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
                 }
             },
             //设置rtc缓存远程连接数据
-            setRemoteInfo(id,data){
+            setRemoteInfo(id, data){
                 if(!id || !data){
                     return;
                 }
                 let oldData = this.remoteMap[id];
                 if(oldData){
                     Object.assign(oldData,data);
-                    Vue.set(this.remoteMap,id,oldData);
+                    Vue.set(this.remoteMap, id, oldData);
+                }
+            },
+            //更新接收进度
+            updateReceiveProcess : function (id, data) {
+                for(let i = 0; i < this.receiveFileList.length; i++){
+                    let item = this.receiveFileList[i];
+                    if(item.id === id && !item.done){
+                        Object.assign(this.receiveFileList[i], data);
+                    }
+                }
+            },
+            //更新发送进度
+            updateSendProcess : function (id, data) {
+                for(let i = 0; i < this.sendFileList.length; i++){
+                    let item = this.sendFileList[i];
+                    if(item.id === id && !item.done){
+                        Object.assign(this.sendFileList[i], data);
+                    }
                 }
             },
             //获取rtc缓存远程连接数据
@@ -766,12 +743,21 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
     
                 //选中文件时发送给接收方
                 this.socket.on('sendFileInfo', function (data) {
-                    console.log('sendFileInfo ',data)
                     let fromId = data.from;
                     that.setRemoteInfo(fromId,{receiveFiles : data});
                     that.addPopup(data.from+"选择了文件 [ "+data.name+" ]，即将发送。");
                     that.logs.push(data.from+"选择了文件 [ "+data.name+" ]，即将发送。");
                     that.$refs['receiveProgress'].max = data.size;
+
+                    that.receiveFileList.push({
+                        id : fromId,
+                        href : "",
+                        name : data.name,
+                        type : data.type,
+                        size : data.size,
+                        process : 0,
+                        done : false
+                    })
                 });
     
                 //收到文件回传ack，继续分片回传
@@ -822,7 +808,9 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
             reCaculateSwiperSize : function () {
                 let clientWidth = document.body.clientWidth;
                 let slidesPerView = parseInt((clientWidth / 100))-1;
-                window.swiper.params.slidesPerView = slidesPerView;
+                if(window.swiper){
+                    window.swiper.params.slidesPerView = slidesPerView;
+                }
             },
             touchResize : function() {
                 let that = this;
@@ -835,9 +823,9 @@ axios.get("/api/comm/initData",{}).then((initData)=>{
         },
         created : function () {
             let that = this;
-            if(window.location.search && window.location.search.includes("debug")){
-                this.loadJS('js/vconsole.min.js',function(){
-                    that.loadJS('js/vconsole.js',function(){
+            if(window.location.hash && window.location.hash.includes("debug")){
+                this.loadJS('/static/js/vconsole.min.js',function(){
+                    that.loadJS('/static/js/vconsole.js',function(){
                         console.log("load vconsole success")
                     });
                 });

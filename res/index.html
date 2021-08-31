@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>tlp2p</title>
+    <title>tl-rtc-file</title>
 
     <link rel="stylesheet" href="https://www.layuicdn.com/layui/css/layui.css" media="all">
-    <link rel="stylesheet" href="css/index.min.css" media="all">
-    <link rel="stylesheet" href="css/comm.min.css" media="all">
-    <link rel="stylesheet" href="css/swiper-bundle.min.css" media="all">
-    <script type="text/javascript" src="js/swiper-bundle.min.js"></script>
-    <script type="text/javascript" src="js/socket.io.js"></script>
-    <script type="text/javascript" src="js/vue.min.js"></script>
-    <script type="text/javascript" src="js/axios.js"></script>
+    <link rel="stylesheet" href="/css/index.min.css" media="all">
+    <link rel="stylesheet" href="/css/comm.min.css" media="all">
+    <link rel="stylesheet" href="/static/css/swiper-bundle.min.css" media="all">
+    <script type="text/javascript" src="/static/js/swiper-bundle.min.js"></script>
+    <script type="text/javascript" src="/static/js/socket.io.js"></script>
+    <script type="text/javascript" src="/static/js/vue.min.js"></script>
+    <script type="text/javascript" src="/static/js/axios.js"></script>
     <script>
         window.Bus = new Vue({});
+        window.prefix = "";
     </script>
 </head>
 <body>
@@ -87,14 +88,14 @@
             <div class="noSendFile" v-show="!sendFileList || sendFileList.length === 0"></div>
         </div>
 
-        <div class="maskBottom" @click="clickSendFile"  :style="{top: numSendFile + '%'}">
+        <div class="maskBottom" @click="clickSendFile"  :style="{top: numSendFile + '%'}" >
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
                     <div class="layui-card-header">发送的文件</div>
                     <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
                         <table class="layui-table">
                             <thead>
-                                <tr><th>用户名ID</th><th>名称</th><th>格式</th><th>大小</th></tr> 
+                                <tr><th>用户名ID</th><th>名称</th><th>格式</th><th>大小</th><th>发送进度</th></tr> 
                             </thead>
                             <tbody ref="files">
                                 <tr v-for="file in sendFileList">
@@ -102,6 +103,7 @@
                                     <td><span>{{file.name}}</span></td>
                                     <td><span>{{file.type}}</span></td>
                                     <td><span>{{getFileSizeStr(file.size)}}</span></td>
+                                    <td><span>{{file.process}}%</span></td>
                                 </tr>
                                 <div style="display: flex;padding:5px;">
                                     <span style="word-break: keep-all;font-size: 12px;">进度：</span>
@@ -121,12 +123,20 @@
                     <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
                         <table class="layui-table">
                             <thead>
-                                <tr><th>用户名ID</th><th>文件名称</th><th>文件格式</th><th>文件大小</th></tr> 
+                                <tr><th>用户名ID</th><th>文件名称</th><th>文件格式</th><th>文件大小</th><th>接收进度</th></tr> 
                             </thead>
                             <tbody ref="files">
+                                <tr v-for="file in receiveFileList">
+                                    <td><span>{{file.id}}</span></td>
+                                    <td v-if="file.href === ''"><span :style="file.style">{{file.name}}</span></td>
+                                    <td v-else><a :href="file.href" :download="file.name" :style="file.style">{{file.name}}</a></td>
+                                    <td><span>{{file.type}}</span></td>
+                                    <td><span>{{getFileSizeStr(file.size)}}</span></td>
+                                    <td><span>{{file.process}}%</span></td>
+                                </tr>
                                 <div style="display: flex;padding:5px;">
                                     <span style="word-break: keep-all;font-size: 12px;">进度：</span>
-                                    <progress ref="receiveProgress" :value="offset" max="0" style="width: 100%;margin: auto;"></progress>
+                                    <progress ref="receiveProgress" :value="currentReceiveSize" max="0" style="width: 100%;margin: auto;"></progress>
                                 </div>
                             </tbody>
                         </table>
@@ -149,10 +159,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- <div id="canvasPannel">
-            <iframe frameborder="0" scrolling="no" src="./room.html" width="100%" height="200px"></iframe>
-        </div> -->
 
         <div class="userRoom swiper-container">
             <div class="swiper-wrapper">
@@ -212,7 +218,7 @@
     </div>
 
 
-    <script type="text/javascript" src="js/index.min.js"></script>
+    <script type="text/javascript" src="/js/index.min.js"></script>
     <script src="https://www.layuicdn.com/layui/layui.js"></script>
     <script>
         setTimeout(()=>{
@@ -233,7 +239,11 @@
             window.swiper = mySwiper;
         },1000)
         
-        layui.config({}).extend({}).use(['form','layer'],function(){
+        layui.config({
+            // base: '/lay/dist/layuiadmin/' //静态资源所在路径
+        }).extend({
+            // index: 'lib/index' //主入口模块
+        }).use(['form','layer'],function(){
             layer.open({
                 type: 1
                 ,title: false
