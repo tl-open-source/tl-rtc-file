@@ -1,12 +1,12 @@
 # tl-rtc-file
 
 #### 简介 : （tl webrtc datachannel filetools）用webrt在web端传输文件，支持传输超大文件。
-#### 优点 ： 分片传输，跨终端，不限平台，方便使用，支持私有部署
+#### 优点 ： 分片传输，跨终端，不限平台，方便使用，内网不限速，支持私有部署
 
 
 ## 准备
 
-    电脑安装好node，npm后进入项目目录
+    安装node，npm后进入项目目录
     
     npm install
 
@@ -16,9 +16,9 @@
 
 ## 测试环境 
 
-    本地局域网启动file-res : npm run dev
+    本地启动file-res : npm run dev
 
-    本地局域网启动file-socket : npm run devsocket
+    本地启动file-socket : npm run devsocket
 
 ## 线上环境 （需要配置wss）
 
@@ -54,4 +54,6 @@
 
     cd build/webpack 
 
-    npm run build 保持后台开启即可
+    npm run dev 保持后台开启即可
+
+    npm run pro 打包生产环境min
