@@ -2,7 +2,7 @@
 
 #### 简介 : （tl webrtc datachannel filetools）用webrt在web端传输文件，支持传输超大文件。
 #### 优点 ： 分片传输，跨终端，不限平台，方便使用，内网不限速，支持私有部署
-
+#### 体验 ： https://im.iamtsm.cn/file
 
 ## 准备
 
