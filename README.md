@@ -14,6 +14,13 @@
 
     安装一些依赖 : npm install
 
+
+    修改res目录, 保持后台开启即可
+
+    npm run dev 打包开发环境min
+
+    npm run pro 打包生产环境min
+
 ## 测试环境 
 
     本地启动file-res : npm run dev
@@ -48,12 +55,3 @@
     3. chomd +x bin/genTurnUser.sh && ./genTurnUser.sh     #文件内容按需修改
 
     4. chomd +x bin/startTurnServer.sh && ./startTurnServer.sh     #启动turnserver，文件内容按需修改
-
-
-## 需要自行修改res目录
-
-    cd build/webpack 
-
-    npm run dev 保持后台开启即可
-
-    npm run pro 打包生产环境min
