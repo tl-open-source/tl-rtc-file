@@ -55,3 +55,8 @@
     3. chomd +x bin/genTurnUser.sh && ./genTurnUser.sh     #文件内容按需修改
 
     4. chomd +x bin/startTurnServer.sh && ./startTurnServer.sh     #启动turnserver，文件内容按需修改
+
+
+## 概述图
+
+![image](doc/tl-rtc-file-tool.jpg)
