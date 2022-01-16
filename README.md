@@ -1,10 +1,10 @@
 # tl-rtc-file-tool
 
-![](https://img.shields.io/badge/webrtc-p2p-blue)
-![](https://img.shields.io/badge/code-simple-green)
-![](https://img.shields.io/badge/large%20file-support-green)
-![](https://img.shields.io/badge/deployment-private-yellow)
-![](https://img.shields.io/badge/platform-unlimited-coral)
+[![](https://img.shields.io/badge/webrtc-p2p-blue)](https://webrtc.org.cn/)
+[![](https://img.shields.io/badge/code-simple-green)](https://github.com/iamtsm/tl-rtc-file/)
+[![](https://img.shields.io/badge/large%20file-support-green)](https://github.com/iamtsm/tl-rtc-file/)
+[![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
+[![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
 
 
 #### demo ： https://im.iamtsm.cn/file
