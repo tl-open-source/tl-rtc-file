@@ -16,7 +16,7 @@
 #### 体验 ： https://im.iamtsm.cn/file
 
 
-<video src="https://qnproxy.iamtsm.cn/tl-rtc-file-democ.mp4" controls="controls" width="500" height="300">您的浏览器不支持播放该视频！</video>
+![image](tl-rtc-file-demo.gif)
 
 ## 准备
 
