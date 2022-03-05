@@ -5,10 +5,13 @@
 [![](https://img.shields.io/badge/large%20file-support-green)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
-
+![GitHub Stars](https://img.shields.io/github/stars/iamtsm/tl-rtc-file)
+![Github Forks](https://img.shields.io/github/forks/iamtsm/tl-rtc-file)
 
 #### demo ： https://im.iamtsm.cn/file
 
+
+![image](doc/tl-rtc-file-demo.gif)
 
 ## Table of Contents
 

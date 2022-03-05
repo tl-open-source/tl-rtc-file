@@ -5,12 +5,18 @@
 [![](https://img.shields.io/badge/large%20file-support-green)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
+![GitHub Stars](https://img.shields.io/github/stars/iamtsm/tl-rtc-file)
+![Github Forks](https://img.shields.io/github/forks/iamtsm/tl-rtc-file)
+
 
 #### 背景 ： 20年毕设的题目相关整理出来的
 #### 简介 : （tl webrtc datachannel filetools）用webrt在web端传输文件，支持传输超大文件。
 #### 优点 ： 分片传输，跨终端，不限平台，方便使用，内网不限速，支持私有部署
 
 #### 体验 ： https://im.iamtsm.cn/file
+
+
+![image](tl-rtc-file-demo.gif)
 
 ## 准备
 
