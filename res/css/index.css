@@ -212,9 +212,6 @@ body{
 #fileApp #self button{
     margin-bottom: 10px;
 }
-
-
-
 .sendFileBtn {
     margin-left: 30%;
     color: #0d1322;
@@ -241,12 +238,35 @@ body{
     user-select: none;
     transition: all .2s ease;
 }
+.sendFileBtn-disable {
+    margin-left: 30%;
+    border: 0;
+    padding: 0 25px;
+    outline: none;
+    width: 40%;
+    border-radius: 25px;
+    font-size: 1.4rem;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    -ms-flex-align: center;
+    align-items: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    height: 50px;
+    line-height: 50px;
+    cursor: pointer;
+    box-shadow: 0 0px 20px rgba(0,0,0,.4);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 .sendFileBtn:hover{
     box-shadow: 0 8px 35px rgba(0,0,0,.4);
     transition: all .2s ease;
     -webkit-tap-highlight-color: rgba(4,32,23,.2);
 }
-
 
 /* 480px以下 */
 @media screen and (max-width: 480px) {
@@ -263,9 +283,6 @@ body{
         margin-top: 20px;
         margin-left: 0;
     }
-    .sendFilePannel{
-        /* margin-top: 15%; */
-    }
 }
 /* 500px以下 */
 @media screen and (max-width: 500px) {
@@ -276,35 +293,31 @@ body{
 }
 /* 480px到765px */
 @media screen and (min-width: 480px) and (max-width: 765px) {
-    /* .sendFilePannel{
-        margin-top: 10%;
-    } */
 }
 
 /* 765px以上 */
 @media screen and (min-width: 765px) {
-    .sendFilePannel{
-        /* margin-top: 25%; */
-    }
+
 }
 /* 765px到1000px */
 @media screen and (min-width: 765px) and (max-width: 775px) {
-    .sendFilePannel{
-        /* margin-top: 24%; */
-    }
 }
+
 @media screen and (min-width: 1000px) {
-    .sendFilePannel{
-        /* margin-top: 20%; */
-    }
 }
 
 .tool{
     position: absolute;
-    right: 5px;
+    right: 10px;
     float: right;
-    top: 10px;
+    top: 40%;
+    display: grid;
 }
+
+.tool a{
+    margin-top: 10px;
+}
+
 .tool svg{
     width: 30px;
     height: 30px;
@@ -326,13 +339,14 @@ body{
 }
 
 .chooseFileName {
-    margin-top: 10px;
     word-break: break-all;
-    margin-bottom: 10px;
     padding: 7px 3px 7px 3px;
     background: rgb(255, 180, 87);
-    box-shadow: 0 0px 20px rgba(0,0,0,.4);
     border-radius: 6px;
+    display: grid;
+    margin: 10px auto;
+    margin-top: 20px;
+    transition: all 1s;
 }
 .remoteId{
     width: 63px;
