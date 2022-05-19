@@ -5,96 +5,85 @@
 [![](https://img.shields.io/badge/large%20file-support-green)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
-![GitHub Stars](https://img.shields.io/github/stars/iamtsm/tl-rtc-file)
-![Github Forks](https://img.shields.io/github/forks/iamtsm/tl-rtc-file)
 
-#### demo ： https://im.iamtsm.cn/file
+
+#### 背景 ： 20年毕设的题目相关整理出来的
+#### 简介 : （tl webrtc datachannel filetools）用webrt在web端传输文件，支持传输超大文件。
+#### 优点 ： 分片传输，跨终端，不限平台，方便使用，内网不限速，支持私有部署
+
+#### 体验 ： https://im.iamtsm.cn/file
+
 
 ![image](doc/tl-rtc-file-demo.gif)
 
-## Table of Contents
+## 准备
 
-- [Prepare](#Prepare)
+    安装node，npm后进入项目目录
+    
+    npm install
 
-- [Debug](#Debug)
+    进入build目录 : cd build/webpack/  
 
-- [Production](#Production)
-
-- [Database-Configuration](#Database-Configuration)
-
-- [Wss-Configuration](#Wss-Configuration)
-
-- [TurnServer-Configuration](#TurnServer-Configuration)
-
-- [Overview](#Overview)
-
-- [中文说明](#Chinese)
-
-### Prepare
-
-Before this you need to install `node` and `npm`。
-
-If already installed `node` and `npm`, enter the project directory and execute  `npm install`, enter the build directory to install node dependencies `npm install`。
-
-If you want to modify the web resource code, keep webpack running in the background。
-
-debug environment uses `npm run dev`
-
-production environment uses `npm run pro`
-
-### Debug 
-
-debugging environment starts the web `npm run dev`
-
-debugging environment starts the file socket `npm run devsocket`
-
-### Production
-
-##### If you want to deploy in a public network environment, you need to configure wss
-
-Production environment starts the web `npm run svr`
-
-Production environment starts the file socket `npm run svrsocket`
+    安装一些依赖 : npm install
 
 
-### Database-Configuration
+    修改res目录, 保持后台开启即可
 
-If you want to configure open database related, you can modify the configuration in conf/cfg.json。`open, dbName, host, port, user, pwd ...`
+    npm run dev 打包开发环境min
 
+    npm run pro 打包生产环境min
 
-### Wss-Configuration
+## 测试环境 
 
-If you want to configure open database related, you can modify the configuration ws in conf/cfg.json。`port, ws_online ...`
+    本地启动file-res : npm run dev
 
+    本地启动file-socket : npm run devsocket
 
-### TurnServer-Configuration 
+## 线上环境 （需要配置wss）
 
-1. install coturn ( ubuntu )
+    公网环境启动file-res : npm run svr 
 
-        sudo apt-get install coturn
-
-2. modify conf/turn/turnserver.conf and execute
-
-        cp conf/turn/turnserver.conf /etc/turnserver.conf
-
-3. modify bin/genTurnUser.sh and execute
-
-        chomd +x bin/genTurnUser.sh && ./genTurnUser.sh 
-
-4. modify bin/startTurnServer.sh and execute
-
-        chomd +x bin/startTurnServer.sh
-
-5. start turn server
-
-        ./startTurnServer.sh 
+    公网环境启动file-socket : npm run svrsocket
 
 
-### Overview
+## 配置db
+
+    修改conf/cfg.json中相应db配置即可, 如open, dbName, host, port, user, pwd 等
+
+
+## 配置wss
+
+    修改conf/cfg.json中相应ws配置即可，如port, ws_online等
+
+
+## 配置turnserver （私有部署）
+
+    ubuntu:
+
+    1. sudo apt-get install coturn  #安装coturn 
+
+    2. cp conf/turn/turnserver.conf /etc/turnserver.conf    #修改配置文件, 文件内容按需修改
+
+    3. chomd +x bin/genTurnUser.sh && ./genTurnUser.sh     #文件内容按需修改
+
+    4. chomd +x bin/startTurnServer.sh && ./startTurnServer.sh     #启动turnserver，文件内容按需修改
+
+
+## 概述图
 
 ![image](doc/tl-rtc-file-tool.jpg)
 
 
-### Chinese
+## 引用致谢
 
-[中文说明](doc/README_ZN.md)
+### [scroxt](https://github.com/chenjianfang/scroxt)
+
+### [layui](https://github.com/layui/layui)
+
+### [webpack](https://github.com/webpack/webpack)
+
+### [swiper](https://github.com/nolimits4web/swiper)
+
+## License
+
+### Apache License 2.0
