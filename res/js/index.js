@@ -124,6 +124,13 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
             }
         },
         methods : {
+            refleshRoom : function(){
+                if(!this.createDisabled){
+                    this.roomId = parseInt(Math.random() * 100000);
+                    this.addPopup("你刷新了房间号, 当前房间号为 "+this.roomId);
+                    this.logs.push("你刷新了房间号, 当前房间号为 "+this.roomId);
+                }
+            },
             genNickName : function () {
                 // 获取指定范围内的随机数
                 function randomAccess(min,max){
@@ -161,6 +168,10 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
             },
             clickChooseFile : function(){
                 this.$refs['self-file'].click();
+                if(!this.createDisabled){
+                    this.addPopup("请先创建/加入房间后，再选择文件");
+                    this.logs.push("请先创建/加入房间后，再选择文件");
+                }
             },
             clickHome : function(show = true){
                 this.currentMenu = 1;
@@ -171,6 +182,7 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
                 let box = active.getBoundingClientRect();
     
                 body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector(".chooseFileName").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 offsetMenuBorder (box, menuBorder);
                 
                 function offsetMenuBorder(box, menuBorder) {
@@ -191,6 +203,7 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
                 let box = active.getBoundingClientRect();
     
                 body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector(".chooseFileName").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 offsetMenuBorder (box, menuBorder);
                 
                 function offsetMenuBorder(box, menuBorder) {
