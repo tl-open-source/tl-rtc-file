@@ -13,6 +13,7 @@
 
 #### 体验 ： https://im.iamtsm.cn/file
 
+**qq交流群 : 624214498**
 
 ![image](doc/tl-rtc-file-demo.gif)
 
