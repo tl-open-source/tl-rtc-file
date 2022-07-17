@@ -29,13 +29,14 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
                 fileReader : null, //文件读取对象
                 rtcConns : {}, //远程连接
                 remoteMap : {}, //远程连接map
+                allManCount : 0,//在线人数
     
                 chunkSize : 256 * 1024, //一块256kb
                 offset : 0, //当前文件分片位移
                 fileName : null, //文件名称
                 allSended : false,//当前文件是否全部发送给房间内所有用户
                 currentReceiveSize : 0, //统计收到文件的大小
-                currentSendingId : "", //当前正在发送的文件
+                hasSending : "", //是否有正在发送的文件
                 chooseFile : null,  //选择的文件
                 sendFileList : [], //发过文件的列表
                 receiveFileList : [], //接收文件的列表
@@ -49,14 +50,26 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
             exsitDisabled : function(){
                 return !this.isJoined;
             },
+            sending : function(){
+                return this.hasSending;
+            },
             uploadDisabled : function(){
                 return !this.fileName || this.allSended;
             },
             showSendFileList : function() {
                 return this.sendFileList && this.sendFileList.length > 5;
+            },
+            noOthersInRoom : function(){
+                return Object.keys(this.remoteMap).length === 0;
             }
         },
         watch : {
+            allManCount : function(newV,oldV){
+
+            },
+            hasSending : function(newV,oldV){
+
+            },
             currentMenu :function(newV,oldV){
                 
             },
@@ -438,6 +451,8 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
                         }
                     }
                     if(hasAllSended){ //全部发送完毕
+                        this.allSended = true;
+                        this.hasSending = false
                         return;
                     }
                     for(let id in this.remoteMap){ //还有还没发送的
@@ -452,6 +467,7 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
     
                 
                 if(needSendingId != ''){
+                    this.hasSending = true
                     let remote = this.remoteMap[needSendingId];
                     let status = remote.status  || 0;
                     if(status === 1){ //保证同一时间只能发送房间内对应的一个用户
@@ -782,6 +798,12 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
                         }
                     }
                 });
+
+                //在线数量
+                this.socket.on('count', function (data) {
+                    that.allManCount = data.mc;
+                });
+
             },
             initCss : function(e){
                 if(!e) return;

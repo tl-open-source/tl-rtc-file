@@ -69,7 +69,15 @@
 
     4. chomd +x bin/startTurnServer.sh && ./startTurnServer.sh     #启动turnserver，文件内容按需修改
 
+## Docker
 
+    修改conf/cfg.json中的ws_online的ip地址（有更好的办法可以反馈下）
+
+    docker build -t iamtsm/tl-rtc-file .
+
+    docker run -p 9092:9092 -p 8444:8444 --name local -d iamtsm/tl-rtc-file
+
+    访问 : http://localhost:9092 或者 http://本机ip:9092
 ## 概述图
 
 ![image](doc/tl-rtc-file-tool.jpg)

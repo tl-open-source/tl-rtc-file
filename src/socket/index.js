@@ -133,6 +133,11 @@ function listen(io) {
         socket.on('catchError', function (err) {
             console.log('err : ', err)
         })
+        
+
+        socket.on('count', function (message) {
+            handler._count(message,{})
+        })
 
 
         socket.on('message', function (message) {

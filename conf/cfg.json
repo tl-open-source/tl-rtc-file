@@ -2,7 +2,7 @@
     "ws" : {
          "port": 8444,
          "ssl_port": 8444,
-         "ws_online": "your online socket ip/host like wss://xxx.xxx.xxx, if just local test, dont need"
+         "ws_online": "ws://本机ip:8444"
     },
     "node" : {
           "port" : 9092

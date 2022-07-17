@@ -5,12 +5,10 @@ const webrtcConf = conf.webrtc;
 
 //获取ip地址,初始化等相关配置
 function initData(req,res) {
-     let localIp = utils.getLocalIP();
-     let clientIp = utils.getClientIP(req);
-     let isLocal = clientIp === '1';
+     let localIp = utils.getClientIP(req);
 
      let data = {
-          wsHost : isLocal ? "ws://"+localIp+":"+wsConf.port  : wsConf.ws_online,
+          wsHost : wsConf.ws_online ? wsConf.ws_online : "ws://"+localIp+":"+wsConf.port,
           rtcConfig : {iceServers : webrtcConf.iceServers} ,
           options : webrtcConf.options
      };

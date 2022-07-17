@@ -25,6 +25,8 @@
         <iframe frameborder="0" scrolling="no" src="./vertical.html" width="100%" height="30px"></iframe>
     </div>
 
+
+
     <div id="fileApp" v-cloak>
         <div class="tool">
             <a title="github" href="https://github.com/iamtsm" target="_blank">
@@ -44,9 +46,16 @@
                 </svg>
             </a>
         </div>
+        
 
         <div style="text-align: center;font-size: 20px;color: beige;">注 : 仅用于学习用途, 请勿他用</div>
-        <div class="roomClass" >
+        <div style="text-align: center;font-size: 15px;color: beige;margin-bottom: 5px;margin-top: 8px;">qq交流群 : <a target="_blank" href="https://jq.qq.com/?_wv=1027&k=TKCwMBjN">624214498</a> </div>
+        <div style="text-align: center;font-size: 12px;color: beige;margin-bottom: 5px;margin-top: 8px;">
+            <svg style="width: 13px;height: 8px;" viewBox="0 0 1024 1024" p-id="4241" width="128" height="128">
+                <path d="M512 277.333333a234.666667 234.666667 0 1 0 0 469.333334 234.666667 234.666667 0 0 0 0-469.333334z" p-id="4242" fill="#1afa29"></path>
+            </svg>
+            当前在线人数 : {{allManCount}}
+        </div>        <div class="roomClass" >
             <input :disabled="createDisabled" :class="[{'layui-btn-disabled':createDisabled}]" type="text" name="title" maxlength="15" autocomplete="off" class="layui-input cusInput" v-model="roomId" placeholder="输入房间编号">
             <i title="随机刷新房间号" v-show="!createDisabled" @click="refleshRoom()" class="layui-icon layui-icon-refresh" style="cursor: pointer; left: 85%;position: absolute;font-size: 24px;margin-top: -40px;"></i>
             <div class="layui-btn-container center">
@@ -58,21 +67,21 @@
         <div class="layui-col-sm6 layui-col-md3" id="self">
             <input type="file" ref="self-file" v-model="fileName" v-show="false">
 
-            <button class="sendFileBtn-disable layui-btn-disabled" @click="clickChooseFile" v-show="uploadDisabled && !createDisabled" disabled>
+            <button class="sendFileBtn-disable layui-btn-disabled" @click="clickChooseFile" v-show="(uploadDisabled && !createDisabled) || noOthersInRoom || sending" disabled>
                 <svg viewBox="0 0 1024 1024" style="width: 30px;height: 30px;margin-left: -8px;margin-right: 10px;">
                     <path d="M840.65 540.62h-655.9c-12.18 0-22.05-9.87-22.05-22.05v-5.9c0-12.18 9.87-22.05 22.05-22.05h655.9c12.18 0 22.05 9.87 22.05 22.05v5.9c0 12.18-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1269"></path>
                     <path d="M517.69 863.19h-5.9c-12.18 0-22.05-9.87-22.05-22.05v-655.9c0-12.18 9.87-22.05 22.05-22.05h5.9c12.18 0 22.05 9.87 22.05 22.05v655.9c0 12.17-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1270"></path>
                 </svg>
                 <div style="font-size: 14px;word-break: keep-all;" >选择文件</div>
             </button>
-            <button class="sendFileBtn" @click="clickChooseFile" v-show="uploadDisabled && createDisabled">
+            <button class="sendFileBtn" @click="clickChooseFile" v-show="uploadDisabled && createDisabled && !noOthersInRoom && !sending">
                 <svg viewBox="0 0 1024 1024" style="width: 30px;height: 30px;margin-left: -8px;margin-right: 10px;">
                     <path d="M840.65 540.62h-655.9c-12.18 0-22.05-9.87-22.05-22.05v-5.9c0-12.18 9.87-22.05 22.05-22.05h655.9c12.18 0 22.05 9.87 22.05 22.05v5.9c0 12.18-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1269"></path>
                     <path d="M517.69 863.19h-5.9c-12.18 0-22.05-9.87-22.05-22.05v-655.9c0-12.18 9.87-22.05 22.05-22.05h5.9c12.18 0 22.05 9.87 22.05 22.05v655.9c0 12.17-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1270"></path>
                 </svg>
                 <div style="font-size: 14px;word-break: keep-all;" >选择文件</div>
             </button>
-            <button class="sendFileBtn" style="background-color: #79b0e8;" @click="submitChooseFile" v-show="!uploadDisabled">
+            <button class="sendFileBtn" style="background-color: #79b0e8;" @click="submitChooseFile" v-show="!uploadDisabled && !sending">
                 <svg viewBox="0 0 1024 1024" style="width: 30px;height: 25px;margin-left: -8px;margin-right: 10px;">
                     <path d="M341.333333 277.333333l115.2-115.2c8.533333-8.533333 17.066667-12.8 29.866667-17.066666v473.6c0 17.066667 12.8 29.866667 25.6 29.866666s25.6-12.8 25.6-29.866666V140.8c8.533333 4.266667 21.333333 8.533333 29.866667 17.066667L682.666667 277.333333c4.266667 4.266667 12.8 8.533333 21.333333 8.533334s12.8-4.266667 21.333333-8.533334c12.8-12.8 12.8-29.866667 0-38.4l-115.2-115.2C554.666667 68.266667 469.333333 68.266667 418.133333 119.466667L302.933333 234.666667c-12.8 12.8-12.8 29.866667 0 38.4s25.6 12.8 38.4 4.266666z" fill="#191A1A" p-id="2860"></path>
                     <path d="M738.133333 435.2h-72.533333c-17.066667 0-29.866667 12.8-29.866667 25.6s12.8 25.6 29.866667 25.6h72.533333c42.666667 0 76.8 34.133333 76.8 76.8V810.666667c0 42.666667-34.133333 76.8-76.8 76.8H285.866667c-42.666667 0-76.8-34.133333-76.8-76.8v-243.2c0-42.666667 34.133333-76.8 76.8-76.8h72.533333c17.066667 0 25.6-12.8 25.6-25.6s-12.8-25.6-25.6-25.6H285.866667c-72.533333 0-132.266667 59.733333-132.266667 132.266666V810.666667c0 72.533333 59.733333 132.266667 132.266667 132.266666h456.533333c72.533333 0 132.266667-59.733333 132.266667-132.266666v-243.2c0-72.533333-59.733333-132.266667-136.533334-132.266667z" fill="#191A1A" p-id="2861"></path>

@@ -7,6 +7,39 @@ class SocketHandler {
         this.socket = socket;
     }
 
+    /**
+     * 数量
+     * @param {*} message 
+     * @param {*} params 
+     */
+     _count( message, params){
+        try{
+            let allRoom = this.sockets.adapter.rooms;
+            let allManCount = 0;
+    
+            for(let room in allRoom){
+                let clientsInRoom = allRoom[room];
+                let otherSocketIds = Object.keys(clientsInRoom.sockets);
+                let numClients = clientsInRoom ? otherSocketIds.length : 0;
+                allManCount += numClients;
+            }
+    
+            for(let room in allRoom){
+                let clientsInRoom = allRoom[room];
+                let otherSocketIds = Object.keys(clientsInRoom.sockets);
+                if( otherSocketIds.length > 0){
+                    for (let i = 0; i < otherSocketIds.length; i++) {
+                        let otherSocket = this.sockets.connected[otherSocketIds[i]];
+                        otherSocket.emit("count", {
+                            mc : allManCount
+                        });
+                    }
+                }
+            }
+        }catch(e){
+           console.log(e)
+        }
+    }
 
     /**
      * 链接断开
@@ -19,6 +52,7 @@ class SocketHandler {
           from : socketId,
         };
         this.socket.broadcast.emit('exit',data);
+        this._count(message, params)
     }
 
     /**
@@ -68,6 +102,7 @@ class SocketHandler {
             Object.assign(createdData,params['created'])
             this.socket.emit('created', createdData);
         }
+        this._count(message, params)
     }
 
 
@@ -133,6 +168,7 @@ class SocketHandler {
                 otherSocket.emit('exit', message);
             }
         }
+        this._count(message, params)
     }
 
 
