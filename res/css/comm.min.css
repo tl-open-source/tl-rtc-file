@@ -1,0 +1,88 @@
+
+[v-cloak]{
+    visibility: hidden !important; /*防止被覆盖*/
+}
+
+/* svg主题 */
+.svg_black{
+    width: 22px;
+    height: 22px;
+    fill: black;
+}
+.svg_white{
+    width: 22px;
+    height: 22px;
+    fill: #168ce6;
+}
+.svg_black:hover{
+    width: 22px;
+    height: 22px;
+    fill: #168ce6;
+}
+.svg_white:hover{
+    width: 22px;
+    height: 22px;
+    fill: black;
+}
+
+/* 按钮主题 */
+.btn_black{
+    width: 22px;
+    height: 22px;
+    background-color: black;
+}
+.btn_white{
+    width: 22px;
+    height: 22px;
+    background-color: #168ce6;
+}
+.btn_black:hover{
+    width: 22px;
+    height: 22px;
+    background-color: #168ce6;
+}
+.btn_white:hover{
+    width: 22px;
+    height: 22px;
+    background-color: black;
+}
+
+/* 字体主题 */
+.font_black{
+    width: 22px;
+    height: 22px;
+    color: black;
+}
+.font_white{
+    width: 22px;
+    height: 22px;
+    color: #168ce6;
+}
+.font_black:hover{
+    width: 22px;
+    height: 22px;
+    color: #168ce6;
+}
+.font_white:hover{
+    width: 22px;
+    height: 22px;
+    color: black;
+}
+
+
+/* 侧边栏主题 */
+::-webkit-scrollbar{
+    width: 4px;
+    height: 4px;
+    background-color: #F5F5F5;
+}
+::-webkit-scrollbar-track{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    background-color: #FFF;
+}
+::-webkit-scrollbar-thumb{
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #AAA;
+}
