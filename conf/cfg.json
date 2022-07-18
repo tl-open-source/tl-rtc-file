@@ -2,7 +2,7 @@
     "ws" : {
          "port": 8444,
          "ssl_port": 8444,
-         "ws_online": "ws://本机ip:8444"
+         "ws_online": ""
     },
     "node" : {
           "port" : 9092
