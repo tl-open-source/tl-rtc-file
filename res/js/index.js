@@ -45,7 +45,7 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
         },
         computed : {
             createDisabled : function(){
-                return this.isJoined || this.fileName || !this.roomId;
+                return this.isJoined || this.fileName;
             },
             exsitDisabled : function(){
                 return !this.isJoined;
@@ -287,6 +287,11 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
             },
             //创建房间
             createRoom : function () {
+                this.roomId = this.roomId.toString().replace(/\s*/g,"")
+                if(this.roomId === null || this.roomId === undefined || this.roomId === ''){
+                    alert("请先填写房间号")
+                    return;
+                }
                 if(this.fileName != null){
                     alert("请先加入房间再选文件")
                     return;
