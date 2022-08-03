@@ -137,6 +137,40 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
             }
         },
         methods : {
+            shareUrl : function(){
+                document.querySelector("#shareUrl").setAttribute("data-clipboard-text", window.location.origin+"#r="+this.roomId);
+                var clipboard = new ClipboardJS('#shareUrl');
+                clipboard.on('success', function(e) {
+                    e.clearSelection();
+                    if(window.layer){
+                        layer.msg("复制房间链接成功!")
+                    }
+                });
+            },
+            //分享进入
+            handlerRoomHistory : function () {
+                let that = this;
+                var hash = window.location.hash || "";
+                if(hash && hash.includes("#")){
+                    let roomIdArgs = hash.split("r=");
+                    if(roomIdArgs && roomIdArgs.length > 1){
+                        this.roomId = (roomIdArgs[1] + "").replace(/\s*/g,"").substr(0,14);
+                        if(window.layer){
+                            layer.confirm("进入房间"+this.roomId, (index)=>{
+                                window.location.hash = "";
+                                layer.close(index)
+                                that.createRoom();
+                            }, (index)=>{
+                                that.roomId = "";
+                                window.location.hash = "";
+                                layer.close(index)
+                            })
+                            this.addPopup("你通过分享加入了房间号为 "+this.roomId);
+                            this.logs.push("你通过分享加入了房间号为 "+this.roomId);
+                        }
+                    }
+                }
+            },
             refleshRoom : function(){
                 if(!this.createDisabled){
                     this.roomId = parseInt(Math.random() * 100000);
@@ -872,14 +906,19 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
             }
         },
         mounted : function () {
+            let that = this;
             this.$nextTick(()=>{
-                this.logs.push("socket 初始化中...");
-                this.socketListener();
-                this.logs.push("socket 初始化成功");
+                that.logs.push("socket 初始化中...");
+                that.socketListener();
+                that.logs.push("socket 初始化成功");
             })
             this.clickHome(false);
     
             window.onresize = this.initCss;
+
+            setTimeout(() => {
+                that.handlerRoomHistory()
+            }, 200);
         },
         destroyed : function () {
     
