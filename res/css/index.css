@@ -1,7 +1,7 @@
 html {
     box-sizing: border-box;
     --bgColorMenu : #1d1d27;
-    --duration: .7s; 
+    --duration: 1s; 
 }
 html *,
 html *::before,
@@ -133,6 +133,15 @@ body{
     -moz-transition: all 1s;
     -webkit-transition: all 1s;
     -o-transition: all 1s;
+}
+
+#sendTxt{
+    background-color: var(--bgColorBody);
+    margin-top: -38px;
+    border-radius: 20px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-top: solid 1px;
 }
 
 #fileApp table tr td span{
@@ -310,7 +319,7 @@ body{
     position: absolute;
     right: 10px;
     float: right;
-    top: 40%;
+    top: 35%;
     display: grid;
 }
 
@@ -328,7 +337,7 @@ body{
     padding-left: 15px !important;
     width: 80%;
     margin-left: 10% !important;
-    margin-top: 130px;
+    margin-top: 8%;
     height: 120px;
     display: inline-flex;
 }
