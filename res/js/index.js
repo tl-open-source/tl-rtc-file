@@ -201,7 +201,10 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
                     this.roomId = parseInt(Math.random() * 100000);
                     this.addPopup("你刷新了房间号, 当前房间号为 "+this.roomId);
                     this.logs.push("你刷新了房间号, 当前房间号为 "+this.roomId);
-                    $("#refresh").removeClass("layui-anim-rotate").addClass("layui-anim-rotate")
+                    $("#refresh").removeClass("layui-anim-rotate")
+                    setTimeout(()=>{
+                        $("#refresh").addClass("layui-anim-rotate")
+                    },50)
                 }
             },
             genNickName : function () {
