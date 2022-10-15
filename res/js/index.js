@@ -623,7 +623,6 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
                         //发送完一份重置相关数据 并且开启下一个
                         if(this.offset === this.chooseFile.size){
                             console.log(needSendingId+"发送完毕");
-                            this.shaking("iamtsm", 0, 4)
                             this.addPopup("正在发送给"+needSendingId.substr(0,4)+",100%。");
                             this.logs.push("正在发送给"+needSendingId.substr(0,4)+",100%。")
 
