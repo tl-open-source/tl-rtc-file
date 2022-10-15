@@ -985,7 +985,7 @@ axios.get(window.prefix + "/api/comm/initData",{}).then((initData)=>{
                 if(this.currentMenu === 1){
                     this.clickHome(false);
                 }else if(this.currentMenu === 2){
-                    this.clickRoom(false);
+                    this.clickReceive(false);
                 }else if(this.currentMenu === 3){
                     this.clickTxt(false);
                 }
