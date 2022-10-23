@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>tl-rtc-file</title>
-
     <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="/css/index.min.css" media="all">
     <link rel="stylesheet" href="/css/comm.min.css" media="all">
@@ -15,6 +14,8 @@
     <script type="text/javascript" src="/static/js/vue.min.js"></script>
     <script type="text/javascript" src="/static/js/axios.js"></script>
     <script type="text/javascript" src="/static/js/clipboard.min.js"></script>
+    <link href="https://qnproxy.iamtsm.cn/44826979.png" rel="shortcut icon" type="image/x-icon">
+
     <script>
         window.Bus = new Vue({});
         window.prefix = "";
@@ -65,6 +66,16 @@
                     <path d="M681.6 465.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4934"></path>
                 </svg>
             </a>
+
+            <a v-show="!isMobile" title="网页录屏" @click="startScreen()">
+                <i class="layui-icon layui-icon-video" style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;"></i>
+                <b v-show="isScreen" style="position: relative; top: -4px; left: -5px;">{{screenTimes}}</b>
+            </a>
+
+            <a v-show="!isMobile && false" title="屏幕共享" href="https://im.iamtsm.cn/screen/index.html" target="_blank">
+                <i class="layui-icon layui-icon-chart-screen" style="font-size: 25px; margin-right: 10px;"></i>   
+            </a>
+
             <a title="github" href="https://github.com/iamtsm" target="_blank">
                 <svg style="width: 24px;height: 24px;margin-right: 10px;" viewBox="0 0 1049 1024"  p-id="2500" width="64" height="64">
                     <path d="M524.979332 0C234.676191 0 0 234.676191 0 524.979332c0 232.068678 150.366597 428.501342 358.967656 498.035028 26.075132 5.215026 35.636014-11.299224 35.636014-25.205961 0-12.168395-0.869171-53.888607-0.869171-97.347161-146.020741 31.290159-176.441729-62.580318-176.441729-62.580318-23.467619-60.841976-58.234462-76.487055-58.234463-76.487055-47.804409-32.15933 3.476684-32.15933 3.476685-32.15933 53.019436 3.476684 80.83291 53.888607 80.83291 53.888607 46.935238 79.963739 122.553122 57.365291 152.97411 43.458554 4.345855-33.897672 18.252593-57.365291 33.028501-70.402857-116.468925-12.168395-239.022047-57.365291-239.022047-259.012982 0-57.365291 20.860106-104.300529 53.888607-140.805715-5.215026-13.037566-23.467619-66.926173 5.215027-139.067372 0 0 44.327725-13.906737 144.282399 53.888607 41.720212-11.299224 86.917108-17.383422 131.244833-17.383422s89.524621 6.084198 131.244833 17.383422C756.178839 203.386032 800.506564 217.29277 800.506564 217.29277c28.682646 72.1412 10.430053 126.029806 5.215026 139.067372 33.897672 36.505185 53.888607 83.440424 53.888607 140.805715 0 201.64769-122.553122 245.975415-239.891218 259.012982 19.121764 16.514251 35.636014 47.804409 35.636015 97.347161 0 70.402857-0.869171 126.898978-0.869172 144.282399 0 13.906737 9.560882 30.420988 35.636015 25.205961 208.601059-69.533686 358.967656-265.96635 358.967655-498.035028C1049.958663 234.676191 814.413301 0 524.979332 0z" fill="#191717" p-id="2501"></path>
@@ -121,7 +132,7 @@
                     <path d="M341.333333 277.333333l115.2-115.2c8.533333-8.533333 17.066667-12.8 29.866667-17.066666v473.6c0 17.066667 12.8 29.866667 25.6 29.866666s25.6-12.8 25.6-29.866666V140.8c8.533333 4.266667 21.333333 8.533333 29.866667 17.066667L682.666667 277.333333c4.266667 4.266667 12.8 8.533333 21.333333 8.533334s12.8-4.266667 21.333333-8.533334c12.8-12.8 12.8-29.866667 0-38.4l-115.2-115.2C554.666667 68.266667 469.333333 68.266667 418.133333 119.466667L302.933333 234.666667c-12.8 12.8-12.8 29.866667 0 38.4s25.6 12.8 38.4 4.266666z" fill="#191A1A" p-id="2860"></path>
                     <path d="M738.133333 435.2h-72.533333c-17.066667 0-29.866667 12.8-29.866667 25.6s12.8 25.6 29.866667 25.6h72.533333c42.666667 0 76.8 34.133333 76.8 76.8V810.666667c0 42.666667-34.133333 76.8-76.8 76.8H285.866667c-42.666667 0-76.8-34.133333-76.8-76.8v-243.2c0-42.666667 34.133333-76.8 76.8-76.8h72.533333c17.066667 0 25.6-12.8 25.6-25.6s-12.8-25.6-25.6-25.6H285.866667c-72.533333 0-132.266667 59.733333-132.266667 132.266666V810.666667c0 72.533333 59.733333 132.266667 132.266667 132.266666h456.533333c72.533333 0 132.266667-59.733333 132.266667-132.266666v-243.2c0-72.533333-59.733333-132.266667-136.533334-132.266667z" fill="#191A1A" p-id="2861"></path>
                 </svg>
-                <div style="font-size: 14px;word-break: keep-all;">开始发送</div>
+                <div style="font-size: 14px;word-break: keep-all;">发送文件</div>
             </button>
             <div v-show="fileName" class="chooseFileName">
                 <i style="font-size: 60px;" class="layui-icon layui-icon-list"></i>
@@ -131,13 +142,13 @@
 
         <div class="layui-col-sm6 layui-col-md3" id="txtSelf" v-show="isTxtMode" style="width: 70%; margin-left: 15%;margin-top: 5%;display: grid;">
             <textarea name="txt" id="txt" ></textarea>
-            <button type="button" class="layui-btn" id="sendTxt" @click="sendTxt">发送</button>
+            <button type="button" class="layui-btn" id="sendTxt" @click="sendTxt">发送文本</button>
         </div>
 
         <div class="maskBottom" :style="{top: numSendFile + '%'}" >
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
-                    <div class="layui-card-header" >发送的文件
+                    <div class="layui-card-header" >发送的文件/文本
                         <i @click="clickSendFile" class="layui-icon layui-icon-close" style="cursor: pointer; right: 10px;position: absolute;"></i>
                     </div>
                     <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
@@ -148,7 +159,8 @@
                             <tbody ref="files">
                                 <tr v-for="file in sendFileList">
                                     <td><span>自己</span></td>
-                                    <td><span>{{file.name}}</span></td>
+                                    <td v-if="file.id === 'txt'"><span v-html="file.name"></span></td>
+                                    <td v-else><span >{{file.name}}</span></td>
                                     <td><span>{{file.type}}</span></td>
                                     <td><span>{{getFileSizeStr(file.size)}}</span></td>
                                     <td><span>{{file.process}}%</span></td>
@@ -258,7 +270,7 @@
         </div>
 
 
-        <menu class="menu">
+        <menu class="menu" style="z-index: 10000;">
             <button ref="btnHome" @click="clickHome" class="menu__item" :class="currentMenu === 1 ? 'active' : ''" style="--bgColorBody: #ffb457; --bgColorItem: #ff8c00;">
                 <svg class="icon" viewBox="0 0 24 24">
                     <path d="M3.8,6.6h16.4"></path>
@@ -314,7 +326,7 @@
         },1000)
         
         layui.config({
-             // base: '/lay/dist/layuiadmin/' //静态资源所在路径
+            // base: '/lay/dist/layuiadmin/' //静态资源所在路径
         }).extend({
             // index: 'lib/index' //主入口模块
         }).use(['layedit','form','layer'],function(){
@@ -322,33 +334,40 @@
             window.$ = layui.$;
             window.layedit = layui.layedit;
   
-            layer.open({
-                type: 1
-                ,title: false
-                ,closeBtn: false
-                ,area: '300px;'
-                ,shade: 0.8
-                ,id: 'layui-info-msg'
-                ,btn: ['知道了']
-                ,btnAlign: 'c'
-                ,moveType: 1 //
-                ,content: `
-                    <div style="padding: 30px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;">
-                        <div style="text-align: center;line-height: 20px;font-size:12px;word-break: keep-all;">当前项目代码已完整开源，推荐自行搭建
-                            <a style="color: #e87171;font-size:15px;font-weight: 800; text-decoration: underline;" 
-                            href="https://github.com/iamtsm/tl-rtc-file" target="_blank"> 去github点个赞支持下 </a>    
+            let alert = window.localStorage.getItem("tl-rtc-file-alert")
+            if(!alert){
+                layer.open({
+                    type: 1
+                    ,title: false
+                    ,closeBtn: false
+                    ,area: '300px;'
+                    ,shade: 0.8
+                    ,id: 'layui-info-msg'
+                    ,btn: ['知道了',"不再提示"]
+                    ,btnAlign: 'c'
+                    ,moveType: 1 //
+                    ,content: `
+                        <div style="padding: 30px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;">
+                            <div style="text-align: center;line-height: 20px;font-size:12px;word-break: keep-all;">当前项目代码已完整开源，推荐自行搭建
+                                <a style="color: #e87171;font-size:15px;font-weight: 800; text-decoration: underline;" 
+                                href="https://github.com/iamtsm/tl-rtc-file" target="_blank"> 去github点个赞支持下 </a>    
+                            </div>
+                            <div style="text-align: center;line-height: 40px;">1. 双方输入相同房间号加入</div>
+                            <div style="text-align: center;line-height: 40px;"><b>* 双方先加入房间再选文件! *</b></div>
+                            <div style="text-align: center;line-height: 40px;">2. 双方选择需要的文件发送</div>
+                            <div style="text-align: center;line-height: 40px;">3. 右下角是你接收到的文件</div>
+                            <div style="text-align: center;line-height: 40px;">4. 左下角是你发送过的文件</div>
+                            <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 服务器配置带宽不高（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽），传输只能保持在500kb/s ~ 600kb/s</div>
                         </div>
-                        <div style="text-align: center;line-height: 40px;">1. 双方输入相同房间号加入</div>
-                        <div style="text-align: center;line-height: 40px;"><b>* 双方先加入房间再选文件! *</b></div>
-                        <div style="text-align: center;line-height: 40px;">2. 双方选择需要的文件发送</div>
-                        <div style="text-align: center;line-height: 40px;">3. 右下角是你接收到的文件</div>
-                        <div style="text-align: center;line-height: 40px;">4. 左下角是你发送过的文件</div>
-                        <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 服务器配置带宽不高（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽），传输只能保持在500kb/s ~ 600kb/s</div>
-                    </div>
-                `
-                ,success: function(layero){
-                }
-            });
+                    `
+                    ,success: function(layero){
+
+                    },
+                    btn2: function(index, layero){
+                        window.localStorage.setItem("tl-rtc-file-alert",true)
+                    }
+                });
+            }
         });
     </script>
 </body>
