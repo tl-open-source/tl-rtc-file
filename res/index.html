@@ -67,13 +67,20 @@
                 </svg>
             </a>
 
-            <a v-show="!isMobile" title="网页录屏" @click="startScreen()">
+            <a title="网页录屏" @click="startScreen()">
                 <i class="layui-icon layui-icon-video" style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;"></i>
                 <b v-show="isScreen" style="position: relative; top: -4px; left: -5px;">{{screenTimes}}</b>
             </a>
 
-            <a v-show="!isMobile && false" title="屏幕共享" href="https://im.iamtsm.cn/screen/index.html" target="_blank">
-                <i class="layui-icon layui-icon-chart-screen" style="font-size: 25px; margin-right: 10px;"></i>   
+            <a title="公共聊天频道" @click="chating()">
+                <svg style="margin-left: -5px;width:34px;height: 34px;" viewBox="0 0 1024 1024" p-id="6507">
+                    <path d="M802.4 555c0 0-9.9-31.8-41.7-31.8l-89.8 0c-26.7 31.5-52.4 43.4-93.9 53.8l-26 26 78 0c57.7-1.6 75.5 71.1 78 78l130 0L802.4 555z" p-id="6508"></path>
+                    <path d="M717.6 382.3c0 41.1-12.6 79.2-34.3 110.9 5.4 0.7 10.8 1.1 16.4 1.1 71.1 0 112-55 111.2-125.2-1.6-151.5-168.8-127.8-182-130C664.1 256.8 717.6 295.8 717.6 382.3z" p-id="6509"></path>
+                    <path d="M221.6 555c0 0 9.9-31.8 41.7-31.8l89.8 0c26.7 31.5 52.4 43.4 93.9 53.8l26 26-78 0c-57.7-1.6-75.5 71.1-78 78L187 681 221.6 555z" p-id="6510"></path>
+                    <path d="M306.4 382.3c0 41.1 12.6 79.2 34.3 110.9-5.4 0.7-10.8 1.1-16.4 1.1-71.1 0-112-55-111.2-125.2 1.6-151.5 168.8-127.8 182-130C359.9 256.8 306.4 295.8 306.4 382.3z" p-id="6511"></path>
+                    <path d="M673.2 392.9c0 87.9-72.1 159.2-161.2 159.2-89.1 0-161.2-71.3-161.2-159.2 0-88 80-153.8 169.1-153.8C600 239.1 673.2 304.9 673.2 392.9z" p-id="6512"></path>
+                    <path d="M421 629.1l182 0c39.9 0 52 26 52 26l52 130L317 785.1l52-130C369 655.1 381.1 629.1 421 629.1z" p-id="6513"></path>
+                </svg>
             </a>
 
             <a title="github" href="https://github.com/iamtsm" target="_blank">
@@ -329,10 +336,11 @@
             // base: '/lay/dist/layuiadmin/' //静态资源所在路径
         }).extend({
             // index: 'lib/index' //主入口模块
-        }).use(['layedit','form','layer'],function(){
+        }).use(['layedit','form','layer', 'laytpl'],function(){
             window.layer = layui.layer;
             window.$ = layui.$;
             window.layedit = layui.layedit;
+            window.laytpl = layui.laytpl;
   
             let alert = window.localStorage.getItem("tl-rtc-file-alert")
             if(!alert){

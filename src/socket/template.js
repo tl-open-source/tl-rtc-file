@@ -6,7 +6,34 @@ class SocketHandler {
         this.sockets = sockets;
         this.socket = socket;
     }
-
+    /**
+     * 公共聊天频道
+     * @param {*} message 
+     * @param {*} params 
+     */
+     _chating( message, params){
+        try{
+            let allRoom = this.sockets.adapter.rooms;
+            
+            let allSocket = new Array();
+            for(let room in allRoom){
+                if(room.length  > 15){
+                    continue
+                }
+                let clientsInRoom = allRoom[room];
+                let otherSocketIds = Object.keys(clientsInRoom.sockets);
+                if( otherSocketIds.length > 0){
+                    for (let i = 0; i < otherSocketIds.length; i++) {
+                        let otherSocket = this.sockets.connected[otherSocketIds[i]];
+                        otherSocket.emit("chating", message);
+                    }
+                }
+            }
+        }catch(e){
+            console.log(e)
+        }
+    }
+    
     /**
      * 数量
      * @param {*} message 

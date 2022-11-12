@@ -189,6 +189,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 isScreen: false, //是否在录屏中
                 screenTimes: 0,  //当前录屏时间
+
+                chatingList : [], //公共聊天频道内容
             }
         },
         computed: {
@@ -295,10 +297,21 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 handler: function (newV, oldV) { },
                 deep: true,
                 immediate: true
+            },
+            chatingList: {
+                handler: function (newV, oldV) { },
+                deep: true,
+                immediate: true
             }
         },
         methods: {
             startScreen: function () {
+                if(this.isMobile){
+                    if (window.layer) {
+                        layer.msg("移动端暂不支持屏幕录制")
+                    }
+                    return
+                }
                 if (!this.isScreen) {
                     window.Bus.$emit("startScreen")
                 } else {
@@ -362,6 +375,169 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         }
                     }
                 }
+            },
+            chating: function () {
+                let that = this;
+                if (window.layer) {
+                    let options = {
+                        type: 1,
+                        fixed: false, //不固定
+                        maxmin: false,
+                        area: ['600px', '600px'],
+                        title : "公共聊天频道",
+                        success: function(layero, index){
+                            let active = null;
+                            if(that.currentMenu === 1){
+                                active = that.$refs['btnHome'];
+                            }else if(that.currentMenu === 2){
+                                active = that.$refs['btnReceive'];
+                            }else if(that.currentMenu === 3){
+                                active = that.$refs['btnTxt'];
+                            }
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
+                            document.querySelector(".layui-layer").style.borderRadius = "15px"
+                            document.querySelector(".chating-content").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                            document.querySelector(".layui-textarea").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                            document.querySelector(".layui-layer-title").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                            document.querySelector(".layui-layer").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+
+                            that.chatingTpl();
+                        },
+                        content: `
+                            <div class="layui-col-sm12" style="padding: 15px;">
+                                <div class="layui-card chating-content" id="chating_tpl_view" style="padding: 5px;"> </div>
+                                <script id="chating_tpl" type="text/html">
+                                    {{#  layui.each(d, function(index, info){ }}
+                                    <div style="margin-bottom: 30px;display: inline-flex;">
+                                        <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
+                                        <div style="margin-left: 15px; margin-top: -5px;">
+                                            <div style="word-break: break-all;"> <small>房间号: <b>{{info.room}}</b></small> - <small>用户: <b>{{info.socketId}}</b></small> - <small>时间: <b>{{info.time}}</b></small> </div>
+                                            <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{info.msg}} </b></div>
+                                        </div>
+                                    </div>
+                                    {{#  }); }}
+                                </script>
+                            </div>
+                            <div style="bottom: 0px; position: absolute; width: 100%; padding: 20px;">
+                                <textarea maxlength="50000" id="blog_comment" class="layui-textarea" placeholder="文明发言，理性交流 ~"></textarea>
+                                <button style="float: right;margin-top: 10px;" onclick="sendChating()" type="button" class="layui-btn layui-btn-normal layui-btn-sm">发言</button>
+                            </div>
+                        `
+                    }
+                    if(this.isMobile){
+                        delete options.area
+                    }
+                    let index = layer.open(options)
+                    if(this.isMobile){
+                        layer.full(index)
+                    }
+                }
+            },
+            escapeHtml : function(){
+                var entityMap = {
+                    escape: {
+                      '&': '&amp;',
+                      '<': '&lt;',
+                      '>': '&gt;',
+                      '"': '&quot;',
+                      "'": '&apos;',
+                    },
+                    unescape: {
+                      '&amp;': "&",
+                      '&apos;': "'",
+                      '&gt;': ">",
+                      '&lt;': "<",
+                      '&quot;': '"',
+                    }
+                };
+                var entityReg = {
+                    escape: RegExp('[' + Object.keys(entityMap.escape).join('') + ']', 'g'),
+                    unescape: RegExp('(' + Object.keys(entityMap.unescape).join('|') + ')', 'g')
+                }
+                
+                // 将HTML转义为实体
+                function escape(html) {
+                    if (typeof html !== 'string') return ''
+                    return html.replace(entityReg.escape, function(match) {
+                        return entityMap.escape[match]
+                    })
+                }
+                
+                // 将实体转回为HTML
+                function unescape(str) {
+                    if (typeof str !== 'string') return ''
+                    return str.replace(entityReg.unescape, function(match) {
+                        return entityMap.unescape[match]
+                    })
+                }
+                
+                return {
+                    escape: escape, 
+                    unescape : unescape
+                }
+            },
+            chatingTpl : function(){
+                let tpl_html = document.getElementById("chating_tpl");
+                let tpl_view_html = document.getElementById("chating_tpl_view");
+
+                if(tpl_html && tpl_view_html){
+
+                    this.tpl(tpl_html, this.chatingList, tpl_view_html)
+
+                    let chatDom = document.querySelector("#chating_tpl_view")
+                    let chatDomHeight = chatDom.clientHeight
+
+                    let height = 0;
+                    if(this.isMobile){
+                        height = document.documentElement.clientHeight - 235;
+                    }else{
+                        height = 350
+                    }
+                    if(chatDomHeight > height){
+                        chatDom.style.height = height +"px"
+                        chatDom.style.overflowY = "scroll"
+                    }else{
+                        chatDom.style.overflowY = "none"
+                    }
+                }
+            },
+            tpl: function(tpl_html, data, tpl_view_html){
+                if(window.laytpl){
+                    laytpl(tpl_html.innerHTML).render(data, (html)=>{
+                        tpl_view_html.innerHTML = html;
+                    });
+                }
+            },
+            sendChating: function(){
+                let content = document.querySelector("#blog_comment").value;
+                if (!this.createDisabled) {
+                    if (window.layer) {
+                        layer.msg("请先加入房间，才能发言哦")
+                    }
+                    return
+                }
+                if(content === '' || content === undefined){
+                    if (window.layer) {
+                        layer.msg("请先填写内容哦")
+                    }
+                    return
+                }
+                if(content.length > 1000){
+                    if (window.layer) {
+                        layer.msg("内容太长啦，不能超过1000个字")
+                    }
+                    return
+                }
+                this.socket.emit('chating', {
+                    recoderId : this.recoderId,
+                    msg: content,
+                    room: this.roomId,
+                    socketId : this.socketId,
+                    time: new Date().toLocaleString()
+                });
+
+                document.querySelector("#blog_comment").value = ''
             },
             refleshRoom: function () {
                 if (!this.createDisabled) {
@@ -518,13 +694,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             clickHome: function (show = true) {
                 this.currentMenu = 1;
 
-                let body = document.body;
-                let menuBorder = document.querySelector(".menu__border");
                 let active = this.$refs['btnHome'];
-                let box = active.getBoundingClientRect();
-
-                body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector(".chooseFileName").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+
+                let menuBorder = document.querySelector(".menu__border");
+                let box = active.getBoundingClientRect();
                 offsetMenuBorder(box, menuBorder);
 
                 function offsetMenuBorder(box, menuBorder) {
@@ -539,13 +714,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             clickReceive: function (show = true) {
                 this.currentMenu = 2;
 
-                let body = document.body;
-                let menuBorder = document.querySelector(".menu__border");
                 let active = this.$refs['btnReceive'];
-                let box = active.getBoundingClientRect();
-
-                body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector(".chooseFileName").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+
+                let menuBorder = document.querySelector(".menu__border");
+                let box = active.getBoundingClientRect();
                 offsetMenuBorder(box, menuBorder);
 
                 function offsetMenuBorder(box, menuBorder) {
@@ -560,13 +734,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             clickTxt: function (show = true) {
                 this.currentMenu = 3;
 
-                let body = document.body;
-                let menuBorder = document.querySelector(".menu__border");
                 let active = this.$refs['btnTxt'];
+                document.body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                
+                let menuBorder = document.querySelector(".menu__border");
                 let box = active.getBoundingClientRect();
-
-                body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 offsetMenuBorder(box, menuBorder);
+
 
                 function offsetMenuBorder(box, menuBorder) {
                     let left = Math.floor(box.left - menuBorder.closest("menu").offsetLeft - (menuBorder.offsetWidth - box.width) / 2) + "px";
@@ -1203,6 +1377,14 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.allManCount = data.mc;
                 });
 
+                //公共聊天频道
+                this.socket.on('chating', function (data) {
+                    that.logs.push(data.room + "频道的"+data.socketId+"发言: [ " + data.msg + " ]");
+                    data.msg = that.escapeHtml().escape(data.msg)
+                    that.chatingList.push(data);
+                    that.chatingTpl()
+                });
+
             },
             initCss: function (e) {
                 if (!e) return;
@@ -1291,11 +1473,17 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             window.Bus.$on("changeScreenTimes", (res) => {
                 this.screenTimes = res
             })
+            window.Bus.$on("sendChating",(res)=>{
+                this.sendChating()
+            })
         },
         destroyed: function () {
 
         }
     });
+    window.sendChating = function(){
+        window.Bus.$emit("sendChating",{})
+    }
 })
 
 

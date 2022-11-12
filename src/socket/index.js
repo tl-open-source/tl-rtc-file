@@ -135,6 +135,10 @@ function listen(io) {
         })
         
 
+        socket.on('chating', function (message) {
+            handler._chating(message,{})
+        })
+
         socket.on('count', function (message) {
             handler._count(message,{})
         })
