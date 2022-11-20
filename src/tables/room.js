@@ -10,19 +10,19 @@ module.exports = (sequelize, DataTypes) => {
           },
           rcode : {
                type: DataTypes.STRING(30),
-               comment: '房间编号'
+               comment: '房间随机编号'
           },
           rname : {
                type: DataTypes.STRING(32),
-               comment: '房间名称-唯一'
+               comment: '房间频道号码'
           },
           uid : {
                type: DataTypes.INTEGER,
-               comment: '属于的用户唯一id，11位，暂不处理',
+               comment: '属于的用户id, 待定~',
           },
           uname : {
                type: DataTypes.STRING(20),
-               comment: '姓名'
+               comment: '姓名, 待定~'
           },
           sid : {
                type: DataTypes.STRING(30),
@@ -64,7 +64,7 @@ module.exports = (sequelize, DataTypes) => {
           }
      },{
           timestamps: true,
-          comment: '房主表--首个创建房间的用户和房间信息'
+          comment: '房间表'
      });
      return {
           Room

@@ -99,7 +99,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.mediaRecorder.stop();
                 } catch (e) {
                     if (window.layer) {
-                        layer.msg("录制不完整，如需停止录制，请点击本页面的停止按钮来停止录制")
+                        layer.msg("屏幕录制完毕! 检测到录制不完整，如需停止录制，请点击本页面的停止按钮来停止录制")
                     }
                     hasErr = true
                 }
@@ -139,7 +139,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             window.Bus.$on("stopScreen", this.stopScreen);
         }
     })
-
 
     file = new Vue({
         el: '#fileApp',
@@ -190,7 +189,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 isScreen: false, //是否在录屏中
                 screenTimes: 0,  //当前录屏时间
 
-                chatingList : [], //公共聊天频道内容
+                chatingList: [], //公共聊天频道内容
+                switchData : {}, //配置开关数据
+                token: "",
             }
         },
         computed: {
@@ -306,14 +307,26 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
         },
         methods: {
             startScreen: function () {
-                if(this.isMobile){
+                if (this.isMobile) {
                     if (window.layer) {
                         layer.msg("移动端暂不支持屏幕录制")
                     }
                     return
                 }
                 if (!this.isScreen) {
-                    window.Bus.$emit("startScreen")
+                    let that = this;
+                    if (window.layer) {
+                        layer.confirm("是否进行屏幕录制（全程本地进行，不会进过服务器）", (index) => {
+                            window.Bus.$emit("startScreen")
+                            that.socket.emit('message', {
+                                emitType: "startScreen",
+                                room: this.roomId,
+                            });
+                        }, (index) => {
+                            this.isScreen = !this.isScreen;
+                            layer.close(index)
+                        })
+                    }
                 } else {
                     window.Bus.$emit("stopScreen", (res) => {
                         this.receiveFileList.push({
@@ -328,12 +341,18 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             start: 0,
                             cost: res.times
                         })
+                        this.socket.emit('message', {
+                            emitType: "stopScreen",
+                            room: this.roomId,
+                            size: res.size,
+                            cost: res.times
+                        });
                     })
                 }
                 this.isScreen = !this.isScreen;
             },
             shareUrl: function () {
-                document.querySelector("#shareUrl").setAttribute("data-clipboard-text", "https://im.iamtsm.cn/file#r=" + this.roomId);
+                document.querySelector("#shareUrl").setAttribute("data-clipboard-text", window.location.href + "#r=" + this.roomId);
                 var clipboard = new ClipboardJS('#shareUrl');
                 clipboard.on('success', function (e) {
                     e.clearSelection();
@@ -384,14 +403,14 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         fixed: false, //不固定
                         maxmin: false,
                         area: ['600px', '600px'],
-                        title : "公共聊天频道",
-                        success: function(layero, index){
+                        title: "公共聊天频道",
+                        success: function (layero, index) {
                             let active = null;
-                            if(that.currentMenu === 1){
+                            if (that.currentMenu === 1) {
                                 active = that.$refs['btnHome'];
-                            }else if(that.currentMenu === 2){
+                            } else if (that.currentMenu === 2) {
                                 active = that.$refs['btnReceive'];
-                            }else if(that.currentMenu === 3){
+                            } else if (that.currentMenu === 3) {
                                 active = that.$refs['btnTxt'];
                             }
                             document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
@@ -425,63 +444,63 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             </div>
                         `
                     }
-                    if(this.isMobile){
+                    if (this.isMobile) {
                         delete options.area
                     }
                     let index = layer.open(options)
-                    if(this.isMobile){
+                    if (this.isMobile) {
                         layer.full(index)
                     }
                 }
             },
-            escapeHtml : function(){
+            escapeHtml: function () {
                 var entityMap = {
                     escape: {
-                      '&': '&amp;',
-                      '<': '&lt;',
-                      '>': '&gt;',
-                      '"': '&quot;',
-                      "'": '&apos;',
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&apos;',
                     },
                     unescape: {
-                      '&amp;': "&",
-                      '&apos;': "'",
-                      '&gt;': ">",
-                      '&lt;': "<",
-                      '&quot;': '"',
+                        '&amp;': "&",
+                        '&apos;': "'",
+                        '&gt;': ">",
+                        '&lt;': "<",
+                        '&quot;': '"',
                     }
                 };
                 var entityReg = {
                     escape: RegExp('[' + Object.keys(entityMap.escape).join('') + ']', 'g'),
                     unescape: RegExp('(' + Object.keys(entityMap.unescape).join('|') + ')', 'g')
                 }
-                
+
                 // 将HTML转义为实体
                 function escape(html) {
                     if (typeof html !== 'string') return ''
-                    return html.replace(entityReg.escape, function(match) {
+                    return html.replace(entityReg.escape, function (match) {
                         return entityMap.escape[match]
                     })
                 }
-                
+
                 // 将实体转回为HTML
                 function unescape(str) {
                     if (typeof str !== 'string') return ''
-                    return str.replace(entityReg.unescape, function(match) {
+                    return str.replace(entityReg.unescape, function (match) {
                         return entityMap.unescape[match]
                     })
                 }
-                
+
                 return {
-                    escape: escape, 
-                    unescape : unescape
+                    escape: escape,
+                    unescape: unescape
                 }
             },
-            chatingTpl : function(){
+            chatingTpl: function () {
                 let tpl_html = document.getElementById("chating_tpl");
                 let tpl_view_html = document.getElementById("chating_tpl_view");
 
-                if(tpl_html && tpl_view_html){
+                if (tpl_html && tpl_view_html) {
 
                     this.tpl(tpl_html, this.chatingList, tpl_view_html)
 
@@ -489,27 +508,27 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     let chatDomHeight = chatDom.clientHeight
 
                     let height = 0;
-                    if(this.isMobile){
+                    if (this.isMobile) {
                         height = document.documentElement.clientHeight - 235;
-                    }else{
+                    } else {
                         height = 350
                     }
-                    if(chatDomHeight > height){
-                        chatDom.style.height = height +"px"
+                    if (chatDomHeight > height) {
+                        chatDom.style.height = height + "px"
                         chatDom.style.overflowY = "scroll"
-                    }else{
+                    } else {
                         chatDom.style.overflowY = "none"
                     }
                 }
             },
-            tpl: function(tpl_html, data, tpl_view_html){
-                if(window.laytpl){
-                    laytpl(tpl_html.innerHTML).render(data, (html)=>{
+            tpl: function (tpl_html, data, tpl_view_html) {
+                if (window.laytpl) {
+                    laytpl(tpl_html.innerHTML).render(data, (html) => {
                         tpl_view_html.innerHTML = html;
                     });
                 }
             },
-            sendChating: function(){
+            sendChating: function () {
                 let content = document.querySelector("#blog_comment").value;
                 if (!this.createDisabled) {
                     if (window.layer) {
@@ -517,27 +536,44 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     return
                 }
-                if(content === '' || content === undefined){
+                if (content === '' || content === undefined) {
                     if (window.layer) {
                         layer.msg("请先填写内容哦")
                     }
                     return
                 }
-                if(content.length > 1000){
+                if (content.length > 1000) {
                     if (window.layer) {
                         layer.msg("内容太长啦，不能超过1000个字")
                     }
                     return
                 }
                 this.socket.emit('chating', {
-                    recoderId : this.recoderId,
+                    recoderId: this.recoderId,
                     msg: content,
                     room: this.roomId,
-                    socketId : this.socketId,
+                    socketId: this.socketId,
                     time: new Date().toLocaleString()
                 });
 
                 document.querySelector("#blog_comment").value = ''
+            },
+            sendBugs: function () {
+                if (window.layer) {
+                    let that = this;
+                    layer.prompt({
+                        formType: 2,
+                        title: '请描述您需要反馈的问题',
+                    }, function (value, index, elem) {
+                        that.socket.emit('message', {
+                            emitType: "sendBugs",
+                            msg: value,
+                            room: that.roomId,
+                        });
+                        layer.msg("问题反馈成功，更多问题可以加群交流，将更快解决")
+                        layer.close(index);
+                    });
+                }
             },
             refleshRoom: function () {
                 if (!this.createDisabled) {
@@ -549,6 +585,14 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         $("#refresh").addClass("layui-anim-rotate")
                     }, 50)
                 }
+            },
+            manageChange : function(data){
+                this.socket.emit('manageChange', {
+                    id : data.id,
+                    room : this.roomId,
+                    token: this.token,
+                    content: data.content,
+                });
             },
             genNickName: function () {
                 // 获取指定范围内的随机数
@@ -736,11 +780,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 let active = this.$refs['btnTxt'];
                 document.body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
-                
+
                 let menuBorder = document.querySelector(".menu__border");
                 let box = active.getBoundingClientRect();
                 offsetMenuBorder(box, menuBorder);
-
 
                 function offsetMenuBorder(box, menuBorder) {
                     let left = Math.floor(box.left - menuBorder.closest("menu").offsetLeft - (menuBorder.offsetWidth - box.width) / 2) + "px";
@@ -750,7 +793,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (show) {
                     this.clickReceiveTxt()
                 }
-
             },
             //文件大小
             getFileSizeStr: function (size) {
@@ -807,11 +849,48 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.numLogs = 150;
                 }
             },
+            containChinese: function(str){
+                return /[\u4E00-\u9FA5\uF900-\uFA2D]/.test(str);
+            },
+            containNumber : function(str){
+                return /^[0-9]+.?[0-9]*$/.test(str);
+            },
+            containSymbol : function(str){
+                return new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]").test(str)
+            },
             //创建房间
             createRoom: function () {
                 this.roomId = this.roomId.toString().replace(/\s*/g, "")
                 if (this.roomId === null || this.roomId === undefined || this.roomId === '') {
-                    alert("请先填写房间号")
+                    if(window.layer){
+                        layer.msg("请先填写房间号")
+                    }else{
+                        alert("请先填写房间号")
+                    }
+                    return;
+                }
+                if(!this.switchData.allowChinese && this.containChinese(this.roomId)){
+                    if(window.layer){
+                        layer.msg("房间号不允许中文")
+                    }else{
+                        alert("房间号不允许中文")
+                    }
+                    return;
+                }
+                if(!this.switchData.allowNumber && this.containNumber(this.roomId)){
+                    if(window.layer){
+                        layer.msg("房间号不允许数字")
+                    }else{
+                        alert("房间号不允许数字")
+                    }
+                    return;
+                }
+                if(!this.switchData.allowSymbol && this.containSymbol(this.roomId)){
+                    if(window.layer){
+                        layer.msg("房间号不允许特殊符号")
+                    }else{
+                        alert("房间号不允许特殊符号")
+                    }
                     return;
                 }
                 if (this.fileName != null) {
@@ -1377,14 +1456,64 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.allManCount = data.mc;
                 });
 
+                //提示
+                this.socket.on('tips', function (data) {
+                    if (window.layer) {
+                        layer.msg(data.msg)
+                    }
+                });
+
+                //开关数据
+                this.socket.on('switchData', function (data) {
+                    that.switchData = data.switchData
+                });
+
                 //公共聊天频道
                 this.socket.on('chating', function (data) {
-                    that.logs.push(data.room + "频道的"+data.socketId+"发言: [ " + data.msg + " ]");
+                    that.logs.push(data.room + "频道的" + data.socketId + "发言: [ " + data.msg + " ]");
                     data.msg = that.escapeHtml().escape(data.msg)
                     that.chatingList.push(data);
                     that.chatingTpl()
                 });
 
+                this.socket.on('manageCheck', function (data) {
+                    if (window.layer) {
+                        layer.prompt({
+                            formType: 1,
+                            title: '请输入',
+                        }, function (value, index, elem) {
+                            that.socket.emit('manageConfirm', {
+                                room: that.roomId,
+                                value: value
+                            });
+                            layer.close(index)
+                        });
+                    }
+                });
+
+                this.socket.on('manage', function (data) {
+                    if (window.layer) {
+                        if(data.socketId !== that.socketId){
+                            layer.msg("非法触发事件")
+                            return
+                        }
+                        that.token = data.token;
+                        layer.full(layer.tab({
+                            area: ['100%', '100%'],
+                            closeBtn: 0,
+                            tab: [{
+                                title: data.content[0].title,
+                                content: data.content[0].html
+                            }, {
+                                title: data.content[1].title,
+                                content: data.content[1].html
+                            }, {
+                                title: data.content[2].title,
+                                content: data.content[2].html
+                            }]
+                        }))
+                    }
+                });
             },
             initCss: function (e) {
                 if (!e) return;
@@ -1453,16 +1582,28 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     });
                 });
             }
+            if (window.location.search && window.location.search.includes("notice=iamtsm&msg=")) {
+                setTimeout(() => {
+                    let msg = window.location.search.split("msg=")[1]
+                    that.socket.emit('close', {
+                        msg: decodeURIComponent(msg)
+                    });
+                }, 2000)
+            }
+
             setTimeout(() => {
                 that.handlerRoomHistory()
-            }, 200);
+                that.socket.emit('getSwitchData', {});
+            }, 500);
         },
         mounted: function () {
+            
             this.$nextTick(() => {
                 this.logs.push("socket 初始化中...");
                 this.socketListener();
                 this.logs.push("socket 初始化成功");
             })
+
             this.clickHome(false);
 
             window.onresize = this.initCss;
@@ -1473,16 +1614,22 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             window.Bus.$on("changeScreenTimes", (res) => {
                 this.screenTimes = res
             })
-            window.Bus.$on("sendChating",(res)=>{
+            window.Bus.$on("sendChating", (res) => {
                 this.sendChating()
+            })
+            window.Bus.$on("manageChange", (data) => {
+                this.manageChange(data)
             })
         },
         destroyed: function () {
 
         }
     });
-    window.sendChating = function(){
-        window.Bus.$emit("sendChating",{})
+    window.manageChange = function (data) {
+        window.Bus.$emit("manageChange", data)
+    }
+    window.sendChating = function () {
+        window.Bus.$emit("sendChating", {})
     }
 })
 

@@ -3,14 +3,17 @@ const socketIO = require('socket.io'); //socket
 const app = require("express")(); //express
 const fs = require('fs'); // fs
 const db = require("./src/tables/db"); //db
-const conf = require("./conf/cfg"); //conf
-const utils = require("./utils/request"); //utils
+const conf = require("./conf/cfg.json"); //conf
+const utils = require("./utils/utils"); //utils
 const socket = require("./src/socket/index") //socket handler
 
 let tables = {};
+let sql = {};
 if(conf.db.open){
   // db init
-  let {tables,sql,Sql} = db.excute(conf);
+  let dbData = db.excute(conf);
+  tables = dbData.tables;
+  sql = dbData.sql;
   app.use(async function (req,res,next) {
     req.ctx = {};
     req.ctx.tables = tables;
@@ -40,7 +43,7 @@ let io = socketIO.listen(
   https.createServer(options).listen(conf.ws.ssl_port)
 );
 conf.ws.io = io;
-socket.excute(tables,conf);
+socket.excute(tables, sql, conf);
 console.log("socket init...")
 
 

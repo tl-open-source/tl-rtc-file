@@ -24,8 +24,17 @@
          "res" : {
                "/" : "res/",
                "/static" : "static/"
+         },
+         "manage": {
+               "room" : "tlrtcfile",
+               "password" : "tlrtcfile"
          }
     },
+    "notify" : {
+          "qiwei" : [
+               
+          ]
+     },
     "db" : {
          "open" : false,
          "mysql" : {

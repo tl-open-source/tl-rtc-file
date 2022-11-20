@@ -78,6 +78,19 @@
     docker run -p 9092:9092 -p 8444:8444 --name local -d iamtsm/tl-rtc-file
 
     访问 : http://localhost:9092 或者 http://本机ip:9092
+
+## 管理后台
+
+    前提 ： 需要开启db配置
+
+    修改conf/cfg.json中的router.manage的room和password，默认房间号和密码都是tlrtcfile
+
+    访问 : http://localhost:9092 或者 http://本机ip:9092
+
+    输入配置的房间号，输入密码，即可进入管理后台
+
+    ps : 如有需要配置企业微信通知，修改conf/cfg.json中的notify的qiwei数组，填入企业微信机器人的key即可
+
 ## 概述图
 
 ![image](doc/tl-rtc-file-tool.jpg)

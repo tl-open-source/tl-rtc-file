@@ -1,48 +1,47 @@
-const room = require("../room/room");
 const template = require("./template");
 const SocketHandler = template.SocketHandler;
-const Worker = require("./../worker/worker").Worker; //worker
-
-
+const dbOpen = require("../../conf/cfg.json").db.open;
+const manageConfig = require("../../conf/cfg.json").router.manage;
+const {
+    genRoom,
+    formateDateTime
+} = require("../../utils/utils");
+const {    
+    sendExitRoomNotify,
+    sendCreateJoinRoomNotify,
+    sendManageUpdateFailedNotify,
+    sendManageUpdateInfoNotify,
+    sendManageLoginSuccessNotify,
+    sendManageLoginFailedNotify,
+    sendBugNotify,
+    sendStopScreenNotify,
+    sendStartScreenNotify,
+    sendTxtNotify,
+    sendFileDoneNotify,
+    sendFileInfoNotify,
+    sendChatingNotify,
+    updateManageRoom,
+    exitRoom,
+    createJoinRoom,
+    dogData,
+    getOrCreateManageRoom,
+    getRoomPageHtml,
+    getDataPageHtml,
+    getSettingPageHtml
+} = require("./bussiness");
 let tables = {};
-let exitSocketList = [];            //退房的socket
-
-/**
- * 开个定时器跑，清除已经离开房间的数据
- */
-function cleanExitSocketData(){
-    async function removeRoomSokect(){
-        if(exitSocketList == null || !(exitSocketList instanceof Array)){
-            return;
-        }
-        if(exitSocketList.length <= 0){
-            return;
-        }
-        for(let i = 0; i < exitSocketList.length; i++){
-            await exitRoom({sid : exitSocketList.shift()})
-        }
-    }
-    let cusWorker = new Worker(24 * 60 * 60 * 1000,removeRoomSokect);
-    cusWorker.run();
-}
-
+let tokens = [];
+let sql = {};
 
 /**
  * 执行器
  * @param {*} tabs 
  * @param {*} config 
  */
-function excute(tabs = {}, config = {}) {
-    init(config);
+function excute(tabs, sequelize, config) {
     tables = tabs;
-}
+    sql = sequelize;
 
-
-/**
- * 参数初始化
- * @param {*} config 
- */
-function init(config) {
     let io = config.ws.io;
     if (io === undefined || io === null) {
         console.error("init socket error ");
@@ -55,7 +54,6 @@ function init(config) {
     }
   
     listen(io);
-    cleanExitSocketData();
   
     //后置执行函数
     if (config.ws.afterInit) {
@@ -69,30 +67,124 @@ function init(config) {
  * @param {*} io 
  */
 function listen(io) {
-    io.sockets.on('connection', function (socket) {
+    io.sockets.on('connection',function (socket) {
   
         var handler = new SocketHandler(io.sockets,socket);
 
+
+        socket.on("getSwitchData", async function(){
+            if(!dbOpen){
+                handler._message({
+                    emitType : "switchData",
+                    data: {
+                        openSendBug : true,
+                        openScreen : true,
+                        openOnlineUser : true,
+                        openShareRoom : true,
+                        openFileTransfer : true,
+                        openTxtTransfer : true,
+                        openCommRoom : true,
+                        openRefleshRoom : true,
+                        allowNumber : true,
+                        allowChinese : true,
+                        allowSymbol : true,
+                    }
+                })
+                return
+            }
+            let handshake = socket.handshake
+            let userAgent = handshake.headers['user-agent'].toString().substr(0,255);
+            let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
+            
+            let manageInfo = await getOrCreateManageRoom({
+                tables : tables,
+                sid: socket.id,
+                ip: ip,
+                device: userAgent,
+                content : JSON.stringify({
+                    openSendBug : true,
+                    openScreen : true,
+                    openOnlineUser : true,
+                    openShareRoom : true,
+                    openFileTransfer : true,
+                    openTxtTransfer : true,
+                    openCommRoom : true,
+                    openRefleshRoom : true,
+                    allowNumber : true,
+                    allowChinese : true,
+                    allowSymbol : true,
+                    keys : []
+                })
+            })
+            let switchData = JSON.parse(manageInfo.content)
+            if(switchData && switchData.keys){
+                delete switchData.keys;
+                handler._message({
+                    emitType : "switchData",
+                    data: switchData
+                })
+            }
+        })
+
         socket.on('disconnect',async function (reason) {
             handler._disconnect({});
-            // exitSocketList.push(socket.id);
-            // if(exitSocketList.length > 1000){
-            //     new Worker(24 * 60 * 60 * 1000,removeRoomSokect);
-            //     cusWorker.run();
-            // }
+            await exitRoom({sid : socket.id, tables : tables})
         });
-        
 
         socket.on('createAndJoin', async function (message) {
-            let room = message.room;
-            let recoderId = 1;
-
-            handler._createAndJoin(message,{
-                created : {recoderId:recoderId},
-                joined : {recoderId:recoderId}
-            })
-        });
+            try{
+                let room = message.room;
+                if(room && room.length > 15){
+                    room = room.toString().substr(0,14);
+                }
+        
+                let handshake = socket.handshake
+                let userAgent = handshake.headers['user-agent'].toString().substr(0,255);
+                let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
     
+                let recoderId = 0;
+                if(manageConfig.room !== room){
+                    recoderId = await createJoinRoom({
+                        socketId: socket.id,
+                        roomName: room,
+                        ip: ip,
+                        device: userAgent,
+                        content: {handshake : handshake},
+                        tables : tables
+                    });
+                }
+        
+                handler._createAndJoin(message,{
+                    created : {recoderId:recoderId},
+                    joined : {recoderId:recoderId}
+                })
+    
+                // 管理员房间
+                if(room === manageConfig.room){
+                    message.socketId = socket.id;
+                    socket.emit("manageCheck", message)
+                }
+    
+                sendCreateJoinRoomNotify({
+                    title : recoderId === 0 ? "创建/加入后台管理房间" : "创建/加入房间",
+                    socketId: socket.id,
+                    room: room,
+                    recoderId: recoderId,
+                    userAgent: userAgent,
+                    ip : ip,
+                })
+
+                io.sockets.adapter.rooms[room].createTime = formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")
+            }catch(e){
+                console.log(e)
+                handler._message({
+                    room : message.room,
+                    emitType : "tips",
+                    to : socket.id,
+                    msg : "系统错误"
+                },{})
+            }
+        });
     
         socket.on('offer', function (message) {
             handler._offer(message,{})
@@ -101,147 +193,323 @@ function listen(io) {
         socket.on('answer', function (message) {
             handler._answer(message,{})
         });
-    
-    
         
         socket.on('candidate', function (message) {
             handler._candidate(message,{})
         });
-  
-  
       
         socket.on('exit', async function (message) {
-            let recoderId = message.recoderId;
-            handler._exit(message,{})
-            if(recoderId != undefined){
-                exitSocketList.push(socket.id);
+            try{
+                let recoderId = message.recoderId;
+                handler._exit(message,{})
+    
+                if(recoderId != undefined){
+                    await exitRoom({sid : socket.id,tables : tables})
+    
+                    let handshake = socket.handshake
+                    let userAgent = handshake.headers['user-agent'].toString().substr(0,255);
+                    let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
+    
+                    sendExitRoomNotify({
+                        title : "退出房间",
+                        room : message.room,
+                        socketId : socket.id,
+                        recoderId:message.recoderId,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+            }catch(e){
+                handler._message({
+                    room : message.room,
+                    emitType : "tips",
+                    to : socket.id,
+                    msg : "系统错误"
+                },{})
             }
         });
-  
-        socket.on('exist', async function (message) {
-            let room = message.room;
 
-            let data = {};
-            data.success = true;
-            data.msg = "ok";
-            data.room = room;
+        socket.on('manageConfirm', async function (message) {
+            try{
+                let handshake = socket.handshake
+                let userAgent = handshake.headers['user-agent'].toString().substr(0,255);
+                let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
     
-            socket.emit('exist', data);
-        })
-  
-  
-        socket.on('catchError', function (err) {
-            console.log('err : ', err)
-        })
-        
+                if(message.value !== manageConfig.password || message.room !== manageConfig.room){
+                    sendManageLoginFailedNotify({
+                        title : "管理后台登录失败",
+                        room : message.room,
+                        value : message.value,
+                        userAgent : userAgent,
+                        ip: ip
+                    })
+                    return
+                }
+    
+                let token = genRoom();
+                tokens.push(token)
+    
+                sendManageLoginSuccessNotify({
+                    title : "管理后台登录成功",
+                    token : token,
+                    room : message.room,
+                    value : message.value,
+                    userAgent :userAgent,
+                    ip : ip
+                })
+    
+                socket.emit("manage",{
+                    token: token,
+                    socketId :socket.id,
+                    title : manageConfig.title,
+                    content : [{
+                        title : "房间频道",
+                        html : await getRoomPageHtml({
+                            tables : tables,
+                            sql : sql,
+                            sockets :  io.sockets
+                        })
+                    },{
+                        title : "数据传输",
+                        html : await getDataPageHtml({
+                            tables : tables,
+                            sql : sql,
+                            sockets :  io.sockets
+                        })
+                    },{
+                        title : "其他设置",
+                        html : await getSettingPageHtml({
+                            tables : tables,
+                            rname: message.room,
+                            sid: socket.socketId,
+                            ip: ip,
+                            device: userAgent,
+                        })
+                    }]
+                })
+            }catch(e){
+                console.log(e)
+                handler._message({
+                    room : message.room,
+                    emitType : "tips",
+                    to : socket.id,
+                    msg : "系统错误"
+                },{})
+            }
+        });
 
-        socket.on('chating', function (message) {
-            handler._chating(message,{})
-        })
+        socket.on('manageChange', async function(message){
+            try{
+                let handshake = socket.handshake
+                let userAgent = handshake.headers['user-agent'].toString().substr(0,255);
+                let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
+    
+                if(!message.token || !tokens.includes(message.token)){
+                    sendManageUpdateFailedNotify({
+                        title : "管理后台非法修改配置",
+                        token : message.token,
+                        room : message.room,
+                        content : message.content,
+                        userAgent :userAgent,
+                        ip : ip
+                    })
+                    return
+                }
+    
+                await updateManageRoom({
+                    tables : tables,
+                    id : message.id,
+                    content : JSON.stringify(message.content)
+                })
+    
+                sendManageUpdateInfoNotify({
+                    title : "管理后台修改配置",
+                    token : message.token,
+                    room : message.room,
+                    content : JSON.stringify(message.content),
+                    userAgent : userAgent,
+                    ip: ip
+                })
+    
+                handler._message({
+                    room : message.room,
+                    emitType : "tips",
+                    to : socket.id,
+                    msg : "更新成功"
+                },{})
+                
+            }catch(e){
+                console.log(e)
+                handler._message({
+                    room : message.room,
+                    emitType : "tips",
+                    to : socket.id,
+                    msg : "系统错误"
+                },{})
+            }
+        });
+
+        socket.on('message',async function (message) {
+            try{
+                let emitType = message.emitType;
+                let handshake = socket.handshake
+                let userAgent = handshake.headers['user-agent'].toString().substr(0,255);
+                let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
+    
+                let opName = {
+                    "sendFileInfo": "准备发送文件",
+                    "sendDone": "文件发送完毕",
+                    "sendBugs": "收到问题反馈",
+                    "sendTxt": "发送文本内容",
+                    "startScreen": "开始网页录屏",
+                    "stopScreen": "停止网页录屏"
+                }
+    
+                handler._message(message,{})
+    
+                if(emitType === 'sendFileInfo'){
+                    sendFileInfoNotify({
+                        title : opName.sendFileInfo,
+                        room : message.room,
+                        recoderId : message.recoderId,
+                        from : message.from,
+                        name : message.name,
+                        type : message.type,
+                        size : message.size,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+    
+                if(emitType === 'sendDone'){
+                    sendFileDoneNotify({
+                        title : opName.sendDone,
+                        room : message.room,
+                        to : message.to,
+                        from : message.from,
+                        name : message.name,
+                        type : message.type,
+                        size : message.size,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+    
+                if(emitType === 'sendBugs'){
+                    sendBugNotify({
+                        title : opName.sendBugs,
+                        room : message.room,
+                        msg : message.msg,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+    
+                if(emitType === 'sendTxt'){
+                    sendTxtNotify({
+                        title : opName.sendTxt,
+                        room : message.room,
+                        from : message.from,
+                        recoderId : message.recoderId,
+                        content : message.content,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+    
+                if(emitType === 'startScreen'){
+                    sendStartScreenNotify({
+                        title : opName.startScreen,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+    
+                if(emitType === 'stopScreen'){
+                    sendStopScreenNotify({
+                        title : opName.stopScreen,
+                        userAgent : message.userAgent,
+                        cost : message.cost,
+                        size : message.size,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+    
+                if(opName[message.emitType]){
+                    await dogData({
+                        tables : tables,
+                        name : opName[message.emitType],
+                        roomId : "",
+                        socketId : "",
+                        device : userAgent,
+                        flag : 0,
+                        content : JSON.stringify(message),
+                        handshake : JSON.stringify(handshake),
+                        ip : ip
+                    });
+                }
+            }catch(e){
+                console.log(e)
+                handler._message({
+                    room : message.room,
+                    emitType : "tips",
+                    to : socket.id,
+                    msg : "系统错误"
+                },{})
+            }
+        });
+
+        socket.on('chating', async function (message) {
+            try{
+                handler._chating(message,{})
+
+                let handshake = socket.handshake
+                let userAgent = handshake.headers['user-agent'].toString().substr(0,255);
+                let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
+    
+                let recoderId = await dogData({
+                    name : "公共聊天室",
+                    tables : tables,
+                    roomId : message.room,
+                    socketId : message.socketId,
+                    device : userAgent,
+                    flag : 0,
+                    content : decodeURIComponent(message.msg),
+                    handshake : JSON.stringify(handshake),
+                    ip: ip
+                });
+            
+                sendChatingNotify({
+                    title : '公共聊天频道',
+                    room :  message.room,
+                    recoderId :  message.recoderId,
+                    msgRecoderId :  recoderId,
+                    socketId :  message.socketId,
+                    msg :  message.msg,
+                    userAgent : userAgent,
+                    ip : ip
+                })
+            }catch(e){
+                console.log(e)
+                handler._message({
+                    room : message.room,
+                    emitType : "tips",
+                    to : socket.id,
+                    msg : "系统错误"
+                },{})
+            }
+        });
 
         socket.on('count', function (message) {
             handler._count(message,{})
-        })
+        });
 
-
-        socket.on('message', function (message) {
-            handler._message(message,{})
-        })
+        socket.on('close', function (message) {
+            handler._close(message,{})
+        });
   
     });
-}
-
-
-/**
- * 房间是否存在
- * @param {*} data 
- */
-async function isRoomExist(data) {
-    let req = {
-        ctx: {
-            tables: tables
-        },
-        params: {
-            rname: data.roomName,
-        }
-    };
-
-    let rooms = await room.getRoomByName(req, null);
-    return rooms.length > 0;
-}
-  
-  
-/**
- * 首次创房数据入库
- * @param {*} data 
- */
-async function createRoom(data) {
-    let req = {
-        ctx: {
-            tables: tables
-        },
-        params: {
-            uid: data.uid,
-            uname: data.uname,
-            rname: data.roomName,
-            sid: data.socketId,
-            ip: data.ip,
-            device: data.device,
-            url: data.url,
-            content: JSON.stringify(data.content)
-        }
-    };
-
-    let res = await room.addOwnerRoom(req, null);
-    return res.dataValues.id;
-}
-  
-  
-/**
- * 加入房间
- * @param {*} data 
- */
-async function joinRoom(data) {
-    let req = {
-        ctx: {
-            tables: tables
-        },
-        params: {
-            uid: data.uid, 
-            uname: data.uname,
-            rname: data.roomName,
-            sid: data.socketId,
-            ip: data.ip,
-            device: data.device,
-            url: data.url,
-            content: JSON.stringify(data.content)
-        }
-    };
-    let res = await room.addJoinRoom(req, null);
-    return res.dataValues.id;
-}
-  
-  
-/**
- * 退出房间
- * @param {*} data 
- */
-async function exitRoom(data) {
-    let req = {
-        ctx: {
-            tables: tables
-        },
-        params: {
-            sid: data.sid
-        }
-    };
-    let res = await room.updateRoomBySid(req, null);
-    return 0;
-}
-
-
-function addWorker(){
-    
 }
 
 

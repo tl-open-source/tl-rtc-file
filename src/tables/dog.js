@@ -9,32 +9,19 @@ module.exports = (sequelize, DataTypes) => {
           },
           name : {
                type: DataTypes.STRING(20),
-               comment: '操作功能id'
+               comment: '操作功能名称'
           },
-          module : {
-               type: DataTypes.INTEGER,
-               comment: '所属的模块'
+          room_id : {
+               type: DataTypes.STRING(25),
+               comment: '房间号'
           },
-          uid : {
-               type: DataTypes.INTEGER,
-               comment: '添加功能的用户，属于的用户唯一id，11位，暂不处理',
-               unique: true
-          },
-          uname : {
-               type: DataTypes.STRING(20),
-               comment: '姓名'
-          },
-          ip : {
-               type: DataTypes.STRING(32),
-               comment: 'ip'
+          socket_id : {
+               type: DataTypes.STRING(25),
+               comment: '连接id'
           },
           device : {
                type: DataTypes.STRING(256),
                comment: '设备'
-          },
-          localtion : {
-               type: DataTypes.STRING(256),
-               comment: '地理位置'
           },
           flag : {
                type: DataTypes.INTEGER,
@@ -44,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
           content : {
                type: DataTypes.TEXT,
                comment: '详细信息'
+          },
+          handshake : {
+               type: DataTypes.TEXT,
+               comment: '客户端信息'
           }
      },{
           timestamps: true,

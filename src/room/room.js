@@ -1,140 +1,156 @@
 
-const utils = require("../../utils/request");
+const utils = require("../../utils/utils");
+const manageConfig = require("../../conf/cfg.json").router.manage;
+const dbOpen = require("../../conf/cfg.json").db.open;
 
 /**
- * 获取房主信息 by uid rname 
+ * 管理后台特殊房间入口、配置信息
  * @param {*} req 
  * @param {*} res 
  * @param {*} next 
  */
-async function getOwnerRoomByUid(req,res,next) {
+async function getOrCreateManageRoom(req, res, next) {
      let ctx = req.ctx || {};
      let params = req.params || {};
      let data = {};
 
-     //加入之前需要获取房间信息给客户端
-     data = await ctx.tables.Room.findOne({
-          where : {
-               uid : params.uid,
-               rname : params.rname,
-               status : 0 //有开启的房间
+     let manageRoomList = await ctx.tables.Room.findAll({
+          where: {
+               rname: manageConfig.room,
+               flag :1 
           }
      });
 
-     if(res){
-          res.json(data)
-     }else {
-          return data;
+     if (manageRoomList.length === 0) {
+          data = await ctx.tables.Room.create({
+               rcode: utils.genRoom(),
+               rname: manageConfig.room,
+               flag: 1,
+               sid: params.sid,
+               ip: params.ip,
+               device: params.device,
+               content: params.content
+          });
+
+          console.log("创建管理房间配置成功")
+
+          manageRoomList = await ctx.tables.Room.findAll({
+               where: {
+                    rname: manageConfig.room,
+                    flag :1 
+               }
+          });
+     }
+
+     manageRoomList = manageRoomList.length >= 1 ? manageRoomList[0] : manageRoomList
+
+     if (res) {
+          res.json(manageRoomList)
+     } else {
+          return manageRoomList;
      }
 }
 
 
 /**
- * 获取房间成员信息 by rname
+ * 获取房间统计信息
  * @param {*} req 
  * @param {*} res 
  * @param {*} next 
  */
-async function getJoinRoomByName(req,res,next) {
+async function getManageRoomInfo(req, res, next) {
      let ctx = req.ctx || {};
      let params = req.params || {};
-     let data = {};
+     let sockets = ctx.sockets || {};
+     let data = {
+          createRoomToday: 0,
+          createRoomAll: 0,
+          joinRoomTodady: 0,
+          joinRoomAll: 0,
+          onlineRoomList: [],
+          todayRoomList: [],
+          userAgentIpList: []
+     };
 
-     //加入之前需要获取房间信息给客户端
-     data = await ctx.tables.Room.findOne({
-          where : {
-               rname : params.rname,
-               status : 0 //有开启的房间
+     //当前在线房间列表
+     for (let room in sockets.adapter.rooms) {
+          if (room.length > 15) {
+               continue
+          }
+          data.onlineRoomList.push({
+               status: "在线",
+               room: room,
+               userNumber: sockets.adapter.rooms[room] ? Object.keys(sockets.adapter.rooms[room].sockets).length : 0,
+               createTime: sockets.adapter.rooms[room].createTime
+          })
+     }
+
+     // 今日房间聚合列表，数量统计
+     const [roomCoutingListToday, metadata] = await ctx.sql.query(`select rname, created_at, count(*) as user from room where created_at >= "${utils.formateDateTime(new Date(), "yyyy-MM-dd")}" group by rname order by created_at desc`);
+     data.createRoomToday += roomCoutingListToday.length;
+     roomCoutingListToday.forEach(element => {
+          data.joinRoomTodady += element.user;
+          data.todayRoomList.push({
+               room: element.rname,
+               count: element.user,
+               createTime: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
+          })
+     });
+
+     //全部数量统计
+     const [roomCoutingListAll, metadata1] = await ctx.sql.query(`select count(*) as user from room group by rname`);
+     data.createRoomAll += roomCoutingListAll.length;
+     roomCoutingListAll.forEach(element => {
+          data.joinRoomAll += element.user
+     });
+
+     // 今日房间设备统计列表
+     const [roomListAgent, metadata2] = await ctx.sql.query(`select rname, content, created_at from room where created_at >= "${utils.formateDateTime(new Date(), "yyyy-MM-dd")}" order by created_at desc`);
+     roomListAgent.forEach(element => {
+          let content = JSON.parse(element.content);
+          if(content && content.handshake){
+               data.userAgentIpList.push({
+                    room: element.rname,
+                    userAgent: content.handshake.headers['user-agent'],
+                    Ip: content.handshake.headers['x-real-ip'] || content.handshake.headers['x-forwarded-for'] || content.handshake.headers['host'],
+                    createTime: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
+               })
           }
      });
 
-     if(res){
+     if (res) {
           res.json(data)
-     }else {
+     } else {
           return data;
      }
 }
 
-
 /**
- * 获取房间信息 by rname
+ * 创建/加入房间
  * @param {*} req 
  * @param {*} res 
  * @param {*} next 
  */
-async function getRoomByName(req,res,next) {
-     let ctx = req.ctx || {};
-     let params = req.params || {};
-     let data = {};
-     
-     data = await ctx.tables.Room.findAll({
-          where : {
-            rname : params.rname,
-            status : 0
-          }
-     });
-
-     if(res){
-          res.json(data)
-     }else {
-          return data;
-     }
-}
-
-
-/**
- * 创建房间
- * @param {*} req 
- * @param {*} res 
- * @param {*} next 
- */
-async function addOwnerRoom(req,res,next) {
+async function createJoinRoom(req, res, next) {
      let ctx = req.ctx || {};
      let params = req.params || {};
      let data = {};
 
      data = await ctx.tables.Room.create({
-          uid : params.uid,
-          uname : params.uname,
-          rcode : utils.genRoom(),
-          rname : params.rname,
-          sid : params.sid,
-          ip : params.ip,
-          device : params.device,
-          url : params.url,
-          content : params.content
+          uid: params.uid,
+          uname: params.uname,
+          rcode: utils.genRoom(),
+          rname: params.rname,
+          sid: params.sid,
+          ip: params.ip,
+          device: params.device,
+          url: params.url,
+          content: params.content
      });
 
-     if(res){
+     if (res) {
           res.json(data)
-     }else {
-          return data;
-     }
-}
-
-/**
- * 加入房间
- * @param {*} req 
- * @param {*} res 
- * @param {*} next 
- */
-async function addJoinRoom(req,res,next) {
-     let ctx = req.ctx || {};
-     let params = req.params || {};
-
-     let data = await ctx.tables.Room.create({
-          rcode : utils.genRoom(),
-          rname : params.rname,
-          sid : params.sid,
-          ip : params.ip,
-          device : params.device,
-          url : params.url,
-          content : params.content
-     });
-     
-     if(res){
-          res.json(data)
-     }else {
+     } else {
           return data;
      }
 }
@@ -146,58 +162,65 @@ async function addJoinRoom(req,res,next) {
  * @param {*} res 
  * @param {*} next 
  */
-async function updateRoom(req,res,next) {
+async function updateRoomContent(req, res, next) {
      let ctx = req.ctx || {};
      let params = req.params || {};
 
      let data = await ctx.tables.Room.update({
-         status : 1
-     },{
-          where : {
-               id : params.id
+          content: params.content,
+     }, {
+          where: {
+               id: params.id,
+               flag : 1
           }
      });
-     
-     if(res){
+
+     if (res) {
           res.json(data)
-     }else {
+     } else {
           return data;
      }
 }
 
 
 /**
- * 更新房间
+ * 退出房间
  * @param {*} req 
  * @param {*} res 
  * @param {*} next 
  */
-async function updateRoomBySid(req,res,next) {
+async function exitRoomBySid(req, res, next) {
      let ctx = req.ctx || {};
      let params = req.params || {};
 
+     console.log(ctx.tables)
+
      let data = await ctx.tables.Room.update({
-         status : 1
-     },{
-          where : {
-               sid : params.sid
+          status: 1
+     }, {
+          where: {
+               sid: params.sid
           }
      });
-     
-     if(res){
+
+     if (res) {
           res.json(data)
-     }else {
+     } else {
           return data;
      }
 }
 
 
-module.exports = {
-     getRoomByName,
-     getOwnerRoomByUid,
-     getJoinRoomByName,
-     addOwnerRoom,
-     addJoinRoom,
-     updateRoom,
-     updateRoomBySid
+module.exports = dbOpen ? {
+     getManageRoomInfo,
+     createJoinRoom,
+     updateRoomContent,
+     exitRoomBySid,
+     getOrCreateManageRoom
+} : {
+     getManageRoomInfo : function(){},
+     createJoinRoom : function(){},
+     updateRoomContent : function(){},
+     exitRoomBySid : function(){},
+     getOrCreateManageRoom : function(){},
 }

@@ -1,11 +1,12 @@
 /**
  * 封装socket连接公共方法
  */
-class SocketHandler {
+ class SocketHandler {
     constructor(sockets,socket){
         this.sockets = sockets;
         this.socket = socket;
     }
+
     /**
      * 公共聊天频道
      * @param {*} message 
@@ -33,13 +34,13 @@ class SocketHandler {
             console.log(e)
         }
     }
-    
+
     /**
      * 数量
      * @param {*} message 
      * @param {*} params 
      */
-     _count( message, params){
+    _count( message, params){
         try{
             let allRoom = this.sockets.adapter.rooms;
             let allManCount = 0;
@@ -52,6 +53,9 @@ class SocketHandler {
             }
     
             for(let room in allRoom){
+                // if(room.length  > 15){
+                //     continue
+                // }
                 let clientsInRoom = allRoom[room];
                 let otherSocketIds = Object.keys(clientsInRoom.sockets);
                 if( otherSocketIds.length > 0){
@@ -60,6 +64,29 @@ class SocketHandler {
                         otherSocket.emit("count", {
                             mc : allManCount
                         });
+                    }
+                }
+            }
+        }catch(e){
+           console.log(e)
+        }
+    }
+
+    /**
+     * 维护通知
+     * @param {*} message 
+     * @param {*} params 
+     */
+    _close( message, params){
+        try{
+            let allRoom = this.sockets.adapter.rooms;
+            for(let room in allRoom){
+                let clientsInRoom = allRoom[room];
+                let otherSocketIds = Object.keys(clientsInRoom.sockets);
+                if( otherSocketIds.length > 0){
+                    for (let i = 0; i < otherSocketIds.length; i++) {
+                        let otherSocket = this.sockets.connected[otherSocketIds[i]];
+                        otherSocket.emit("close", message);
                     }
                 }
             }
@@ -205,6 +232,15 @@ class SocketHandler {
         let from = message.from;
         let to = message.to;
         let clientsInRoom = this.sockets.adapter.rooms[room];
+
+        //特殊事件
+        if(emitType === 'switchData'){
+            this.socket.emit('switchData',{
+                switchData : message.data
+            });
+            return
+        }
+
         if (clientsInRoom) {
             let otherSocketIds = Object.keys(clientsInRoom.sockets);
             for (let i = 0; i < otherSocketIds.length; i++) {

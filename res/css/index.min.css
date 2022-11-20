@@ -18,6 +18,13 @@ body{
     transition: background-color var(--duration);
     -webkit-tap-highlight-color: transparent;
 }
+.layui-layer-title{
+    border-top-right-radius: 15px;
+    border-top-left-radius: 15px;
+}
+.layui-layer{
+    border-radius: 20px;
+}
 .menu{
     display: flex;
     width: 90%;
@@ -58,7 +65,7 @@ body{
 }
 .menu__item.active::before{
     transform: scale(1);
-    background-color: var(--bgColorItem);
+    background-color: var(--bgColorMenu);
 }
 .icon{
     width: 2.6em;
@@ -431,11 +438,6 @@ body{
     padding: 25px;
     border-radius: 3px;
     margin-left: -20px;
-}
-.noSendFile{
-    width: 100%;
-    height: 100%;
-    background: url(/image/noSendFiles.png) no-repeat center;
 }
 
 .logs{
