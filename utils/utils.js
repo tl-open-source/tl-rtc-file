@@ -77,10 +77,20 @@ function formateDateTime(time, format) {
     return format;
 }
 
+function getNextDay(time){
+    var date = new Date(time);
+    date.setDate(date.getDate() + 1);
+    var y = date.getFullYear();
+    var m = date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+    var d = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+    return y + "-" + m + "-" + d;
+}
+
 module.exports = {
      getLocalIP,
      getClientIP,
      genFlow,
      genRoom,
-     formateDateTime
+     formateDateTime,
+     getNextDay
 }

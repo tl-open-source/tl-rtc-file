@@ -38,7 +38,12 @@ module.exports = (sequelize, DataTypes) => {
           }
      },{
           timestamps: true,
-          comment: '功能记录表'
+          comment: '功能记录表',
+          indexes: [{
+               name: 'created_at_index',
+               method: 'BTREE',
+               fields: ['created_at']
+          }]
      });
      return {
           Dog

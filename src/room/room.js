@@ -85,8 +85,19 @@ async function getManageRoomInfo(req, res, next) {
           })
      }
 
-     // 今日房间聚合列表，数量统计
-     const [roomCoutingListToday, metadata] = await ctx.sql.query(`select rname, created_at, count(*) as user from room where created_at >= "${utils.formateDateTime(new Date(), "yyyy-MM-dd")}" group by rname order by created_at desc`);
+     let day;
+     try{
+          day = new Date(params.day)
+     }catch(e){
+          day = new Date()
+     }
+     let chooseDay = utils.formateDateTime(day, "yyyy-MM-dd");
+     let nextDay = utils.getNextDay(chooseDay);
+
+     // 某日房间聚合列表，数量统计
+     const [roomCoutingListToday, metadata] = await ctx.sql.query(
+          `select rname, any_value(created_at) as created_at, count(*) as user from room where created_at >= "${chooseDay}" and created_at <= "${nextDay}" group by rname order by created_at desc`);
+
      data.createRoomToday += roomCoutingListToday.length;
      roomCoutingListToday.forEach(element => {
           data.joinRoomTodady += element.user;
@@ -97,14 +108,14 @@ async function getManageRoomInfo(req, res, next) {
           })
      });
 
-     //全部数量统计
+     // 全部数量统计
      const [roomCoutingListAll, metadata1] = await ctx.sql.query(`select count(*) as user from room group by rname`);
      data.createRoomAll += roomCoutingListAll.length;
      roomCoutingListAll.forEach(element => {
           data.joinRoomAll += element.user
      });
 
-     // 今日房间设备统计列表
+     // 某日房间设备统计列表
      const [roomListAgent, metadata2] = await ctx.sql.query(`select rname, content, created_at from room where created_at >= "${utils.formateDateTime(new Date(), "yyyy-MM-dd")}" order by created_at desc`);
      roomListAgent.forEach(element => {
           let content = JSON.parse(element.content);
@@ -118,6 +129,8 @@ async function getManageRoomInfo(req, res, next) {
           }
      });
 
+     data.chooseDay = chooseDay;
+     
      if (res) {
           res.json(data)
      } else {

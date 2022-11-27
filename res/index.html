@@ -27,6 +27,16 @@
             border-radius: 20px;
             box-shadow: 0 0px 20px rgb(0 0 0 / 40%);
         }
+        .new-dot{
+            padding: 0px 3px;
+            position: absolute;
+            border-radius: 50%;
+            height: 18px;
+            width: 18px;
+            font-size: 10px;
+            line-height: 18px;
+            right: -5px;
+        }
     </style>
 </head>
 <body>
@@ -81,6 +91,7 @@
             </a>
 
             <a title="公共聊天频道" @click="chating()" v-show="switchData.openCommRoom">
+                <span v-show="chatingList.length > 0" class="layui-badge new-dot layui-anim-rotate layui-anim-loop">{{Math.min(chatingList.length, 99)}}</span>
                 <svg style="margin-left: -5px;width:34px;height: 34px;" viewBox="0 0 1024 1024" p-id="6507">
                     <path d="M802.4 555c0 0-9.9-31.8-41.7-31.8l-89.8 0c-26.7 31.5-52.4 43.4-93.9 53.8l-26 26 78 0c57.7-1.6 75.5 71.1 78 78l130 0L802.4 555z" p-id="6508"></path>
                     <path d="M717.6 382.3c0 41.1-12.6 79.2-34.3 110.9 5.4 0.7 10.8 1.1 16.4 1.1 71.1 0 112-55 111.2-125.2-1.6-151.5-168.8-127.8-182-130C664.1 256.8 717.6 295.8 717.6 382.3z" p-id="6509"></path>
@@ -288,18 +299,24 @@
 
 
         <menu class="menu" style="z-index: 10000;">
-            <button ref="btnHome" @click="clickHome" class="menu__item" :class="currentMenu === 1 ? 'active' : ''" style="--bgColorBody: #ffb457; --bgColorItem: #ff8c00;">
+            <button ref="btnHome" @click="clickHome" class="menuItem" :class="currentMenu === 1 ? 'active' : ''" style="--bgColorBody: #ffb457; --bgColorItem: #ff8c00;">
+                <span v-show="sendFileList.length > 0 && sendFileList.length < 10" class="layui-badge new-dot layui-anim-rotate layui-anim-loop" style="padding: 0;position: relative; top: -20px;">{{Math.min(sendFileList.length, 99)}}</span>
+                <span v-show="sendFileList.length >= 10" class="layui-badge new-dot layui-anim-rotate layui-anim-loop" style="position: relative; top: -20px;">{{Math.min(sendFileList.length, 99)}}</span>
                 <svg class="icon" viewBox="0 0 24 24">
                     <path d="M3.8,6.6h16.4"></path>
                     <path d="M20.2,12.1H3.8"></path>
                     <path d="M3.8,17.5h16.4"></path>
                 </svg>
             </button>
-            <button ref="btnTxt" @click="clickTxt" class="menu__item" :class="currentMenu === 3 ? 'active' : ''" style="--bgColorBody: rgb(122, 197, 111); --bgColorItem: rgb(122, 197, 111)">
+            <button ref="btnTxt" @click="clickTxt" class="menuItem" :class="currentMenu === 3 ? 'active' : ''" style="--bgColorBody: rgb(122, 197, 111); --bgColorItem: rgb(122, 197, 111)">
+                <span v-show="receiveTxtList.length > 0 && receiveTxtList.length < 10" class="layui-badge new-dot layui-anim-rotate layui-anim-loop" style="padding: 0; position: relative; top: -20px;">{{Math.min(receiveTxtList.length, 99)}}</span>
+                <span v-show="receiveTxtList.length >= 10" class="layui-badge new-dot layui-anim-rotate layui-anim-loop" style="position: relative; top: -20px;">{{Math.min(receiveTxtList.length, 99)}}</span>
                 <svg  class="icon" viewBox="0 0 1024 1024" p-id="21754" width="128" height="128">
                     <path d="M192.8 868.7c-3.8 0-7.7-0.7-11.4-2.3-10.7-4.4-17.6-14.4-17.6-25.6V724.6h-46.4C52.7 724.6 0.1 676.4 0.1 617.1V236.3c0-59.3 52.6-107.5 117.3-107.5h622.1c64.7 0 117.3 48.2 117.3 107.5v380.8c0 59.3-52.6 107.5-117.3 107.5H346.8L213.7 860c-5.6 5.7-13.2 8.7-20.9 8.7z m-75.4-704.1c-45 0-81.5 32.2-81.5 71.7v380.8c0 39.5 36.6 71.7 81.5 71.7h64.3c9.9 0 17.9 8 17.9 17.9v116.5l126.9-129.1c3.4-3.4 8-5.3 12.8-5.3h400.2c45 0 81.5-32.2 81.5-71.7V236.3c0-39.5-36.6-71.7-81.5-71.7H117.4z" fill="#ffffff" p-id="21755"></path><path d="M884 938.7c-7 0-13.7-2.8-18.7-8.1L774 833.3H502.3c-13.5 0-26.5-2.9-38.6-8.7-8.9-4.2-12.7-14.9-8.5-23.9 4.3-9 15-12.7 23.9-8.5 7.3 3.5 15.1 5.2 23.3 5.2h279.5c4.9 0 9.7 2.1 13.1 5.6l79.1 84.2v-72c0-9.9 8-17.9 17.9-17.9h44.9c28.4 0 51.5-21.4 51.5-47.6V471.6c0-14.9-7.8-29.2-20.9-38.2-8.1-5.6-10.2-16.8-4.6-24.9 5.6-8.2 16.8-10.2 24.9-4.6 22.8 15.7 36.4 41 36.4 67.7V750c0 46-39.2 83.4-87.4 83.4h-27v80.2c0 10.3-6.3 19.4-16 23.3-3.3 1.2-6.5 1.8-9.8 1.8zM202.7 402c-9.8 0-17.8-7.9-17.9-17.7-0.1-9.9 7.9-18 17.7-18.1l441.7-4h0.2c9.8 0 17.8 7.9 17.9 17.7 0.1 9.9-7.9 18-17.7 18.1l-441.7 4h-0.2zM473.3 522.8H202.7c-9.9 0-17.9-8-17.9-17.9s8-17.9 17.9-17.9h270.6c9.9 0 17.9 8 17.9 17.9s-8 17.9-17.9 17.9z" fill="#ffffff" p-id="21756"></path></svg>
             </button>
-            <button ref="btnReceive" @click="clickReceive" class="menu__item" :class="currentMenu === 2 ? 'active' : ''" style="--bgColorBody: rgb(112, 161, 255); --bgColorItem: rgb(112, 161, 255)">
+            <button ref="btnReceive" @click="clickReceive" class="menuItem" :class="currentMenu === 2 ? 'active' : ''" style="--bgColorBody: rgb(112, 161, 255); --bgColorItem: rgb(112, 161, 255)">
+                <span v-show="receiveFileList.length > 0 && receiveFileList.length < 10" class="layui-badge new-dot layui-anim-rotate layui-anim-loop" style="padding: 0; position: relative; top: -20px;">{{Math.min(receiveFileList.length, 99)}}</span>
+                <span v-show="receiveFileList.length >= 10" class="layui-badge new-dot layui-anim-rotate layui-anim-loop" style="position: relative; top: -20px;">{{Math.min(receiveFileList.length, 99)}}</span>
                 <svg class="icon" viewBox="0 0 24 24">
                     <path d="M6.7,4.8h10.7c0.3,0,0.6,0.2,0.7,0.5l2.8,7.3c0,0.1,0,0.2,0,0.3v5.6c0,0.4-0.4,0.8-0.8,0.8H3.8
                     C3.4,19.3,3,19,3,18.5v-5.6c0-0.1,0-0.2,0.1-0.3L6,5.3C6.1,5,6.4,4.8,6.7,4.8z"></path>
@@ -307,7 +324,7 @@
                 </svg>
             </button>
             
-            <div class="menu__border" style="transform: translate3d(108px, 0px, 0px);"></div>
+            <div class="menuBorder" style="transform: translate3d(108px, 0px, 0px);"></div>
         </menu>
 
         <div class="svg-container">
@@ -342,11 +359,7 @@
             window.swiper = mySwiper;
         },1000)
         
-        layui.config({
-            // base: '/lay/dist/layuiadmin/' //静态资源所在路径
-        }).extend({
-            // index: 'lib/index' //主入口模块
-        }).use(['layedit','form','layer','laytpl'],function(){
+        layui.use(['layedit','form','layer','laytpl'],function(){
             window.layer = layui.layer;
             window.$ = layui.$;
             window.layedit = layui.layedit;
@@ -375,9 +388,8 @@
                             <div style="text-align: center;line-height: 40px;">2. 双方选择需要的文件发送</div>
                             <div style="text-align: center;line-height: 40px;">3. 右下角是你接收到的文件</div>
                             <div style="text-align: center;line-height: 40px;">4. 左下角是你发送过的文件</div>
-                            <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 服务器配置带宽不高（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽），传输只能保持在500kb/s ~ 600kb/s</div>
-                        </div>
-                    `
+                            <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 中继服务器配置带宽不高，大约500kb/s ~ 600kb/s，（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽） （如果双方网络不支持p2p，才会走中继服务器，局域网或者支持p2p的网络是不限速的）</div>                        </div>
+                        `
                     ,success: function(layero){
 
                     },

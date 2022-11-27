@@ -64,7 +64,12 @@ module.exports = (sequelize, DataTypes) => {
           }
      },{
           timestamps: true,
-          comment: '房间表'
+          comment: '房间表',
+          indexes: [{
+               name: 'created_at_index',
+               method: 'BTREE',
+               fields: ['created_at']
+          }]
      });
      return {
           Room

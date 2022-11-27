@@ -234,9 +234,10 @@
         let clientsInRoom = this.sockets.adapter.rooms[room];
 
         //特殊事件
-        if(emitType === 'switchData'){
-            this.socket.emit('switchData',{
-                switchData : message.data
+        if(emitType === 'commData'){
+            this.socket.emit('commData',{
+                switchData : message.switchData,
+                chatingData : message.chatingData
             });
             return
         }

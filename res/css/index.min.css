@@ -14,7 +14,6 @@ body{
     max-width: 90%;
     align-items: center;
     justify-content: center;
-    background-color: #ffb457;
     transition: background-color var(--duration);
     -webkit-tap-highlight-color: transparent;
 }
@@ -38,7 +37,7 @@ body{
     position: fixed;
     z-index: 1000;
 }
-.menu__item{
+.menuItem{
     all: unset;
     flex-grow: 1;
     z-index: 80;
@@ -50,7 +49,7 @@ body{
     padding: 0.55em 0 0.85em;
     transition: transform var(--duration);
 }
-.menu__item::before{
+.menuItem::before{
     content: "";
     z-index: -1;
     width: 4.2em;
@@ -60,10 +59,10 @@ body{
     transform: scale(0);
     transition: background-color var(--duration), transform var(--duration);
 }
-.menu__item.active {
+.menuItem.active {
     transform: translate3d(0, -.8em , 0);
 }
-.menu__item.active::before{
+.menuItem.active::before{
     transform: scale(1);
     background-color: var(--bgColorMenu);
 }
@@ -79,7 +78,7 @@ body{
     stroke-dasharray: 400;
     
 }
-.menu__item.active .icon {
+.menuItem.active .icon {
     animation: strok 1.5s reverse;
 }
 @keyframes strok {
@@ -87,7 +86,7 @@ body{
         stroke-dashoffset: 400;
     }
 }
-.menu__border{
+.menuBorder{
     left: 0;
     bottom: 99%;
     width: 10.9em;
@@ -439,7 +438,6 @@ body{
     border-radius: 3px;
     margin-left: -20px;
 }
-
 .logs{
     text-align: center;
     border-bottom: 1px solid #f6f6f6;
@@ -456,3 +454,13 @@ body{
 .layui-table td, .layui-table th{
     font-size: 12px !important;
 }
+
+.layui-btn-disabled, .layui-btn-disabled:active, .layui-btn-disabled:hover {
+    border-color: #eee!important;
+    background-color: #fbfbfb!important;
+    color: #d2d2d2!important;
+    cursor: not-allowed!important;
+    opacity: 1;
+}
+
+/*# sourceMappingURL=index.min.css.map*/

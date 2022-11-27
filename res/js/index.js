@@ -191,7 +191,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 chatingList: [], //公共聊天频道内容
                 switchData : {}, //配置开关数据
-                token: "",
+                token: "", //登录token
+                manageIframeId : 0 //实现自适应
             }
         },
         computed: {
@@ -378,7 +379,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (hash && hash.includes("#")) {
                     let roomIdArgs = hash.split("r=");
                     if (roomIdArgs && roomIdArgs.length > 1) {
-                        this.roomId = (roomIdArgs[1] + "").replace(/\s*/g, "").substr(0, 14);
+                        this.roomId = (roomIdArgs[1] + "").replace(/\s*/g, "").substr(0, 15);
                         if (window.layer) {
                             layer.confirm("进入房间" + this.roomId, (index) => {
                                 window.location.hash = "";
@@ -427,6 +428,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             <div class="layui-col-sm12" style="padding: 15px;">
                                 <div class="layui-card chating-content" id="chating_tpl_view" style="padding: 5px;"> </div>
                                 <script id="chating_tpl" type="text/html">
+                                    <div style="text-align: center; color: #ffe2bc; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> -------- 仅展示10条历史消息 -------- </div>
                                     {{#  layui.each(d, function(index, info){ }}
                                     <div style="margin-bottom: 30px;display: inline-flex;">
                                         <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
@@ -439,7 +441,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                 </script>
                             </div>
                             <div style="bottom: 0px; position: absolute; width: 100%; padding: 20px;">
-                                <textarea maxlength="50000" id="blog_comment" class="layui-textarea" placeholder="文明发言，理性交流 ~"></textarea>
+                                <textarea style="border-radius: 15px;" maxlength="50000" id="blog_comment" class="layui-textarea" placeholder="文明发言，理性交流 ~"></textarea>
                                 <button style="float: right;margin-top: 10px;" onclick="sendChating()" type="button" class="layui-btn layui-btn-normal layui-btn-sm">发言</button>
                             </div>
                         `
@@ -594,6 +596,14 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     content: data.content,
                 });
             },
+            manageReload : function(data){
+                this.socket.emit('manageReload', {
+                    id : data.id,
+                    room : this.roomId,
+                    token: this.token,
+                    content: data.time,
+                });
+            },
             genNickName: function () {
                 // 获取指定范围内的随机数
                 function randomAccess(min, max) {
@@ -739,10 +749,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.currentMenu = 1;
 
                 let active = this.$refs['btnHome'];
-                document.body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector(".chooseFileName").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
 
-                let menuBorder = document.querySelector(".menu__border");
+                let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
                 offsetMenuBorder(box, menuBorder);
 
@@ -759,10 +769,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.currentMenu = 2;
 
                 let active = this.$refs['btnReceive'];
-                document.body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector(".chooseFileName").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
 
-                let menuBorder = document.querySelector(".menu__border");
+                let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
                 offsetMenuBorder(box, menuBorder);
 
@@ -779,9 +789,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.currentMenu = 3;
 
                 let active = this.$refs['btnTxt'];
-                document.body.style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
 
-                let menuBorder = document.querySelector(".menu__border");
+                let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
                 offsetMenuBorder(box, menuBorder);
 
@@ -1464,8 +1474,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 //开关数据
-                this.socket.on('switchData', function (data) {
+                this.socket.on('commData', function (data) {
                     that.switchData = data.switchData
+                    data.chatingData.forEach(elem=>{
+                        that.chatingList.push(elem)
+                    })
                 });
 
                 //公共聊天频道
@@ -1497,21 +1510,36 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             layer.msg("非法触发事件")
                             return
                         }
+                        layer.closeAll();
                         that.token = data.token;
-                        layer.full(layer.tab({
-                            area: ['100%', '100%'],
-                            closeBtn: 0,
-                            tab: [{
-                                title: data.content[0].title,
-                                content: data.content[0].html
-                            }, {
-                                title: data.content[1].title,
-                                content: data.content[1].html
-                            }, {
-                                title: data.content[2].title,
-                                content: data.content[2].html
-                            }]
-                        }))
+                        layer.load(2, {
+                            time: 1000,
+                            shade: [0.8, '#000000'],
+                            success: function(layero){
+                                layer.setTop(layero); //重点2
+                            }
+                        })
+                        setTimeout(() => {
+                            that.manageIframeId = layer.tab({
+                                area: ['100%', '100%'],
+                                shade: [0.8, '#393D49'],
+                                // closeBtn: 0,
+                                tab: [{
+                                    title: data.content[0].title,
+                                    content: data.content[0].html
+                                }, {
+                                    title: data.content[1].title,
+                                    content: data.content[1].html
+                                }, {
+                                    title: data.content[2].title,
+                                    content: data.content[2].html
+                                }],
+                                cancel: function(index, layero){
+                                    that.manageIframeId = 0;
+                                },
+                            })
+                            layer.full( that.manageIframeId )
+                        }, 500);
                     }
                 });
             },
@@ -1526,6 +1554,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
                 //re caculate size
                 this.reCaculateSwiperSize();
+
+                //manage frame resize
+                if(window.layer && this.manageIframeId !== 0){
+                    layer.full(this.manageIframeId)
+                }
 
                 this.logsHeight = document.documentElement.clientHeight - 55;
             },
@@ -1593,8 +1626,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
             setTimeout(() => {
                 that.handlerRoomHistory()
-                that.socket.emit('getSwitchData', {});
-            }, 500);
+                that.socket.emit('getCommData', {});
+            }, 1000);
         },
         mounted: function () {
             
@@ -1620,11 +1653,17 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             window.Bus.$on("manageChange", (data) => {
                 this.manageChange(data)
             })
+            window.Bus.$on("manageReload", (data) => {
+                this.manageReload(data)
+            })
         },
         destroyed: function () {
 
         }
     });
+    window.manageReload = function (data) {
+        window.Bus.$emit("manageReload", data)
+    }
     window.manageChange = function (data) {
         window.Bus.$emit("manageChange", data)
     }

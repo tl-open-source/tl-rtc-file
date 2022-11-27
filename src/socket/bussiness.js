@@ -342,12 +342,17 @@ async function getRoomPageHtml(data){
             sockets: data.sockets,
         },
         params: {
-            limit : 10
+            limit : 10,
+            day :  data.day,
         }
     }, null)
 
     return  `
     <style>
+        .layui-layer{
+            box-sizing: content-box;
+            transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s;
+        }
         .layui-layer-page .layui-layer-content {
             background: #ededed;
         }
@@ -363,12 +368,6 @@ async function getRoomPageHtml(data){
         .room-status-svg{
             width: 15px; height: 15px; top: 2px; position: relative;
         }
-        .layui-layer layui-layer-page layui-layer-tab{
-            box-sizing: content-box;
-        }
-        html *, html *::before, html *::after {
-            box-sizing: content-box;
-        }
         .layui-layer-tab .layui-layer-title span {
             min-width: unset;
             max-width: unset;
@@ -376,15 +375,18 @@ async function getRoomPageHtml(data){
         .layui-layer-tab .layui-layer-title {
             display: inline-flex;
             width: 100%;
+            padding: 0;
         }
     </style>
-    <link rel="stylesheet" href="/lay/dist/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="/static/layui/css/admin.css" media="all">
     <div class="layui-fluid" id="manageRoom" v-cloak>
+        <span style="position: absolute; top: 22px; font-size: 20px; color: cadetblue; font-weight: 900;  margin-left: 15px;"> 当前查询时间： </span>
+        <input type="text" value="${data.day}" class="layui-input" id="dayRoom" style="padding-right: 12px;text-align: right;margin-bottom: 10px; font-size: 20px; color: cadetblue; font-weight: 900;margin-bottom: 10px;" onclick="reRenderDateRoom()">
         <div class="layui-row layui-col-space15" id="tl_console_home_tpl_view">
             <div class="layui-col-sm6 layui-col-md3">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                    今日房间频道创建/加入 <span class="layui-badge layui-bg-blue layuiadmin-badge">天</span>
+                    {{chooseDay}}房间频道创建/加入 <span class="layui-badge layui-bg-blue layuiadmin-badge">天</span>
                     </div>
                     <div class="layui-card-body layuiadmin-card-list">
                         <p class="layuiadmin-big-font">{{createRoomToday}}个</p>
@@ -399,7 +401,7 @@ async function getRoomPageHtml(data){
             <div class="layui-col-sm6 layui-col-md3">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        今日加入房间人数
+                    {{chooseDay}}加入房间人数
                         <span class="layui-badge layui-bg-cyan layuiadmin-badge">天</span>
                     </div>
                     <div class="layui-card-body layuiadmin-card-list">
@@ -438,7 +440,7 @@ async function getRoomPageHtml(data){
             <div class="layui-col-sm12">
                 <div class="layui-row layui-col-space15">
                     <div class="layui-col-sm12">
-                        <div class="room-recent-title">今日房间统计</div>
+                        <div class="room-recent-title">{{chooseDay}}房间统计</div>
                         <table class="layui-table">
                             <thead> <tr> <th>房间频道</th> <th>聚合创建次数</th> <th>最近创建时间</th> </tr> </thead>
                             <tbody>
@@ -456,7 +458,7 @@ async function getRoomPageHtml(data){
             <div class="layui-col-sm12">
                 <div class="layui-row layui-col-space15">
                     <div class="layui-col-sm12">
-                        <div class="room-recent-title">今日访问设备/IP</div>
+                        <div class="room-recent-title">{{chooseDay}}访问设备/IP</div>
                         <table class="layui-table">
                             <thead> <tr> <th>房间频道</th> <th>IP地址</th> <th>设备信息</th> <th>时间</th> </tr> </thead>
                             <tbody>
@@ -476,12 +478,24 @@ async function getRoomPageHtml(data){
     </div>
     
     <script>
-        layui.config({
-            base: '/lay/dist/layuiadmin/' //静态资源所在路径
-        }).extend({
-            index: 'lib/index' //主入口模块
-        }).use(['form', 'layer', 'index'], function () {});
-
+        window.reRenderDateRoom = function(){
+            layui.laydate.render({
+                elem: '#dayRoom',
+                closeStop: '#dayRoom',
+                trigger: 'click',
+                max : '${new Date()}',
+                done: function(value, date, endDate){
+                    if(value){
+                        window.manageReload({
+                            time : value
+                        })
+                    }
+                }
+            });
+        }
+        layui.use(['laydate'], function () {
+            window.reRenderDateRoom()
+        });
         new Vue({
             el: '#manageRoom',
             data: function () {
@@ -515,12 +529,16 @@ async function getDataPageHtml(data){
             sockets: data.sockets,
         },
         params: {
-            limit : 10
+            limit : 10,
+            day :  data.day,
         }
     }, null)
 
     return `
     <style>
+        .layui-layer{
+            transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s;
+        }
         .layui-layer-page .layui-layer-content {
             background: #ededed;
         }
@@ -536,10 +554,7 @@ async function getDataPageHtml(data){
         .room-status-svg{
             width: 15px; height: 15px; top: 2px; position: relative;
         }
-        .layui-layer layui-layer-page layui-layer-tab{
-            box-sizing: content-box;
-        }
-        html *, html *::before, html *::after {
+        .layui-layer .layui-layer-page .layui-layer-tab{
             box-sizing: content-box;
         }
         .layui-layer-tab .layui-layer-title span {
@@ -549,15 +564,18 @@ async function getDataPageHtml(data){
         .layui-layer-tab .layui-layer-title {
             display: inline-flex;
             width: 100%;
+            padding: 0;
         }
     </style>
-    <link rel="stylesheet" href="/lay/dist/layuiadmin/style/admin.css" media="all">
+    <link rel="stylesheet" href="/static/layui/css/admin.css" media="all">
     <div class="layui-fluid" id="manageFile" v-cloak>
+        <span style="position: absolute; top: 22px; font-size: 20px; color: cadetblue; font-weight: 900;  margin-left: 15px;"> 当前查询时间： </span>
+        <input type="text" class="layui-input" value="${data.day}" id="dayFile" style="padding-right: 12px;text-align: right;margin-bottom: 10px; font-size: 20px; color: cadetblue; font-weight: 900;margin-bottom: 10px;" onclick="reRenderDateFile()">
         <div class="layui-row layui-col-space15" id="tl_console_data_tpl_view">
             <div class="layui-col-sm6 layui-col-md3">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                    今日文件传输 <span class="layui-badge layui-bg-blue layuiadmin-badge">天</span>
+                        {{chooseDay}}文件传输 <span class="layui-badge layui-bg-blue layuiadmin-badge">天</span>
                     </div>
                     <div class="layui-card-body layuiadmin-card-list">
                         <p class="layuiadmin-big-font">{{transferFileToday}}次</p>
@@ -572,7 +590,7 @@ async function getDataPageHtml(data){
             <div class="layui-col-sm6 layui-col-md3">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        今日文件传输大小
+                        {{chooseDay}}文件传输大小
                         <span class="layui-badge layui-bg-cyan layuiadmin-badge">天</span>
                     </div>
                     <div class="layui-card-body layuiadmin-card-list">
@@ -588,7 +606,7 @@ async function getDataPageHtml(data){
             <div class="layui-col-sm6 layui-col-md3">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        今日文本传输
+                        {{chooseDay}}文本传输
                         <span class="layui-badge layui-bg-green layuiadmin-badge">天</span>
                     </div>
                     <div class="layui-card-body layuiadmin-card-list">
@@ -605,7 +623,7 @@ async function getDataPageHtml(data){
             <div class="layui-col-sm6 layui-col-md3">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        今日公共频道发言
+                        {{chooseDay}}公共频道发言
                         <span class="layui-badge layui-bg-orange layuiadmin-badge">天</span>
                     </div>
                     <div class="layui-card-body layuiadmin-card-list">
@@ -623,7 +641,7 @@ async function getDataPageHtml(data){
             <div class="layui-col-sm12">
                 <div class="layui-row layui-col-space15">
                     <div class="layui-col-sm12">
-                        <div class="room-recent-title">今日文件传输列表</div>
+                        <div class="room-recent-title">{{chooseDay}}文件传输列表</div>
                         <table class="layui-table">
                             <thead> <tr> <th>房间频道</th> <th>文件名称</th> <th>文件大小</th> <th>发送时间</th> </tr> </thead>
                             <tbody>
@@ -642,7 +660,7 @@ async function getDataPageHtml(data){
             <div class="layui-col-sm12">
                 <div class="layui-row layui-col-space15">
                     <div class="layui-col-sm12">
-                        <div class="room-recent-title">今日文本传输列表</div>
+                        <div class="room-recent-title">{{chooseDay}}文本传输列表</div>
                         <table class="layui-table">
                             <thead> <tr> <th>房间频道</th> <th>文本内容</th> <th>文本长度</th> <th>发送时间</th> </tr> </thead>
                             <tbody>
@@ -661,7 +679,7 @@ async function getDataPageHtml(data){
             <div class="layui-col-sm12">
                 <div class="layui-row layui-col-space15">
                     <div class="layui-col-sm12">
-                        <div class="room-recent-title">今日公共频道发言</div>
+                        <div class="room-recent-title">{{chooseDay}}公共频道发言</div>
                         <table class="layui-table">
                             <thead> <tr> <th>房间频道</th> <th>文本内容</th> <th>文本长度</th> <th>发送时间</th> </tr> </thead>
                             <tbody>
@@ -681,12 +699,24 @@ async function getDataPageHtml(data){
     </div>
     
     <script>
-        layui.config({
-            base: '/lay/dist/layuiadmin/' //静态资源所在路径
-        }).extend({
-            index: 'lib/index' //主入口模块
-        }).use(['form', 'layer', 'index'], function () {});
-    
+        window.reRenderDateFile = function(){
+            layui.laydate.render({
+                elem: '#dayFile',
+                closeStop: '#dayFile',
+                trigger: 'click',
+                max : '${new Date()}',
+                done: function(value, date, endDate){
+                    if(value){
+                        window.manageReload({
+                            time : value
+                        })
+                    }
+                }
+            });
+        }
+        layui.use(['laydate'], function () {
+            window.reRenderDateFile()
+        });
         new Vue({
             el: '#manageFile',
             data: function () {
@@ -738,6 +768,9 @@ async function getSettingPageHtml(data){
 
     return `
     <style>
+        .layui-layer{
+            transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s;
+        }
         .layuiadmin-span-color, .layuiadmin-big-font{
             font-weight: bold;
         }
@@ -862,18 +895,13 @@ async function getSettingPageHtml(data){
     </div>
     
     <script>
-        layui.config({
-            base: '/lay/dist/layuiadmin/' //静态资源所在路径
-        }).extend({
-            index: 'lib/index' //主入口模块
-        }).use(['form', 'layer', 'index'], function () {
+        layui.use(['form'], function () {
             window.$ = layui.$;
             window.form = layui.form;
     
             let switchData = ${resData.content}
     
             form.val("switch-form",switchData)
-    
             form.val("info-form",switchData)
     
             form.on('checkbox()', function(data){
@@ -884,8 +912,7 @@ async function getSettingPageHtml(data){
                     id : ${resData.id},
                     content : switchData
                 })
-            });  
-    
+            });
         });
     </script>
     `

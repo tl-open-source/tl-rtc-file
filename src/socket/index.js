@@ -32,6 +32,7 @@ const {
 let tables = {};
 let tokens = [];
 let sql = {};
+let chating = []
 
 /**
  * 执行器
@@ -71,8 +72,7 @@ function listen(io) {
   
         var handler = new SocketHandler(io.sockets,socket);
 
-
-        socket.on("getSwitchData", async function(){
+        socket.on("getCommData", async function(){
             if(!dbOpen){
                 handler._message({
                     emitType : "switchData",
@@ -119,11 +119,12 @@ function listen(io) {
             let switchData = JSON.parse(manageInfo.content)
             if(switchData && switchData.keys){
                 delete switchData.keys;
-                handler._message({
-                    emitType : "switchData",
-                    data: switchData
-                })
             }
+            handler._message({
+                emitType : "commData",
+                switchData: switchData,
+                chatingData :chating
+            })
         })
 
         socket.on('disconnect',async function (reason) {
@@ -236,6 +237,12 @@ function listen(io) {
                 let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
     
                 if(message.value !== manageConfig.password || message.room !== manageConfig.room){
+                    handler._message({
+                        room : message.room,
+                        emitType : "tips",
+                        to : socket.id,
+                        msg : "秘钥不正确"
+                    },{})
                     sendManageLoginFailedNotify({
                         title : "管理后台登录失败",
                         room : message.room,
@@ -267,14 +274,16 @@ function listen(io) {
                         html : await getRoomPageHtml({
                             tables : tables,
                             sql : sql,
-                            sockets :  io.sockets
+                            sockets :  io.sockets,
+                            day : formateDateTime(new Date(), "yyyy-MM-dd"),
                         })
                     },{
                         title : "数据传输",
                         html : await getDataPageHtml({
                             tables : tables,
                             sql : sql,
-                            sockets :  io.sockets
+                            sockets :  io.sockets,
+                            day : formateDateTime(new Date(), "yyyy-MM-dd"),
                         })
                     },{
                         title : "其他设置",
@@ -337,6 +346,76 @@ function listen(io) {
                     to : socket.id,
                     msg : "更新成功"
                 },{})
+                
+            }catch(e){
+                console.log(e)
+                handler._message({
+                    room : message.room,
+                    emitType : "tips",
+                    to : socket.id,
+                    msg : "系统错误"
+                },{})
+            }
+        });
+
+        socket.on('manageReload', async function(message){
+            try{
+                let handshake = socket.handshake
+                let userAgent = handshake.headers['user-agent'].toString().substr(0,255);
+                let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'] ;
+    
+                if(!message.token || !tokens.includes(message.token)){
+                    sendManageUpdateFailedNotify({
+                        title : "管理后台非法修改配置",
+                        token : message.token,
+                        room : message.room,
+                        content : message.content,
+                        userAgent :userAgent,
+                        ip : ip
+                    })
+                    return
+                }
+    
+                socket.emit("manage",{
+                    token: message.token,
+                    socketId :socket.id,
+                    title : manageConfig.title,
+                    content : [{
+                        title : "房间频道",
+                        html : await getRoomPageHtml({
+                            tables : tables,
+                            sql : sql,
+                            sockets : io.sockets,
+                            day : message.content,
+                        })
+                    },{
+                        title : "数据传输",
+                        html : await getDataPageHtml({
+                            tables : tables,
+                            sql : sql,
+                            sockets :  io.sockets,
+                            day : message.content,
+                        })
+                    },{
+                        title : "其他设置",
+                        html : await getSettingPageHtml({
+                            tables : tables,
+                            rname: message.room,
+                            sid: socket.socketId,
+                            ip: ip,
+                            device: userAgent
+                        })
+                    }]
+                })
+
+                sendManageUpdateInfoNotify({
+                    title : "管理后台重新获取配置",
+                    token : message.token,
+                    room : message.room,
+                    content : JSON.stringify(message.content),
+                    userAgent : userAgent,
+                    ip: ip
+                })
                 
             }catch(e){
                 console.log(e)
@@ -462,6 +541,13 @@ function listen(io) {
 
         socket.on('chating', async function (message) {
             try{
+                if(chating.length < 10){
+                    chating.push(message)
+                }else{
+                    chating.shift()
+                    chating.push(message)
+                }
+                
                 handler._chating(message,{})
 
                 let handshake = socket.handshake

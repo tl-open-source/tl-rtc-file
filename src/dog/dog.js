@@ -51,8 +51,17 @@ const dbOpen = require("../../conf/cfg.json").db.open;
         commTxtList : [],
     };
 
-    //今日传输聚合列表
-    const [transferListToday, metadata] = await ctx.sql.query(`select name, room_id, content, handshake, created_at from dog where created_at >= "${utils.formateDateTime(new Date(), "yyyy-MM-dd")}" order by created_at desc`);
+    let day;
+    try{
+         day = new Date(params.day)
+    }catch(e){
+         day = new Date()
+    }
+    let chooseDay = utils.formateDateTime(day, "yyyy-MM-dd");
+    let nextDay = utils.getNextDay(chooseDay);
+
+    //某日传输聚合列表
+    const [transferListToday, metadata] = await ctx.sql.query(`select name, room_id, content, handshake, created_at from dog where created_at >= "${chooseDay}" and created_at <= "${nextDay}" order by created_at desc`);
 
     //发送文件
     let fileTransferList = transferListToday.filter(element=>{
@@ -116,6 +125,8 @@ const dbOpen = require("../../conf/cfg.json").db.open;
             data.transferCommTxtAll += element.user
         }
     })
+
+    data.chooseDay = chooseDay;
 
     if (res) {
          res.json(data)
