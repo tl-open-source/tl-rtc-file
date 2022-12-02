@@ -170,26 +170,25 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 socketId: 0, //本人的id
                 roomId: "10086", //房间号
                 recoderId: 0, //记录id
-                fileReader: null, //文件读取对象
                 rtcConns: {}, //远程连接
                 remoteMap: {}, //远程连接map
 
-                chunkSize: 256 * 1024, //一块256kb
-                offset: 0, //当前文件分片位移
-                fileName: null, //文件名称
-                hasSending: false, //是否有正在发送的文件
+                chunkSize: 256 * 1024, //webrtc 一块256kb
                 allSended: false,//当前文件是否全部发送给房间内所有用户
                 currentReceiveSize: 0, //统计收到文件的大小
-                chooseFile: null,  //选择的文件
+                currentSendSize : 0, //统计发送文件的大小
+
+                currentChooseFile : null, //当前发送中的文件
+                chooseFileList : [], //选择的文件列表
                 sendFileList: [], //发过文件的列表
                 receiveFileList: [], //接收文件的列表
                 receiveTxtList: [], //接收的文字列表 
+                chatingList: [], //公共聊天频道内容
                 logs: [],  //记录日志
 
                 isScreen: false, //是否在录屏中
                 screenTimes: 0,  //当前录屏时间
 
-                chatingList: [], //公共聊天频道内容
                 switchData : {}, //配置开关数据
                 token: "", //登录token
                 manageIframeId : 0 //实现自适应
@@ -197,16 +196,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
         },
         computed: {
             createDisabled: function () {
-                return this.isJoined || this.fileName;
+                return this.isJoined || this.chooseFileList.length > 0;
             },
             exsitDisabled: function () {
                 return !this.isJoined;
             },
-            sending: function () {
-                return this.hasSending;
-            },
             uploadDisabled: function () {
-                return !this.fileName || this.allSended;
+                return this.chooseFileList.length == 0 || this.allSended;
             },
             showSendFileList: function () {
                 return this.sendFileList && this.sendFileList.length > 5;
@@ -221,9 +217,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
         },
         watch: {
-            hasSending: function (newV, oldV) {
-
-            },
             allManCount: function (newV, oldV) {
 
             },
@@ -232,50 +225,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             allSended: function (newV, oldV) {
 
-            },
-            fileName: function (newV, oldV) {
-                this.chooseFile = this.$refs['self-file'].files[0];
-                if (!this.chooseFile) return;
-                if (!this.socketId) return;
-
-                this.$refs['sendProgress'].max = this.chooseFile.size;
-
-                this.socket.emit('message', {
-                    emitType: "sendFileInfo",
-                    name: this.chooseFile.name,
-                    type: this.chooseFile.type,
-                    size: this.chooseFile.size,
-                    room: this.roomId,
-                    from: this.socketId,
-                    recoderId: this.recoderId
-                });
-                this.allSended = false;
-
-                let idList = [];
-                for (let id in this.remoteMap) {
-                    this.setRemoteInfo(id, { status: 0 })
-                    idList.push(id);
-                }
-
-                if (this.socketId) {
-                    let toIdStr = "";
-                    if (idList.length > 0) {
-                        toIdStr += "发送给房间的 " + idList[0] + " ...等" + idList.length + "人";
-                    }
-                    for (let id in this.remoteMap) {
-                        this.sendFileList.push({
-                            id: id,
-                            name: this.chooseFile.name,
-                            size: this.chooseFile.size,
-                            type: this.chooseFile.type,
-                            process: 0,
-                            done: false,
-                            toIdStr: toIdStr,
-                            start: 0,
-                            cost: 0
-                        });
-                    }
-                }
             },
             currentReceiveSize: function (newV, oldV) {
                 this.currentReceiveSize = newV;
@@ -302,6 +251,56 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             chatingList: {
                 handler: function (newV, oldV) { },
+                deep: true,
+                immediate: true
+            },
+            chooseFileList : {
+                handler: function (newV, oldV) {
+                    let that = this;
+                    if (!this.socketId) return;
+
+                    newV.forEach((file)=>{
+                        that.$refs['sendProgress'].max += file.size;
+                        that.allSended = false;
+
+                        let idList = [];
+                        for (let id in that.remoteMap) {
+                            that.setRemoteInfo(id, {
+                                [file.index + "offset"] : 0,
+                                [file.index + "status"] : 0,
+                                [file.index + "file"] : file,
+                                [file.index + "reader"] : new FileReader()
+                            })
+                            idList.push(id);
+                        }
+        
+                        let toIdStr = "";
+                        if (idList.length > 0) {
+                            toIdStr += "发送给房间的 " + idList[0] + " ...等" + idList.length + "人";
+                        }
+                        for (let id in that.remoteMap) {
+
+                            let hasFile = that.sendFileList.filter(send=>{
+                                return file.name === send.name && file.size === send.size && file.type === send.type && file.id === id;
+                            }).length > 0;
+
+                            if(!hasFile){
+                                that.sendFileList.push({
+                                    index : file.index,
+                                    id: id,
+                                    name: file.name,
+                                    size: file.size,
+                                    type: file.type,
+                                    process: 0,
+                                    done: false,
+                                    toIdStr: toIdStr,
+                                    start: 0,
+                                    cost: 0
+                                });
+                            }
+                        }
+                    })
+                },
                 deep: true,
                 immediate: true
             }
@@ -431,7 +430,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                     <div style="text-align: center; color: #ffe2bc; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> -------- 仅展示10条历史消息 -------- </div>
                                     {{#  layui.each(d, function(index, info){ }}
                                     <div style="margin-bottom: 30px;display: inline-flex;">
-                                        <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
+                                        <a > <img style="width: 32px; height: 32px;" src="f/image/44826979.png" alt="img"> </a>
                                         <div style="margin-left: 15px; margin-top: -5px;">
                                             <div style="word-break: break-all;"> <small>房间号: <b>{{info.room}}</b></small> - <small>用户: <b>{{info.socketId}}</b></small> - <small>时间: <b>{{info.time}}</b></small> </div>
                                             <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{info.msg}} </b></div>
@@ -748,9 +747,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             clickHome: function (show = true) {
                 this.currentMenu = 1;
 
+
                 let active = this.$refs['btnHome'];
+                
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
-                document.querySelector(".chooseFileName").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
 
                 let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
@@ -770,7 +772,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 let active = this.$refs['btnReceive'];
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
-                document.querySelector(".chooseFileName").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
 
                 let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
@@ -790,6 +793,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 let active = this.$refs['btnTxt'];
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
 
                 let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
@@ -903,13 +908,21 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     return;
                 }
-                if (this.fileName != null) {
-                    alert("请先加入房间再选文件")
+                if (this.chooseFileList.length > 0) {
+                    if(window.layer){
+                        layer.msg("请先加入房间再选文件")
+                    }else{
+                        alert("请先加入房间再选文件")
+                    }
                     return;
                 }
                 if (this.roomId) {
                     if (this.roomId.toString().length > 15) {
-                        alert("房间号太长啦");
+                        if(window.layer){
+                            layer.msg("房间号太长啦")
+                        }else{
+                            alert("房间号太长啦")
+                        }
                         return;
                     }
                     this.socket.emit('createAndJoin', { room: this.roomId });
@@ -1010,146 +1023,209 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 console.error(error.error)
                 this.logs.push("连接断开 : " + error)
             },
-            //上传文件
-            submitChooseFile: function () {
-                this.initSendData();
+            // 初始发送
+            initSendFile: function(){
+                //选中一个文件
+                this.changeSendFileNext();
+
+                //发送给房间内所有人
+                this.sendFileToRemoteAll();
             },
-            //创建发送文件事件
-            initSendData: function () {
+            // 选一个未发送的文件进行发送，如有下一个，切换下一个文件
+            changeSendFileNext: async function(){
+                let that = this
+                let chooseFile = null;
+                for(let i = 0; i < that.chooseFileList.length; i++){
+                    let file = that.chooseFileList[i]
+                    if (file.fileSendStatus === 0) {
+                        chooseFile = file;
+                        break;
+                    }
+                }
+
+                that.currentChooseFile = chooseFile;
+                if(chooseFile !== null){
+                    that.currentChooseFile.fileSendStatus = 1;
+
+                    that.socket.emit('message', {
+                        emitType: "sendFileInfo",
+                        index : that.currentChooseFile.index,
+                        name: that.currentChooseFile.name,
+                        type: that.currentChooseFile.type,
+                        size: that.currentChooseFile.size,
+                        room: that.roomId,
+                        from: that.socketId,
+                        recoderId: that.recoderId
+                    });
+                }
+            },
+            // 轮询着发送给房间内所有人
+            sendFileToRemoteAll: function () {
                 let that = this;
-                if (this.chooseFile == undefined || this.chooseFile == null) {
-                    this.addPopup("请先选择文件");
-                    this.logs.push("请先选择文件");
+                if(that.currentChooseFile === null){
+                    that.chooseFileList = []
+                    console.log("文件全部发送完毕");
+                    that.addPopup("文件全部发送完毕");
+                    that.logs.push("文件全部发送完毕")
                     return;
                 }
 
-                this.fileReader = new FileReader();
-                this.fileReader.addEventListener('error', error => {
+                //当前选中文件已发送给房间内所有人
+                let nextSendingId = that.getSendFileNextRemote();
+                if (nextSendingId === '') {
+                    //切下一个文件的时候延迟一会，不要发的太急   
+                    setTimeout(() => {
+                        //选中一个文件
+                        this.changeSendFileNext();
+                        //发送给房间内所有人
+                        this.sendFileToRemoteAll();
+                    }, 1000);
+                    return
+                }
+
+                let remote = that.remoteMap[nextSendingId]
+                let fileReader = remote[that.currentChooseFile.index + "reader"];
+
+                fileReader.addEventListener('loadend', this.sendFileToRemote);
+
+                fileReader.addEventListener('error', error => {
                     that.logs.push("读取文件错误 : " + error);
                 });
-                this.fileReader.addEventListener('abort', event => {
+
+                fileReader.addEventListener('abort', event => {
                     that.logs.push("读取文件中断 : " + event);
                 });
-                this.fileReader.addEventListener('load', this.sendData);
-                this.readSlice(0);
-            },
-            /**
-             * 发送文件
-             * 0 : 未发送
-             * 1 : 发送中
-             * 2 : 已发送
-             * @param {*} event 
-             */
-            sendData: function (event) {
-                let needSendingId = "";
 
-                let hasSend = false;
+                that.readSlice(0);
+            },
+            //一次发送一个文件给一个用户
+             sendFileToRemote: function (event) {
+                let nextSendingId = this.getSendFileNextRemote();
+                if (nextSendingId === '') {
+                    return
+                }
+                
+                this.setRemoteInfo(nextSendingId, {
+                    [this.currentChooseFile.index + "status"] : 1
+                }) 
+
+                let remote = this.remoteMap[nextSendingId];
+
+                let sendChannel = remote.sendChannel;
+                if (!sendChannel || sendChannel.readyState !== 'open') {
+                    return;
+                }
+
+                if (remote[this.currentChooseFile.index+"offset"] === 0) {
+                    this.addPopup("正在发送给" + nextSendingId.substr(0, 4) + ",0%。");
+                    this.logs.push("正在发送给" + nextSendingId.substr(0, 4) + ",0%。")
+                    this.updateSendFileProcess(nextSendingId, {
+                        start: Date.now()
+                    })
+                }
+
+                sendChannel.send(event.target.result);
+                remote[this.currentChooseFile.index+"offset"] += event.target.result.byteLength;
+
+                this.currentSendSize += event.target.result.byteLength;
+
+                //更新发送进度
+                this.updateSendFileProcess(nextSendingId, {
+                    process: parseInt((remote[this.currentChooseFile.index+"offset"] / this.currentChooseFile.size) * 100)
+                })
+
+                //发送完一份重置相关数据
+                if (remote[this.currentChooseFile.index+"offset"] === this.currentChooseFile.size) {
+                    this.addPopup("正在发送给" + nextSendingId.substr(0, 4) + ",100%。");
+                    this.logs.push("正在发送给" + nextSendingId.substr(0, 4) + ",100%。")
+
+                    this.currentSendSize = 0
+
+                    this.socket.emit('message', {
+                        emitType: "sendDone",
+                        room: this.roomId,
+                        from: this.socketId,
+                        size: this.currentChooseFile.size,
+                        name: this.currentChooseFile.name,
+                        type: this.currentChooseFile.type,
+                        to: nextSendingId
+                    });
+
+                    //更新发送进度
+                    this.updateSendFileProcess(nextSendingId, {
+                        done: true
+                    })
+                    
+                    this.setRemoteInfo(nextSendingId, {
+                        [this.currentChooseFile.index + "status"] : 2 
+                    })
+                }
+            },
+            //获取需要进行发送的远程id
+            getSendFileNextRemote: function(){
+                let nextSendingId = "";
+                
+                //当前文件是否有正在发送中的
+                let remoteHasSending = false; 
                 for (let id in this.remoteMap) {
                     let remote = this.remoteMap[id];
-                    let status = remote.status || 0;
+                    let status = remote[this.currentChooseFile.index+"status"] || 0;
                     if (status === 1) { //有正在发送中的
-                        hasSend = true;
-                        needSendingId = id;
+                        remoteHasSending = true;
+                        nextSendingId = id;
                     }
                 }
 
-                if (!hasSend) { //没有正在发送中的, 取出对应的还没发送的文件
-                    let hasAllSended = true;
+                 //当前文件没有正在发送中的用户，取出等待中的用户
+                if (!remoteHasSending) {
                     for (let id in this.remoteMap) {
                         let remote = this.remoteMap[id];
-                        let status = remote.status || 0;
-                        if (status === 0 || status === 1) {
-                            this.allSended = false;
-                            hasAllSended = false;
-                        }
-                    }
-                    if (hasAllSended) { //全部发送完毕
-                        this.allSended = true;
-                        this.hasSending = false
-                        return;
-                    }
-                    for (let id in this.remoteMap) { //还有还没发送的
-                        let remote = this.remoteMap[id];
-                        let status = remote.status || 0;
+                        let status = remote[this.currentChooseFile.index+"status"] || 0;
                         if (status === 0) {
-                            needSendingId = id;
-                        }
-                    }
-                    this.setRemoteInfo(needSendingId, { status: 1 }) //发送给下一个用户时更新状态
-                } else {
-                    this.allSended = false;
-                }
-
-
-                if (needSendingId != '') {
-                    this.hasSending = true
-                    let remote = this.remoteMap[needSendingId];
-                    let status = remote.status || 0;
-                    if (status === 1) { //保证同一时间只能发送房间内对应的一个用户
-                        let sendChannel = remote.sendChannel;
-                        if (!sendChannel || sendChannel.readyState !== 'open') {
-                            return;
-                        }
-
-                        if (this.offset === 0) {
-                            this.addPopup("正在发送给" + needSendingId.substr(0, 4) + ",0%。");
-                            this.logs.push("正在发送给" + needSendingId.substr(0, 4) + ",0%。")
-                            this.updateSendProcess(needSendingId, {
-                                start: Date.now()
-                            })
-                        }
-
-                        sendChannel.send(event.target.result);
-                        this.offset += event.target.result.byteLength;
-                        let currentSendFile = this.offset;
-
-                        //更新发送进度
-                        this.updateSendProcess(needSendingId, {
-                            process: parseInt((currentSendFile / this.chooseFile.size) * 100)
-                        })
-
-                        //发送完一份重置相关数据 并且开启下一个
-                        if (this.offset === this.chooseFile.size) {
-                            console.log(needSendingId + "发送完毕");
-                            this.addPopup("正在发送给" + needSendingId.substr(0, 4) + ",100%。");
-                            this.logs.push("正在发送给" + needSendingId.substr(0, 4) + ",100%。")
-
-                            this.socket.emit('message', {
-                                emitType: "sendDone",
-                                room: this.roomId,
-                                from: this.socketId,
-                                size: this.chooseFile.size,
-                                name: this.chooseFile.name,
-                                type: this.chooseFile.type,
-                                to: needSendingId
-                            });
-
-                            //更新发送进度
-                            this.updateSendProcess(needSendingId, {
-                                done: true
-                            })
-
-                            this.offset = 0;
-                            this.setRemoteInfo(needSendingId, { status: 2 })
-                            this.submitChooseFile();
+                            nextSendingId = id;
                         }
                     }
                 }
+
+                //当前文件是否已经发送给全部用户
+                let remoteHasAllSended = true;
+                for (let id in this.remoteMap) {
+                    let remote = this.remoteMap[id];
+                    let status = remote[this.currentChooseFile.index+"status"] || 0;
+                    if (status === 0 || status === 1) { //有未发送的和正在发送的
+                        remoteHasAllSended = false;
+                    }
+                }
+                                
+                //当前文件已经全部发送给全部用户，nextSendingId清空，外部判断nextSendingId为空，表示可以开启下一个文件发送
+                if(remoteHasAllSended){
+                    this.allSended = true;
+                    this.currentChooseFile.fileSendStatus = 2;
+                    return "";
+                }
+
+                return nextSendingId;
             },
             //文件分片 -- 点击发送时首次自动，后续就是收到ack回执后自动
             readSlice: function (offset) {
-                const slice = this.chooseFile.slice(this.offset, offset + this.chunkSize);
-                this.fileReader.readAsArrayBuffer(slice);
+                let nextSendingId = this.getSendFileNextRemote();
+                if(nextSendingId !== ''){
+                    let remote = this.remoteMap[nextSendingId]
+                    const slice = this.currentChooseFile.slice(remote[this.currentChooseFile.index+"offset"], offset + this.chunkSize);
+                    let fileReader = remote[this.currentChooseFile.index + "reader"]
+                    fileReader.readAsArrayBuffer(slice);
+                }
             },
             //分片发送反馈ack
-            receivedAck: function (socketId, receivedSize) {
+            receivedAck: function (socketId, receivedSize, name) {
                 this.socket.emit('message', {
                     emitType: "receivedAck",
                     room: this.roomId,
                     from: this.socketId,
                     offset: receivedSize,
                     chunkSize: this.chunkSize,
-                    to: socketId
+                    name :name,
+                    to: socketId,
                 });
             },
             //创建接收文件事件
@@ -1184,8 +1260,17 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (!event || !id) {
                     return;
                 }
+                let that = this;
                 let currentRtc = this.getRemoteInfo(id);
-                let receiveFiles = currentRtc.receiveFiles || {};
+                let receiveFiles = currentRtc.receiveFiles;
+
+                if(!receiveFiles){
+                    setTimeout(() => {
+                        this.receiveData(event, id)
+                    }, 500);
+                    return
+                }
+ 
                 let name = receiveFiles.name;
                 let size = receiveFiles.size;
                 let type = receiveFiles.type;
@@ -1207,7 +1292,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.currentReceiveSize += event.data.byteLength;
 
                 //收到分片后反馈ack
-                this.receivedAck(id, receivedSize);
+                this.receivedAck(id, receivedSize, name);
 
                 //更新接收进度
                 this.updateReceiveProcess(id, {
@@ -1215,8 +1300,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 if (receivedSize === size) {
-                    console.log("接收完毕");
-                    this.shaking("iamtsm", 0, 4)
+                    console.log(name + " 接收完毕");
+                    // this.shaking("iamtsm", 0, 4)
                     this.logs.push("接收完毕...");
                     this.$refs['receiveProgress'].value = 0;
                     this.addPopup("文件[ " + name + " ]接收完毕，可点击右下角查看。");
@@ -1227,6 +1312,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         href: URL.createObjectURL(new Blob(receiveBuffer), { type: type }),
                         done: true
                     });
+
                     //清除接收的数据缓存
                     this.setRemoteInfo(id, { receiveBuffer: new Array(), receivedSize: 0 })
                     this.currentReceiveSize = 0;
@@ -1266,11 +1352,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                 }
             },
-            //更新发送进度
-            updateSendProcess: function (id, data) {
+            //更新文件发送进度
+            updateSendFileProcess: function (id, data) {
                 for (let i = 0; i < this.sendFileList.length; i++) {
                     let item = this.sendFileList[i];
-                    if (item.id === id && !item.done) {
+                    if (item.id === id && item.index === this.currentChooseFile.index && !item.done) {
                         data.cost = parseInt((Date.now() - item.start) / 1000);
                         Object.assign(this.sendFileList[i], data);
                     }
@@ -1415,13 +1501,14 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //选中文件时发送给接收方
                 this.socket.on('sendFileInfo', function (data) {
                     let fromId = data.from;
-                    that.setRemoteInfo(fromId, { receiveFiles: data });
+                    that.setRemoteInfo(fromId, { receiveFiles : data });
                     that.addPopup(data.from + "选择了文件 [ " + data.name + " ]，即将发送。");
                     that.logs.push(data.from + "选择了文件 [ " + data.name + " ]，即将发送。");
                     that.$refs['receiveProgress'].max = data.size;
 
                     that.receiveFileList.push({
                         id: fromId,
+                        index : data.index,
                         href: "",
                         name: data.name,
                         type: data.type,
@@ -1437,8 +1524,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.socket.on('receivedAck', function (data) {
                     let to = data.to;
                     if (to === that.socketId) {
-                        if (that.offset < that.chooseFile.size) {
-                            that.readSlice(that.offset)
+                        // 当前文件分片接收方正在接收
+                        if (data.offset < that.currentChooseFile.size) {
+                            that.readSlice(data.offset)
+                        }
+                        // 当前文件分片接收方全部接收完毕
+                        if(data.offset === that.currentChooseFile.size){
+                            that.sendFileToRemoteAll()
                         }
                     }
                 });
@@ -1542,6 +1634,17 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         }, 500);
                     }
                 });
+
+                //通知
+                this.socket.on('close', function (data) {
+                    let msg = data.msg || ''
+                    if (msg) {
+                        window.layer.open({
+                            title: '网站自动通知-' + new Date().toLocaleString(),
+                            content: msg
+                        });
+                    }
+                });
             },
             initCss: function (e) {
                 if (!e) return;
@@ -1585,9 +1688,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             reCaculateSwiperSize: function () {
                 let clientWidth = document.body.clientWidth;
-                let slidesPerView = parseInt((clientWidth / 100)) - 1;
-                if (window.swiper) {
-                    window.swiper.params.slidesPerView = slidesPerView;
+                if (window.userListSwiper) {
+                    let slidesPerView = parseInt((clientWidth / 100)) - 1;
+                    window.userListSwiper.params.slidesPerView = slidesPerView;
+                }
+                if (window.fileListSwiper) {
+                    let slidesPerView = parseInt((clientWidth / 100)) - 1;
+                    window.fileListSwiper.params.slidesPerView = slidesPerView;
                 }
             },
             touchResize: function () {
@@ -1605,6 +1712,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     if (b > 15) { clearInterval(window.shakingId); b = 0 }
                 }, 32)
             },
+
         },
         created: function () {
             let that = this;
@@ -1627,7 +1735,38 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             setTimeout(() => {
                 that.handlerRoomHistory()
                 that.socket.emit('getCommData', {});
-            }, 1000);
+                if(window.upload){
+                    upload.render({
+                        elem: '#chooseFileList',
+                        accept : 'file',
+                        auto: false,
+                        drag :true,
+                        multiple: true,
+                        choose: function(obj){
+                            for(let index in obj.pushFile()){
+                                let hasSendFile = that.sendFileList.filter(file=>{
+                                    return file.name === obj.pushFile()[index].name && file.size === obj.pushFile()[index].size 
+                                    && file.type === obj.pushFile()[index].type
+                                }).length > 0;
+
+                                if(hasSendFile && window.layer){
+                                    layer.msg("已过滤发送过的文件");
+                                }
+
+                                if(!hasSendFile){
+                                    that.chooseFileList.push(
+                                        Object.assign(obj.pushFile()[index],{
+                                            index : 'file'+index,
+                                            fileSendStatus : 0,
+                                            offset : 0
+                                        })
+                                    )
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 2000);
         },
         mounted: function () {
             

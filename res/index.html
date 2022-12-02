@@ -15,7 +15,7 @@
     <script type="text/javascript" src="/static/js/vue.min.js"></script>
     <script type="text/javascript" src="/static/js/axios.js"></script>
     <script type="text/javascript" src="/static/js/clipboard.min.js"></script>
-    <link href="https://qnproxy.iamtsm.cn/44826979.png" rel="shortcut icon" type="image/x-icon">
+    <link href="/image/44826979.png" rel="shortcut icon" type="image/x-icon">
 
     <script>
         window.Bus = new Vue({});
@@ -138,33 +138,27 @@
             </div>
         </div>
 
-        <div class="layui-col-sm6 layui-col-md3" id="self" v-show="!isTxtMode">
-            <input type="file" ref="self-file" v-model="fileName" v-show="false">
-
-            <button class="sendFileBtn-disable layui-btn-disabled" @click="clickChooseFile" v-show="(uploadDisabled && !createDisabled) || noOthersInRoom || sending" disabled>
-                <svg viewBox="0 0 1024 1024" style="width: 30px;height: 30px;margin-left: -8px;margin-right: 10px;">
-                    <path d="M840.65 540.62h-655.9c-12.18 0-22.05-9.87-22.05-22.05v-5.9c0-12.18 9.87-22.05 22.05-22.05h655.9c12.18 0 22.05 9.87 22.05 22.05v5.9c0 12.18-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1269"></path>
-                    <path d="M517.69 863.19h-5.9c-12.18 0-22.05-9.87-22.05-22.05v-655.9c0-12.18 9.87-22.05 22.05-22.05h5.9c12.18 0 22.05 9.87 22.05 22.05v655.9c0 12.17-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1270"></path>
-                </svg>
-                <div style="font-size: 14px;word-break: keep-all;" >选择文件</div>
-            </button>
-            <button class="sendFileBtn" @click="clickChooseFile" v-show="uploadDisabled && createDisabled && !noOthersInRoom && !sending">
-                <svg viewBox="0 0 1024 1024" style="width: 30px;height: 30px;margin-left: -8px;margin-right: 10px;">
-                    <path d="M840.65 540.62h-655.9c-12.18 0-22.05-9.87-22.05-22.05v-5.9c0-12.18 9.87-22.05 22.05-22.05h655.9c12.18 0 22.05 9.87 22.05 22.05v5.9c0 12.18-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1269"></path>
-                    <path d="M517.69 863.19h-5.9c-12.18 0-22.05-9.87-22.05-22.05v-655.9c0-12.18 9.87-22.05 22.05-22.05h5.9c12.18 0 22.05 9.87 22.05 22.05v655.9c0 12.17-9.87 22.05-22.05 22.05z" fill="#565656" p-id="1270"></path>
-                </svg>
-                <div style="font-size: 14px;word-break: keep-all;" >选择文件</div>
-            </button>
-            <button class="sendFileBtn" style="background-color: #79b0e8;" @click="submitChooseFile" v-show="!uploadDisabled && !sending">
-                <svg viewBox="0 0 1024 1024" style="width: 30px;height: 25px;margin-left: -8px;margin-right: 10px;">
-                    <path d="M341.333333 277.333333l115.2-115.2c8.533333-8.533333 17.066667-12.8 29.866667-17.066666v473.6c0 17.066667 12.8 29.866667 25.6 29.866666s25.6-12.8 25.6-29.866666V140.8c8.533333 4.266667 21.333333 8.533333 29.866667 17.066667L682.666667 277.333333c4.266667 4.266667 12.8 8.533333 21.333333 8.533334s12.8-4.266667 21.333333-8.533334c12.8-12.8 12.8-29.866667 0-38.4l-115.2-115.2C554.666667 68.266667 469.333333 68.266667 418.133333 119.466667L302.933333 234.666667c-12.8 12.8-12.8 29.866667 0 38.4s25.6 12.8 38.4 4.266666z" fill="#191A1A" p-id="2860"></path>
-                    <path d="M738.133333 435.2h-72.533333c-17.066667 0-29.866667 12.8-29.866667 25.6s12.8 25.6 29.866667 25.6h72.533333c42.666667 0 76.8 34.133333 76.8 76.8V810.666667c0 42.666667-34.133333 76.8-76.8 76.8H285.866667c-42.666667 0-76.8-34.133333-76.8-76.8v-243.2c0-42.666667 34.133333-76.8 76.8-76.8h72.533333c17.066667 0 25.6-12.8 25.6-25.6s-12.8-25.6-25.6-25.6H285.866667c-72.533333 0-132.266667 59.733333-132.266667 132.266666V810.666667c0 72.533333 59.733333 132.266667 132.266667 132.266666h456.533333c72.533333 0 132.266667-59.733333 132.266667-132.266666v-243.2c0-72.533333-59.733333-132.266667-136.533334-132.266667z" fill="#191A1A" p-id="2861"></path>
-                </svg>
-                <div style="font-size: 14px;word-break: keep-all;">发送文件</div>
-            </button>
-            <div v-show="fileName" class="chooseFileName">
-                <i style="font-size: 60px;" class="layui-icon layui-icon-list"></i>
-                <b>{{fileName}}</b>
+        <div id="self" v-show="!isTxtMode">
+            <div class="layui-upload-drag layui-btn-disabled" style="width: 100%;" id="chooseFileListDisable" v-show="(uploadDisabled && !createDisabled) || noOthersInRoom" disabled>
+                <i class="layui-icon"></i>
+                <p style="color: antiquewhite;">(当前禁选)，请确保双方先加入房间，才可选择文件发送，支持多文件拖拽发送</p>
+                
+            </div>
+            <div class="layui-upload-drag" style="width: 100%;" id="chooseFileList" v-show="createDisabled && !noOthersInRoom">
+                <i class="layui-icon"></i>
+                <p style="color: antiquewhite;">点击上传，或将文件拖拽到此处，支持多文件拖拽发送</p>
+                <div class="fileRoom swiper-container fileList" style="margin-top: 20px;">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide fileBlock" v-for="file in chooseFileList">
+                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 0" class="layui-icon layui-icon-play"></i>
+                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 1" class="layui-icon layui-icon-loading layui-anim-rotate layui-anim-loop"></i>
+                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 2" class="layui-icon layui-icon-ok-circle"></i>
+                            <i style="font-size: 40px;" class="layui-icon layui-icon-list"></i>
+                            <b style="margin-bottom: 25px;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;font-size: 12px;word-break: break-all;">{{file.name}}</b>
+                        </div>
+                    </div>
+                    <div style="width: 20%; margin-left: 40%;" class="swiper-scrollbar"></div>
+                </div>
             </div>
         </div>
 
@@ -196,7 +190,7 @@
                                 </tr>
                                 <div style="display: flex;padding:5px;">
                                     <span style="word-break: keep-all;font-size: 12px;">进度：</span>
-                                    <progress ref="sendProgress" :value="offset" max="0" style="width: 100%;margin: auto;"></progress>
+                                    <progress ref="sendProgress" :value="currentSendSize" max="0" style="width: 100%;margin: auto;"></progress>
                                 </div>
                             </tbody>
                         </table>
@@ -280,9 +274,9 @@
         </div>
 
 
-        <div class="userRoom swiper-container">
+        <div class="userRoom swiper-container userList">
             <div class="swiper-wrapper">
-                <div class="swiper-slide userBlocK" v-for="remote in remoteMap">
+                <div class="swiper-slide userBlock" v-for="remote in remoteMap">
                     <svg style="margin-left: 5px;" viewBox="0 0 1024 1024" width="64" height="64">
                         <path d="M310.956564 662.25202zM307.071733 652.841638zM303.914275 643.972652c0.219038 0.669513 0.471139 1.326628 0.69431 1.992009-0.231437-0.661248-0.471139-1.322495-0.69431-1.992009zM539.239951 781.611372a3.0872 3.0872 0 0 0 0.962942-0.181843c-0.698443 0.086789-1.401019 0.136382-2.103594 0.219038l1.140652-0.037195zM315.841531 672.418704zM292.044878 564.370822a1501.734968 1501.734968 0 0 0-0.169445-17.436277c-0.02893 5.926433 0.02893 11.737148 0.169445 17.436277zM729.39414 534.32951c-0.169445 10.910588-0.376085 22.056745-0.376085 33.368215 0 21.507083-2.49621 41.373445-7.021624 59.661078 7.401842-28.264209 9.476507-58.218732 7.397709-93.029293z" fill="#002738" p-id="2725"></path>
                         <path d="M507.843081 8.435042c-280.451702 0-507.838272 227.266719-507.838272 507.722553 0 187.54226 101.608982 351.250672 252.745422 439.200756 0.421545-1.169582 0.818294-2.359828 1.25637-3.52941 16.915544-45.564103 44.76234-81.97819 79.184418-109.176136 22.445228-17.886752 48.200828-32.198633 76.609685-42.39838-58.995698-51.403747-60.739739-65.430465-40.489026-63.53351a193.757989 193.757989 0 0 1-47.122168-53.015538c0.396749 0.648849 0.739771 1.310097 1.144785 1.963079-193.113273-186.203234-50.234165-534.188995 184.508786-411.072929l0.23557 0.115718c161.344451-84.825688 283.667019 58.342716 280.381444 212.863916-0.938145 70.860962-28.115428 143.685003-89.785046 196.799729 0.442209-0.789365 0.830692-1.582862 1.268769-2.368093-13.46879 22.879172-31.000121 41.844584-51.180576 56.966493 10.183215 3.32277 5.996691 19.816769-28.22288 61.500174h-0.264499c27.788937 10.046833 53.019671 24.02809 75.084682 41.456101 34.029462 26.623488 61.73161 62.17382 78.911653 106.630332 144.858718-89.433758 241.413288-249.592096 241.413288-432.406435-0.004133-280.451702-227.38657-507.718421-507.842405-507.71842z" fill="#002738" p-id="2726"></path>
@@ -297,6 +291,13 @@
             <div class="swiper-scrollbar"></div>
         </div>
 
+        <button class="sendFileBtn" style="background-color: #79b0e8;" @click="initSendFile()" v-show="!uploadDisabled">
+            <svg viewBox="0 0 1024 1024" style="width: 30px;height: 25px;margin-left: -8px;margin-right: 10px;">
+                <path d="M341.333333 277.333333l115.2-115.2c8.533333-8.533333 17.066667-12.8 29.866667-17.066666v473.6c0 17.066667 12.8 29.866667 25.6 29.866666s25.6-12.8 25.6-29.866666V140.8c8.533333 4.266667 21.333333 8.533333 29.866667 17.066667L682.666667 277.333333c4.266667 4.266667 12.8 8.533333 21.333333 8.533334s12.8-4.266667 21.333333-8.533334c12.8-12.8 12.8-29.866667 0-38.4l-115.2-115.2C554.666667 68.266667 469.333333 68.266667 418.133333 119.466667L302.933333 234.666667c-12.8 12.8-12.8 29.866667 0 38.4s25.6 12.8 38.4 4.266666z" fill="#191A1A" p-id="2860"></path>
+                <path d="M738.133333 435.2h-72.533333c-17.066667 0-29.866667 12.8-29.866667 25.6s12.8 25.6 29.866667 25.6h72.533333c42.666667 0 76.8 34.133333 76.8 76.8V810.666667c0 42.666667-34.133333 76.8-76.8 76.8H285.866667c-42.666667 0-76.8-34.133333-76.8-76.8v-243.2c0-42.666667 34.133333-76.8 76.8-76.8h72.533333c17.066667 0 25.6-12.8 25.6-25.6s-12.8-25.6-25.6-25.6H285.866667c-72.533333 0-132.266667 59.733333-132.266667 132.266666V810.666667c0 72.533333 59.733333 132.266667 132.266667 132.266666h456.533333c72.533333 0 132.266667-59.733333 132.266667-132.266666v-243.2c0-72.533333-59.733333-132.266667-136.533334-132.266667z" fill="#191A1A" p-id="2861"></path>
+            </svg>
+            <div style="font-size: 14px;word-break: keep-all;">发送文件</div>
+        </button>
 
         <menu class="menu" style="z-index: 10000;">
             <button ref="btnHome" @click="clickHome" class="menuItem" :class="currentMenu === 1 ? 'active' : ''" style="--bgColorBody: #ffb457; --bgColorItem: #ff8c00;">
@@ -344,7 +345,7 @@
         setTimeout(()=>{
             let clientWidth = document.body.clientWidth;
             let slidesPerView = parseInt((clientWidth / 100))-1;
-            var mySwiper = new Swiper ('.swiper-container', {
+            var userListSwiper = new Swiper ('.userList', {
                 direction: 'horizontal', // 垂直切换选项
                 loop: false, // 循环模式选项
                 slidesPerView: slidesPerView,
@@ -354,16 +355,32 @@
                     el: '.swiper-scrollbar',
                 }
             })
-            mySwiper.scrollbar.$dragEl.css('background','#ff6600');
-            mySwiper.scrollbar.$el.css('height','4px');
-            window.swiper = mySwiper;
+            userListSwiper.scrollbar.$dragEl.css('background','#ff6600');
+            userListSwiper.scrollbar.$el.css('height','4px');
+            window.userListSwiper = userListSwiper;
+
+            let slidesPerViewFile = parseInt((clientWidth / 100))-1;
+            var fileListSwiper = new Swiper ('.fileList', {
+                direction: 'horizontal', // 垂直切换选项
+                loop: false, // 循环模式选项
+                slidesPerView: slidesPerViewFile,
+                // effect : "coverflow", //切换样式
+                observer:true,
+                scrollbar: {
+                    el: '.swiper-scrollbar',
+                }
+            })
+            fileListSwiper.scrollbar.$dragEl.css('background','#ff6600');
+            fileListSwiper.scrollbar.$el.css('height','4px');
+            window.fileListSwiper = fileListSwiper;
         },1000)
         
-        layui.use(['layedit','form','layer','laytpl'],function(){
+        layui.use(['layedit','form','layer','laytpl','upload'],function(){
             window.layer = layui.layer;
             window.$ = layui.$;
             window.layedit = layui.layedit;
             window.laytpl = layui.laytpl;
+            window.upload = layui.upload;
 
             let alert = window.localStorage.getItem("tl-rtc-file-alert")
             if(!alert){
@@ -388,8 +405,9 @@
                             <div style="text-align: center;line-height: 40px;">2. 双方选择需要的文件发送</div>
                             <div style="text-align: center;line-height: 40px;">3. 右下角是你接收到的文件</div>
                             <div style="text-align: center;line-height: 40px;">4. 左下角是你发送过的文件</div>
-                            <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 中继服务器配置带宽不高，大约500kb/s ~ 600kb/s，（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽） （如果双方网络不支持p2p，才会走中继服务器，局域网或者支持p2p的网络是不限速的）</div>                        </div>
-                        `
+                            <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 中继服务器配置带宽不高，大约500kb/s ~ 600kb/s，（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽） （如果双方网络不支持p2p，才会走中继服务器，局域网或者支持p2p的网络是不限速的）</div>
+                        </div>
+                    `
                     ,success: function(layero){
 
                     },

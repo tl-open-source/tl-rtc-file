@@ -24,6 +24,14 @@ body{
 .layui-layer{
     border-radius: 20px;
 }
+#self .layui-upload-drag{
+    border: 1px dashed #e2e2e2;
+    background-color: unset !important;
+}
+#self .layui-upload-drag[lay-over]{
+    border: 2px dashed #e2e2e2;
+    background-color: unset !important;
+}
 .menu{
     display: flex;
     width: 90%;
@@ -214,8 +222,6 @@ body{
     width: 70%;
     margin-left: 15%;
     margin-top: 40px;
-    display: grid;
-    text-align: center;
 }
 #fileApp #self span{
     margin-bottom: 10px;
@@ -228,13 +234,15 @@ body{
     margin-bottom: 10px;
 }
 .sendFileBtn {
-    margin-left: 30%;
+    position: fixed;
+    padding: 0 25px;
+    right: 20px;
+    bottom: 80px;
+    z-index: 1000000;
     color: #0d1322;
     background-color: #3be8b0;
     border: 0;
-    padding: 0 25px;
     outline: none;
-    width: 40%;
     border-radius: 25px;
     font-size: 1.4rem;
     display: -ms-inline-flexbox;
@@ -246,7 +254,7 @@ body{
     height: 50px;
     line-height: 50px;
     cursor: pointer;
-    box-shadow: 0 0px 20px rgba(0,0,0,.4);
+    box-shadow: 0 0px 20px rgb(0 0 0 / 40%);
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -301,10 +309,10 @@ body{
 }
 /* 500px以下 */
 @media screen and (max-width: 500px) {
-    .sendFileBtn{
+    /* .sendFileBtn{
         width: 80%;
         margin-left: 10%;
-    }
+    } */
 }
 /* 480px到765px */
 @media screen and (min-width: 480px) and (max-width: 765px) {
@@ -347,10 +355,23 @@ body{
     height: 120px;
     display: inline-flex;
 }
-.userBlocK{
+.userBlock{
     cursor: pointer !important;
     margin: 0  0 15px !important;
     display: grid !important;
+}
+
+.fileRoom{
+    margin-top: 1%;
+    width: 100%;
+    height: auto;
+    display: inline-flex;
+}
+.fileBlock{
+    margin-right: 15px !important;
+    cursor: pointer !important;
+    display: grid !important;
+    color: bisque;
 }
 
 .chooseFileName {

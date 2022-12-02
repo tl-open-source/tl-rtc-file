@@ -6,7 +6,7 @@ const { JS_PATH, CSS_PATH } = require('../comm/path');
 
 module.exports = {
     mode: 'production',
-    devtool: 'none',
+    devtool: 'source-map',
     watchOptions: {
         ignored: /node_modules/,
         aggregateTimeout: 500,
