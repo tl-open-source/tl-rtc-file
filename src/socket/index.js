@@ -16,6 +16,10 @@ const {
     sendBugNotify,
     sendStopScreenNotify,
     sendStartScreenNotify,
+    sendStopScreenShareNotify,
+    sendStartScreenShareNotify,
+    sendStopVideoShareNotify,
+    sendStartVideoShareNotify,
     sendTxtNotify,
     sendFileDoneNotify,
     sendFileInfoNotify,
@@ -79,6 +83,8 @@ function listen(io) {
                     data: {
                         openSendBug : true,
                         openScreen : true,
+                        openScreenShare : true,
+                        openVideoShare : true,
                         openOnlineUser : true,
                         openShareRoom : true,
                         openFileTransfer : true,
@@ -441,7 +447,11 @@ function listen(io) {
                     "sendBugs": "收到问题反馈",
                     "sendTxt": "发送文本内容",
                     "startScreen": "开始网页录屏",
-                    "stopScreen": "停止网页录屏"
+                    "stopScreen": "停止网页录屏",
+                    "startScreenShare": "开始屏幕共享",
+                    "stopScreenShare": "停止屏幕共享",
+                    "startVideoShare": "开始音视频通话",
+                    "stopVideoShare": "停止音视频通话"
                 }
     
                 handler._message(message,{})
@@ -515,6 +525,43 @@ function listen(io) {
                     })
                 }
     
+                
+                if(emitType === 'startScreenShare'){
+                    sendStartScreenShareNotify({
+                        title : opName.startScreenShare,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+    
+                if(emitType === 'stopScreenShare'){
+                    sendStopScreenShareNotify({
+                        title : opName.stopScreenShare,
+                        userAgent : message.userAgent,
+                        cost : message.cost,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+
+                if(emitType === 'startVideoShare'){
+                    sendStartVideoShareNotify({
+                        title : opName.startVideoShare,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+    
+                if(emitType === 'stopVideoShare'){
+                    sendStopVideoShareNotify({
+                        title : opName.stopVideoShare,
+                        userAgent : message.userAgent,
+                        cost : message.cost,
+                        userAgent : userAgent,
+                        ip : ip
+                    })
+                }
+                
                 if(opName[message.emitType]){
                     await dogData({
                         tables : tables,

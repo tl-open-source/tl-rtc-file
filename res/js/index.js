@@ -1,144 +1,7 @@
 // file.js
 var file = null;
-var screen = null;
 axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
     let resData = initData.data;
-
-    screen = new Vue({
-        el: '#screenApp',
-        data: function () {
-            return {
-                startCapture: true,
-                stream: null,
-                chunks: [],
-                mediaRecorder: null,
-                recording: null,
-                checkDisableIntervelId: 0,
-                list: [],
-                times: 0,
-                interverlId: 0,
-                size: 0,
-            }
-        },
-        computed: {
-            list: function () {
-                return this.list;
-            }
-        },
-        methods: {
-            getMediaPlay: function () {
-                if (navigator.getDisplayMedia) {
-                    return navigator.getDisplayMedia({ video: true, audio: true });
-                } else if (navigator.mediaDevices.getDisplayMedia) {
-                    return navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-                } else if (navigator.mediaDevices.getUserMedia) {
-                    return navigator.mediaDevices.getUserMedia({ video: { mediaSource: 'screen' }, audio: true });
-                } else {
-                    return navigator.getUserMedia({
-                        video: { 'mandatory': { 'chromeMediaSource': 'desktop' } },
-                        audio: true
-                    })
-                }
-            },
-            startScreen: async function () {
-                let that = this;
-                this.startCapture = false;
-                this.checkDisableIntervelId = setInterval(function () {
-                    if (that.mediaRecorder == null) {
-                        that.startCapture = true;
-                    } else {
-                        clearInterval(that.checkDisableIntervelId);
-                        that.startCapture = false;
-                    }
-                }, 500);
-                if (this.recording) {
-                    window.URL.revokeObjectURL(this.recording);
-                }
-
-                this.chunks = [];
-                this.recording = null;
-
-                try {
-                    this.stream = await this.getMediaPlay();
-                } catch (error) {
-                    console.log(error)
-                }
-
-                if (this.stream == null) {
-                    if (window.layer) {
-                        layer.msg("获取设备录制权限失败")
-                    }
-                    window.Bus.$emit("changeScreenState", false)
-                    return;
-                }
-
-                this.mediaRecorder = new MediaRecorder(this.stream, { mimeType: 'video/webm' });
-                this.mediaRecorder.addEventListener('dataavailable', event => {
-                    if (event.data && event.data.size > 0) {
-                        that.size += event.data.size
-                        that.chunks.push(event.data);
-                    }
-                });
-                this.mediaRecorder.start(10);
-
-                //计算时间
-                this.interverlId = setInterval(() => {
-                    that.times += 1;
-                    window.Bus.$emit("changeScreenTimes", that.times)
-                }, 1000);
-
-                if (window.layer) {
-                    layer.msg("开始录制，再次点击录制即可停止")
-                }
-            },
-            stopScreen: function (callback) {
-                this.startCapture = true;
-                let hasErr = false;
-
-                try {
-                    this.mediaRecorder.stop();
-                } catch (e) {
-                    if (window.layer) {
-                        layer.msg("屏幕录制完毕! 检测到录制不完整，如需停止录制，请点击本页面的停止按钮来停止录制")
-                    }
-                    hasErr = true
-                }
-
-                this.stream.getTracks().forEach(track => track.stop());
-                this.recording = window.URL.createObjectURL(new Blob(this.chunks, { type: 'video/webm' }));
-
-                clearInterval(this.interverlId);
-
-                this.mediaRecorder = null;
-                this.chunks = [];
-                this.stream = null;
-
-                let data = {
-                    donwId: 'd_' + parseInt(Math.random(10000) * 10000),
-                    times: this.times,
-                    src: this.recording,
-                    size: this.size
-                }
-
-                this.times = 0;
-                this.size = 0;
-
-                window.Bus.$emit("changeScreenTimes", 0)
-
-                callback(data)
-
-                if (window.layer && !hasErr) {
-                    layer.msg("录制完成，请在接收文件列表查看")
-                }
-
-                return;
-            },
-        },
-        mounted: function () {
-            window.Bus.$on("startScreen", this.startScreen);
-            window.Bus.$on("stopScreen", this.stopScreen);
-        }
-    })
 
     file = new Vue({
         el: '#fileApp',
@@ -188,6 +51,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 isScreen: false, //是否在录屏中
                 screenTimes: 0,  //当前录屏时间
+                isScreenShare: false, //是否在屏幕共享中
+                screenShareTimes: 0,  //当前屏幕共享时间
+                isVideoShare: false, //是否在音视频中
+                videoShareTimes: 0,  //当前音视频时间
 
                 switchData : {}, //配置开关数据
                 token: "", //登录token
@@ -306,6 +173,101 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             }
         },
         methods: {
+            coffee: function(){
+                if (window.layer) {
+                    let options = {
+                        type: 1,
+                        fixed: false,
+                        maxmin: false,
+                        shadeClose:true,
+                        area: ['300px', '350px'],
+                        title: "请楼主喝一杯咖啡",
+                        success: function (layero, index) {
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px";
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px";
+                            document.querySelector(".layui-layer").style.borderRadius = "15px";
+                            document.querySelector(".layui-layer-title").style.fontWeight = "bold";
+                            document.querySelector(".layui-layer-title").style.color = "#ffffff";
+                            document.querySelector(".layui-layer-title").style.borderBottom = "none";
+                            document.querySelector(".layui-layer-title").style.backgroundColor = "#000000"
+                        },
+                        content: `<img style=" width: 100%; height: 100%;border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;" src="/image/coffee.jpg" alt="img"> `
+                    }
+                    layer.open(options)
+                }
+            },
+            startVideoShare: function(){
+                if (this.isScreenShare) {
+                    if (window.layer) {
+                        layer.msg("当前正在屏幕共享中，退出后再试")
+                    }
+                    return
+                }
+                if (!this.isVideoShare) {
+                    if (this.createDisabled) {
+                        if (window.layer) {
+                            layer.msg("请先退出房间后，再发起音视频通话")
+                        }
+                        return
+                    }
+                    let that = this;
+                    if (window.layer) {
+                        layer.prompt({
+                            formType: 1,
+                            title: '请输入音视频通话房间号'
+                        }, function (value, index, elem) {
+                            that.roomId = value;
+                            that.createMediaRoom("video");
+                            layer.close(index)
+
+                            that.socket.emit('message', {
+                                emitType: "startVideoShare",
+                                room: that.roomId,
+                            });
+                            that.isVideoShare = !that.isVideoShare;
+                        });
+                    }
+                } else {
+                    window.Bus.$emit("stopVideoShare")
+                    this.isVideoShare = !this.isVideoShare;
+                }
+            },
+            startScreenShare: function(){
+                if (this.isVideoShare) {
+                    if (window.layer) {
+                        layer.msg("当前正在音视频通话中，退出后再试")
+                    }
+                    return
+                }
+                if (!this.isScreenShare) {
+                    if (this.createDisabled) {
+                        if (window.layer) {
+                            layer.msg("请先退出房间后，再发起屏幕共享")
+                        }
+                        return
+                    }
+                    let that = this;
+                    if (window.layer) {
+                        layer.prompt({
+                            formType: 1,
+                            title: '请输入屏幕共享房间号',
+                        }, function (value, index, elem) {
+                            that.roomId = value;
+                            that.createMediaRoom("screen");
+                            layer.close(index)
+
+                            that.socket.emit('message', {
+                                emitType: "startScreenShare",
+                                room: that.roomId,
+                            });
+                            that.isScreenShare = !that.isScreenShare;
+                        });
+                    }
+                } else {
+                    window.Bus.$emit("stopScreenShare")
+                    this.isScreenShare = !this.isScreenShare;
+                }
+            },
             startScreen: function () {
                 if (this.isMobile) {
                     if (window.layer) {
@@ -316,7 +278,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (!this.isScreen) {
                     let that = this;
                     if (window.layer) {
-                        layer.confirm("是否进行屏幕录制（全程本地进行，不会进过服务器）", (index) => {
+                        layer.confirm("是否进行本地屏幕录制", (index) => {
                             window.Bus.$emit("startScreen")
                             that.socket.emit('message', {
                                 emitType: "startScreen",
@@ -383,7 +345,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             layer.confirm("进入房间" + this.roomId, (index) => {
                                 window.location.hash = "";
                                 layer.close(index)
-                                that.createRoom();
+                                that.createFileRoom();
                             }, (index) => {
                                 that.roomId = "";
                                 window.location.hash = "";
@@ -430,7 +392,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                     <div style="text-align: center; color: #ffe2bc; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> -------- 仅展示10条历史消息 -------- </div>
                                     {{#  layui.each(d, function(index, info){ }}
                                     <div style="margin-bottom: 30px;display: inline-flex;">
-                                        <a > <img style="width: 32px; height: 32px;" src="f/image/44826979.png" alt="img"> </a>
+                                        <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
                                         <div style="margin-left: 15px; margin-top: -5px;">
                                             <div style="word-break: break-all;"> <small>房间号: <b>{{info.room}}</b></small> - <small>用户: <b>{{info.socketId}}</b></small> - <small>时间: <b>{{info.time}}</b></small> </div>
                                             <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{info.msg}} </b></div>
@@ -452,49 +414,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     if (this.isMobile) {
                         layer.full(index)
                     }
-                }
-            },
-            escapeHtml: function () {
-                var entityMap = {
-                    escape: {
-                        '&': '&amp;',
-                        '<': '&lt;',
-                        '>': '&gt;',
-                        '"': '&quot;',
-                        "'": '&apos;',
-                    },
-                    unescape: {
-                        '&amp;': "&",
-                        '&apos;': "'",
-                        '&gt;': ">",
-                        '&lt;': "<",
-                        '&quot;': '"',
-                    }
-                };
-                var entityReg = {
-                    escape: RegExp('[' + Object.keys(entityMap.escape).join('') + ']', 'g'),
-                    unescape: RegExp('(' + Object.keys(entityMap.unescape).join('|') + ')', 'g')
-                }
-
-                // 将HTML转义为实体
-                function escape(html) {
-                    if (typeof html !== 'string') return ''
-                    return html.replace(entityReg.escape, function (match) {
-                        return entityMap.escape[match]
-                    })
-                }
-
-                // 将实体转回为HTML
-                function unescape(str) {
-                    if (typeof str !== 'string') return ''
-                    return str.replace(entityReg.unescape, function (match) {
-                        return entityMap.unescape[match]
-                    })
-                }
-
-                return {
-                    escape: escape,
-                    unescape: unescape
                 }
             },
             chatingTpl: function () {
@@ -587,67 +506,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }, 50)
                 }
             },
-            manageChange : function(data){
-                this.socket.emit('manageChange', {
-                    id : data.id,
-                    room : this.roomId,
-                    token: this.token,
-                    content: data.content,
-                });
-            },
-            manageReload : function(data){
-                this.socket.emit('manageReload', {
-                    id : data.id,
-                    room : this.roomId,
-                    token: this.token,
-                    content: data.time,
-                });
-            },
-            genNickName: function () {
-                // 获取指定范围内的随机数
-                function randomAccess(min, max) {
-                    return Math.floor(Math.random() * (min - max) + max)
-                }
-
-                // 解码
-                function decodeUnicode(str) {
-                    //Unicode显示方式是\u4e00
-                    str = "\\u" + str;
-                    str = str.replace(/\\/g, "%");
-                    //转换中文
-                    str = unescape(str);
-                    //将其他受影响的转换回原来
-                    str = str.replace(/%/g, "\\");
-                    return str;
-                }
-
-                function getRandomName(len) {
-                    let name = ""
-                    for (let i = 0; i < len; i++) {
-                        let unicodeNum = ""
-                        unicodeNum = randomAccess(0x4e00, 0x9fa5).toString(16)
-                        name += decodeUnicode(unicodeNum)
-                    }
-                    return name;
-                }
-                return getRandomName(4);
-            },
             addPopup: function (msg) {
                 window.Bus.$emit("addPopup", msg);
             },
             cleanPopup: function () {
                 window.Bus.$emit("popupMap");
-            },
-            clickChooseFile: function () {
-                this.$refs['self-file'].click();
-                if (!this.createDisabled) {
-                    this.addPopup("请先创建/加入房间后，再选择文件");
-                    this.logs.push("请先创建/加入房间后，再选择文件");
-                }
-                if (this.noOthersInRoom) {
-                    this.addPopup("请用户方都加入房间后，再选择文件");
-                    this.logs.push("请用户方都加入房间后，再选择文件");
-                }
             },
             sendTxt: function () {
                 if (!this.createDisabled) {
@@ -864,17 +727,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.numLogs = 150;
                 }
             },
-            containChinese: function(str){
-                return /[\u4E00-\u9FA5\uF900-\uFA2D]/.test(str);
-            },
-            containNumber : function(str){
-                return /^[0-9]+.?[0-9]*$/.test(str);
-            },
-            containSymbol : function(str){
-                return new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]").test(str)
-            },
-            //创建房间
-            createRoom: function () {
+            //创建文件发送房间
+            createFileRoom: function () {
                 this.roomId = this.roomId.toString().replace(/\s*/g, "")
                 if (this.roomId === null || this.roomId === undefined || this.roomId === '') {
                     if(window.layer){
@@ -884,7 +738,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     return;
                 }
-                if(!this.switchData.allowChinese && this.containChinese(this.roomId)){
+                if(!this.switchData.allowChinese && window.tlrtcfile.containChinese(this.roomId)){
                     if(window.layer){
                         layer.msg("房间号不允许中文")
                     }else{
@@ -892,7 +746,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     return;
                 }
-                if(!this.switchData.allowNumber && this.containNumber(this.roomId)){
+                if(!this.switchData.allowNumber && window.tlrtcfile.containNumber(this.roomId)){
                     if(window.layer){
                         layer.msg("房间号不允许数字")
                     }else{
@@ -900,7 +754,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     return;
                 }
-                if(!this.switchData.allowSymbol && this.containSymbol(this.roomId)){
+                if(!this.switchData.allowSymbol && window.tlrtcfile.containSymbol(this.roomId)){
                     if(window.layer){
                         layer.msg("房间号不允许特殊符号")
                     }else{
@@ -927,7 +781,32 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     this.socket.emit('createAndJoin', { room: this.roomId });
                     this.isJoined = true;
-                    // this.nickName = this.genNickName();
+                    this.addPopup("你进入了房间" + this.roomId);
+                    this.logs.push("你进入了房间" + this.roomId);
+                }
+            },
+            //创建流媒体房间
+            createMediaRoom: function (type) {
+                this.roomId = this.roomId.toString().replace(/\s*/g, "")
+                if (this.roomId === null || this.roomId === undefined || this.roomId === '') {
+                    if(window.layer){
+                        layer.msg("请先填写房间号")
+                    }else{
+                        alert("请先填写房间号")
+                    }
+                    return;
+                }
+                if (this.roomId) {
+                    if (this.roomId.toString().length > 15) {
+                        if(window.layer){
+                            layer.msg("房间号太长啦")
+                        }else{
+                            alert("房间号太长啦")
+                        }
+                        return;
+                    }
+                    this.socket.emit('createAndJoin', { room: this.roomId, type : type });
+                    this.isJoined = true;
                     this.addPopup("你进入了房间" + this.roomId);
                     this.logs.push("你进入了房间" + this.roomId);
                 }
@@ -989,6 +868,31 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
                 return rtcConnect;
             },
+            //当前用户开启了屏幕共享时建立 stream share 链接
+            initMediaShareChannel: function(id, type, track, stream){
+                let rtcConnect = this.getOrCreateRtcConnect(id);
+                
+                rtcConnect.ontrack = (event) => {
+                    setTimeout(()=>{
+                        $("#mediaShareRoomList").append(`
+                            <div class="swiper-slide mediaShareBlock">
+                                <video id="otherMediaShareVideo" autoplay playsinline onclick="tlrtcfile.openFullVideo(this, '${type}')"></video>
+                            </div>
+                        `);
+                        var video = document.querySelector("#otherMediaShareVideo");
+                        video.srcObject = event.streams[0]
+                        // ios 微信浏览器兼容问题
+                        video.play();
+                        document.addEventListener('WeixinJSBridgeReady',function(){
+                            video.play();
+                        },false);
+                    },100)
+                };
+
+                if(track && stream){
+                    rtcConnect.addTrack(track, stream);
+                }
+            },
             //连接创立时建立 send/receive Channel链接
             initSendDataChannel: function (id) {
                 let that = this;
@@ -1009,7 +913,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 sendChannel.addEventListener('error', (error) => {
-                    that.handlerSendChannelError(error)
+                    console.error(error.error)
+                    that.logs.push("连接断开 : " + error)
                 });
 
                 this.rtcConns[id].addEventListener('datachannel', (event) => {
@@ -1017,11 +922,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 this.setRemoteInfo(id, { sendChannel: sendChannel });
-            },
-            //处理发送过程中的错误情况
-            handlerSendChannelError: function (error) {
-                console.error(error.error)
-                this.logs.push("连接断开 : " + error)
             },
             // 初始发送
             initSendFile: function(){
@@ -1301,7 +1201,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 if (receivedSize === size) {
                     console.log(name + " 接收完毕");
-                    // this.shaking("iamtsm", 0, 4)
                     this.logs.push("接收完毕...");
                     this.$refs['receiveProgress'].value = 0;
                     this.addPopup("文件[ " + name + " ]接收完毕，可点击右下角查看。");
@@ -1430,14 +1329,41 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.socketId = data.id;
                     that.roomId = data.room;
                     that.recoderId = data.recoderId;
+                    if(data.type === 'screen' && data['peers'].length === 0){
+                        window.Bus.$emit("startScreenShare", data.id);
+                    }
+                    if(data.type === 'video' && data['peers'].length === 0){
+                        window.Bus.$emit("startVideoShare", data.id);
+                    }
+
                     for (let i = 0; i < data['peers'].length; i++) {
                         let otherSocketId = data['peers'][i].id;
                         let rtcConnect = that.getOrCreateRtcConnect(otherSocketId);
-                        rtcConnect.createOffer(that.options).then(offer => {
-                            that.offerSuccess(rtcConnect, otherSocketId, offer);
-                        }, error => {
-                            that.offerFailed(rtcConnect, otherSocketId, error);
-                        });
+                        if(data.type === 'screen'){
+                            window.Bus.$emit("startScreenShare", otherSocketId, (track, stream) => {
+                                that.initMediaShareChannel(otherSocketId, data.type, track, stream)
+                                rtcConnect.createOffer(that.options).then(offer => {
+                                    that.offerSuccess(rtcConnect, otherSocketId, offer);
+                                }, error => {
+                                    that.offerFailed(rtcConnect, otherSocketId, error);
+                                });
+                            });
+                        }else if(data.type === 'video'){
+                            window.Bus.$emit("startVideoShare", otherSocketId, (track, stream) => {
+                                that.initMediaShareChannel(otherSocketId, data.type, track, stream)
+                                rtcConnect.createOffer(that.options).then(offer => {
+                                    that.offerSuccess(rtcConnect, otherSocketId, offer);
+                                }, error => {
+                                    that.offerFailed(rtcConnect, otherSocketId, error);
+                                });
+                            });
+                        }else{
+                            rtcConnect.createOffer(that.options).then(offer => {
+                                that.offerSuccess(rtcConnect, otherSocketId, offer);
+                            }, error => {
+                                that.offerFailed(rtcConnect, otherSocketId, error);
+                            });
+                        }
                     }
                     that.touchResize();
                 });
@@ -1445,7 +1371,17 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.socket.on('joined', function (data) {
                     that.logs.push("加入房间," + JSON.stringify(data));
                     that.recoderId = data.recoderId;
-                    that.getOrCreateRtcConnect(data.from);
+                    that.getOrCreateRtcConnect(data.id);
+                    if(data.type === 'screen'){
+                        window.Bus.$emit("getScreenShareTrackAndStream", (track, stream) => {
+                            that.initMediaShareChannel(data.id, data.type, track, stream)
+                        });
+                    }
+                    if(data.type === 'video'){
+                        window.Bus.$emit("getVideoShareTrackAndStream", (track, stream) => {
+                            that.initMediaShareChannel(data.id, data.type, track, stream)
+                        });
+                    }
                     that.addPopup(data.id + "加入了房间。");
                     that.touchResize();
                 });
@@ -1565,6 +1501,24 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                 });
 
+                //关闭共享
+                this.socket.on('stopScreenShare', function (data) {
+                    if(data.id === that.socketId){
+                        $("#selfMediaShareVideo").parent().remove();
+                    }else{
+                        $("#otherMediaShareVideo").parent().remove();
+                    }
+                });
+
+                //关闭音视频
+                this.socket.on('stopVideoShare', function (data) {
+                    if(data.id === that.socketId){
+                        $("#selfMediaShareVideo").parent().remove();
+                    }else{
+                        $("#otherMediaShareVideo").parent().remove();
+                    }
+                });
+
                 //开关数据
                 this.socket.on('commData', function (data) {
                     that.switchData = data.switchData
@@ -1576,7 +1530,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //公共聊天频道
                 this.socket.on('chating', function (data) {
                     that.logs.push(data.room + "频道的" + data.socketId + "发言: [ " + data.msg + " ]");
-                    data.msg = that.escapeHtml().escape(data.msg)
+                    data.msg = window.tlrtcfile.escapeHtml().escape(data.msg)
                     that.chatingList.push(data);
                     that.chatingTpl()
                 });
@@ -1646,6 +1600,18 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                 });
             },
+            webrtcCheck : function(){
+                if(window.tlrtcfile){
+                    $("#check").removeClass("layui-anim-rotate")
+                    setTimeout(() => {
+                        $("#check").addClass("layui-anim-rotate")
+                        let check = tlrtcfile.supposeWebrtc();
+                        if(window.layer){
+                            layer.msg(`你的浏览器${check? '支持' : '不支持'}webrtc`)
+                        }
+                    }, 50)
+                }
+            },
             initCss: function (e) {
                 if (!e) return;
                 if (this.currentMenu === 1) {
@@ -1663,38 +1629,29 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     layer.full(this.manageIframeId)
                 }
 
-                this.logsHeight = document.documentElement.clientHeight - 55;
-            },
-            loadJS: function (url, callback) {
-                var script = document.createElement('script'),
-                    fn = callback || function () { };
-                script.type = 'text/javascript';
-                //IE
-                if (script.readyState) {
-                    script.onreadystatechange = function () {
-                        if (script.readyState == 'loaded' || script.readyState == 'complete') {
-                            script.onreadystatechange = null;
-                            fn();
-                        }
-                    };
-                } else {
-                    //其他浏览器
-                    script.onload = function () {
-                        fn();
-                    };
+                //full video
+                if(document.querySelector("#selfMediaShareVideo_full")){
+                    document.querySelector("#selfMediaShareVideo_full").parentElement.style.height = "auto"
                 }
-                script.src = url;
-                document.getElementsByTagName('head')[0].appendChild(script);
+                if(document.querySelector("#otherMediaShareVideo_full")){
+                    document.querySelector("#otherMediaShareVideo_full").parentElement.style.height = "auto"
+                }
+                                
+                this.logsHeight = document.documentElement.clientHeight - 55;
             },
             reCaculateSwiperSize: function () {
                 let clientWidth = document.body.clientWidth;
-                if (window.userListSwiper) {
+                if (window.userRoomSwiper) {
                     let slidesPerView = parseInt((clientWidth / 100)) - 1;
-                    window.userListSwiper.params.slidesPerView = slidesPerView;
+                    window.userRoomSwiper.params.slidesPerView = slidesPerView;
                 }
-                if (window.fileListSwiper) {
+                if (window.fileRoomSwiper) {
                     let slidesPerView = parseInt((clientWidth / 100)) - 1;
-                    window.fileListSwiper.params.slidesPerView = slidesPerView;
+                    window.fileRoomSwiper.params.slidesPerView = slidesPerView;
+                }
+                if (window.mediaShareRoomSwiper) {
+                    let slidesPerView = parseInt((clientWidth / 100)) - 1;
+                    window.mediaShareRoomSwiper.params.slidesPerView = slidesPerView;
                 }
             },
             touchResize: function () {
@@ -1705,20 +1662,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.reCaculateSwiperSize();
                 }, 100)
             },
-            shaking: function (id, top, left) {
-                let a = ['maringTop', 'marginLeft'], b = 0;
-                window.shakingId = setInterval(function () {
-                    document.getElementById(id).style[a[b % 2]] = (b++) % 4 < 2 ? (top + "px") : (left + "px");
-                    if (b > 15) { clearInterval(window.shakingId); b = 0 }
-                }, 32)
-            },
 
         },
         created: function () {
             let that = this;
             if (window.location.hash && window.location.hash.includes("debug")) {
-                this.loadJS('/static/js/vconsole.min.js', function () {
-                    that.loadJS('/static/js/vconsole.js', function () {
+                window.tlrtcfile.loadJS('/static/js/vconsole.min.js', function () {
+                    window.tlrtcfile.loadJS('/static/js/vconsole.js', function () {
                         console.log("load vconsole success")
                     });
                 });
@@ -1786,14 +1736,52 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             window.Bus.$on("changeScreenTimes", (res) => {
                 this.screenTimes = res
             })
+            window.Bus.$on("changeScreenShareState", (res) => {
+                this.isScreenShare = res
+            })
+            window.Bus.$on("changeScreenShareTimes", (res) => {
+                if(res === 0){
+                    this.socket.emit('message', {
+                        emitType: "stopScreenShare",
+                        id : this.socketId,
+                        room : this.roomId,
+                        cost : this.screenShareTimes
+                    });
+                }
+                this.screenShareTimes = res
+            })
+            window.Bus.$on("changeVideoShareState", (res) => {
+                this.isVideoShare = res
+            })
+            window.Bus.$on("changeVideoShareTimes", (res) => {
+                if(res === 0){
+                    this.socket.emit('message', {
+                        emitType: "stopVideoShare",
+                        id : this.socketId,
+                        room : this.roomId,
+                        cost : this.videoShareTimes
+                    });
+                }
+                this.videoShareTimes = res
+            })
             window.Bus.$on("sendChating", (res) => {
                 this.sendChating()
             })
             window.Bus.$on("manageChange", (data) => {
-                this.manageChange(data)
+                this.socket.emit('manageChange', {
+                    id : data.id,
+                    room : this.roomId,
+                    token: this.token,
+                    content: data.content,
+                });
             })
             window.Bus.$on("manageReload", (data) => {
-                this.manageReload(data)
+                this.socket.emit('manageReload', {
+                    id : data.id,
+                    room : this.roomId,
+                    token: this.token,
+                    content: data.time,
+                });
             })
         },
         destroyed: function () {

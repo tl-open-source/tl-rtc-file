@@ -16,9 +16,8 @@
         try{
             let allRoom = this.sockets.adapter.rooms;
             
-            let allSocket = new Array();
             for(let room in allRoom){
-                if(room.length  > 15){
+                if(room === this.socket.id){
                     continue
                 }
                 let clientsInRoom = allRoom[room];
@@ -116,6 +115,7 @@
      */
     _createAndJoin(message, params){
         let room = message.room;
+        let type = message.type;
 
         let clientsInRoom = this.sockets.adapter.rooms[room];
         let numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
@@ -126,14 +126,26 @@
                 id: this.socket.id,
                 room: room,
                 peers: [],
+                type: type
             };
             Object.assign(createdData,params['created'])
             this.socket.emit('created', createdData);
 
         }else {
+            //流媒体房间只允许两个人同时在线
+            if((type === 'screen' || type === 'video') && numClients >= 2){
+                this.socket.emit("tips", {
+                    room : message.room,
+                    to : this.socket.id,
+                    msg : "当前房间已满，请开启其他房间号发起操作"
+                });
+                return
+            }
+            
             let joinedData = {
                 id: this.socket.id,
                 room: room,
+                type: type
             };
             Object.assign(joinedData,params['joined'])
             this.sockets.in(room).emit('joined',joinedData);
@@ -152,6 +164,7 @@
                 id: this.socket.id,
                 room: room,
                 peers: peers,
+                type: type
             };
             Object.assign(createdData,params['created'])
             this.socket.emit('created', createdData);

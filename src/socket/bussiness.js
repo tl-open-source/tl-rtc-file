@@ -206,8 +206,62 @@ function sendChatingNotify(data){
  */
  function sendStopScreenNotify(data){
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
-                    `录屏时长: ${data.cost}\n` +
+                    `录屏时长: ${data.cost}秒\n` +
                     `录屏大小: ${data.size} == (${data.size / 1024 / 1024}M)\n` +
+                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+                    `访问IP: ${data.ip}\n` +
+                    `访问设备: ${data.userAgent}\n`;
+    comm.requestMsg(notifyMsg)
+}
+
+
+/**
+ * 发送开始屏幕共享通知
+ * @param {*} data 
+ */
+ function sendStartScreenShareNotify(data){
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+                    `访问IP: ${data.ip}\n` +
+                    `访问设备: ${data.userAgent}\n`;
+    comm.requestMsg(notifyMsg)
+}
+
+
+/**
+ * 发送停止屏幕共享通知
+ * @param {*} data 
+ */
+ function sendStopScreenShareNotify(data){
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+                    `共享时长: ${data.cost}秒\n` +
+                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+                    `访问IP: ${data.ip}\n` +
+                    `访问设备: ${data.userAgent}\n`;
+    comm.requestMsg(notifyMsg)
+}
+
+
+/**
+ * 发送开始音视频通话通知
+ * @param {*} data 
+ */
+ function sendStartVideoShareNotify(data){
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+                    `访问IP: ${data.ip}\n` +
+                    `访问设备: ${data.userAgent}\n`;
+    comm.requestMsg(notifyMsg)
+}
+
+
+/**
+ * 发送停止音视频通话通知
+ * @param {*} data 
+ */
+ function sendStopVideoShareNotify(data){
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+                    `通话时长: ${data.cost}秒\n` +
                     `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
                     `访问IP: ${data.ip}\n` +
                     `访问设备: ${data.userAgent}\n`;
@@ -752,6 +806,8 @@ async function getSettingPageHtml(data){
         content : JSON.stringify({
             openSendBug : true,
             openScreen : true,
+            openVideoShare : true,
+            openScreenShare : true,
             openOnlineUser : true,
             openShareRoom : true,
             openFileTransfer : true,
@@ -811,6 +867,16 @@ async function getSettingPageHtml(data){
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
                                     <input type="checkbox" name="openScreen" title="开启网页录屏" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="openScreenShare" title="开启屏幕共享" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="openVideoShare" title="开启音视频通话" lay-skin="primary">
                                 </div>
                             </div>
                             <div class="layui-form-item">
@@ -929,6 +995,10 @@ module.exports = {
     sendBugNotify,
     sendStopScreenNotify,
     sendStartScreenNotify,
+    sendStopScreenShareNotify,
+    sendStartScreenShareNotify,
+    sendStopVideoShareNotify,
+    sendStartVideoShareNotify,
     sendTxtNotify,
     sendFileDoneNotify,
     sendFileInfoNotify,

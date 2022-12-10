@@ -329,11 +329,38 @@ body{
 @media screen and (min-width: 1000px) {
 }
 
+.side-shadown-rigth{
+    border-radius: 50%;
+    position: absolute;
+    width: 10px;
+    height: 100%;
+    right: 0;
+    background: -webkit-gradient(linear,left top,right top,from(hsla(0,0%,94.1%,0)),to(rgb(155 90 9)));
+    background: -webkit-linear-gradient(left,hsla(0,0%,94.1%,0),rgb(155 90 9));
+    background: -o-linear-gradient(left,hsla(0,0%,94.1%,0) 0,rgb(155 90 9) 100%);
+    background: linear-gradient(270deg,hsla(0,0%,94.1%,0),rgb(155 90 9));
+    opacity: .5;
+}
+
+.side-shadown-left{
+    border-radius: 50%;
+    position: absolute;
+    width: 10px;
+    height: 100%;
+    left: 0;
+    background: -webkit-gradient(linear,left top,right top,from(hsla(0,0%,94.1%,0)),to(rgb(155 90 9)));
+    background: -webkit-linear-gradient(left,hsla(0,0%,94.1%,0),rgb(155 90 9));
+    background: -o-linear-gradient(left,hsla(0,0%,94.1%,0) 0,rgb(155 90 9) 100%);
+    background: linear-gradient(270deg,hsla(0,0%,94.1%,0),rgb(155 90 9));
+    opacity: .5;
+}
+
+
 .tool{
     position: absolute;
     right: 10px;
     float: right;
-    top: 35%;
+    top: 30%;
     display: grid;
 }
 
@@ -369,6 +396,26 @@ body{
 }
 .fileBlock{
     margin-right: 15px !important;
+    cursor: pointer !important;
+    display: grid !important;
+    color: bisque;
+}
+
+video{
+    width: 100%;
+}
+
+.mediaShareRoom{
+    border-radius: 20px;
+    padding-left: 15px !important;
+    width: 80%;
+    margin-left: 10% !important;
+    margin-top: 8%;
+    display: inline-flex;
+}
+.mediaShareBlock{
+    width: 48% !important;
+    margin-right: 1% !important;
     cursor: pointer !important;
     display: grid !important;
     color: bisque;
