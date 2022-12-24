@@ -28,7 +28,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 allManCount: 0,
                 isTxtMode: false,
                 txtEditId: 0,
-                isRealContentMode: false, //是否使用富文本内容
                 nickName: "", //本人名称
                 socketId: 0, //本人的id
                 roomId: "10086", //房间号
@@ -512,7 +511,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             cleanPopup: function () {
                 window.Bus.$emit("popupMap");
             },
-            sendTxt: function () {
+            sendTxt: function (isRealContentMode) {
                 if (!this.createDisabled) {
                     if (window.layer) {
                         layer.msg("请先加入房间，再发送内容")
@@ -525,7 +524,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     return
                 }
-                if (this.isRealContentMode) {
+                if (isRealContentMode) {
                     let realContent = layedit.getContent(this.txtEditId)
                     if (realContent.length <= 0) {
                         if (window.layer) {

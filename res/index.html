@@ -307,7 +307,8 @@
         <div class="layui-col-sm6 layui-col-md3" id="txtSelf" v-show="isTxtMode"
             style="width: 70%; margin-left: 15%;margin-top: 5%;display: grid;">
             <textarea name="txt" id="txt"></textarea>
-            <button type="button" class="layui-btn" id="sendTxt" @click="sendTxt">发送文本</button>
+            <button type="button" class="layui-btn sendTxt" @click="sendTxt">发送文本</button>
+            <button type="button" style="margin-left:50%;" class="layui-btn sendTxt" @click="sendTxt(true)">发送富文本</button>
         </div>
 
         <div class="maskBottom" :style="{top: numSendFile + '%'}">
@@ -397,9 +398,7 @@
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        <label for="isRealContentMode" style="margin-left: 10px;font-size: 10px;"> 富文本模式
-                            (内容发送方勾选即可启用)</label>
-                        <input id="isRealContentMode" type="checkbox" v-model="isRealContentMode">
+                        接收的文本内容
                         <i @click="clickReceiveTxt(false)" class="layui-icon layui-icon-close"
                             style="cursor: pointer; right: 10px;position: absolute;"></i>
                     </div>

@@ -149,13 +149,14 @@ body{
     -o-transition: all 1s;
 }
 
-#sendTxt{
+.sendTxt{
     background-color: var(--bgColorBody);
     margin-top: -38px;
     border-radius: 20px;
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
     border-top: solid 1px;
+    width: 50%;
 }
 
 #fileApp table tr td span{

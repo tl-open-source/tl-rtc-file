@@ -11,7 +11,7 @@ const dbOpen = require("../../conf/cfg.json").db.open;
  * 操作记录
  * @param {*} data 
  */
- async function dogData(data) {
+async function dogData(data) {
     let req = {
         ctx: {
             tables: data.tables
@@ -19,9 +19,9 @@ const dbOpen = require("../../conf/cfg.json").db.open;
         params: data
     };
     let res = 0;
-    try{
+    try {
         res = await dog.add(req, null);
-    }catch(e){
+    } catch (e) {
         console.log(e)
     }
     return res && res.dataValues ? res.dataValues.id : 0;
@@ -50,7 +50,7 @@ async function createJoinRoom(data) {
     };
 
     let res = await room.createJoinRoom(req, null);
-    
+
     return res && res.dataValues ? res.dataValues.id : 0;
 }
 
@@ -69,7 +69,7 @@ async function exitRoom(data) {
         }
     };
     let res = await room.exitRoomBySid(req, null);
-    console.log("退出成功 : ",data,res)
+    console.log("退出成功 : ", data, res)
     return 0;
 }
 
@@ -78,14 +78,14 @@ async function exitRoom(data) {
  * 更新管理后台频道设置信息
  * @param {*} data 
  */
- async function updateManageRoom(data) {
+async function updateManageRoom(data) {
     let req = {
         ctx: {
             tables: data.tables
         },
         params: {
-            id :data.id,
-            content : data.content
+            id: data.id,
+            content: data.content
         }
     };
     let res = await room.updateRoomContent(req, null);
@@ -97,7 +97,7 @@ async function exitRoom(data) {
  * 管理频道房间号不存在就创建
  * @param {*} data 
  */
- async function getOrCreateManageRoom(data) {
+async function getOrCreateManageRoom(data) {
     let req = {
         ctx: {
             tables: data.tables
@@ -106,7 +106,7 @@ async function exitRoom(data) {
             sid: data.socketId,
             ip: data.ip,
             device: data.device,
-            content : data.content
+            content: data.content
         }
     };
     let res = await room.getOrCreateManageRoom(req, null);
@@ -118,17 +118,32 @@ async function exitRoom(data) {
  * 发送公共频道聊天通知
  * @param {*} data 
  */
-function sendChatingNotify(data){
+function sendChatingNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `库记录ID: ${data.recoderId}\n` + 
-                    `消息体ID: ${data.msgRecoderId}\n` + 
-                    `发送方ID: ${data.socketId}\n` +
-                    `文本内容: ${decodeURIComponent(data.msg)}\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `库记录ID: ${data.recoderId}\n` +
+        `消息体ID: ${data.msgRecoderId}\n` +
+        `发送方ID: ${data.socketId}\n` +
+        `文本内容: ${decodeURIComponent(data.msg)}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
+}
+
+/**
+ * 获取最近10条公共聊天室数据
+ * @param {*} data 
+ */
+async function getDogChating10Info(data) {
+    let req = {
+        ctx: {
+            tables: data.tables,
+            sql: data.sql
+        }
+    };
+    let res = await dog.getDogChating10Info(req, null);
+    return res;
 }
 
 
@@ -136,17 +151,17 @@ function sendChatingNotify(data){
  * 发送开始发送文件通知
  * @param {*} data 
  */
- function sendFileInfoNotify(data){
+function sendFileInfoNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `库记录ID: ${data.recoderId}\n` + 
-                    `发送方ID: ${data.from}\n` + 
-                    `文件名称: ${data.name}\n` + 
-                    `文件类型: ${data.type}\n` +
-                    `文件大小: ${data.size} == (${data.size / 1024 / 1024}M)\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `库记录ID: ${data.recoderId}\n` +
+        `发送方ID: ${data.from}\n` +
+        `文件名称: ${data.name}\n` +
+        `文件类型: ${data.type}\n` +
+        `文件大小: ${data.size} == (${data.size / 1024 / 1024}M)\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -155,17 +170,17 @@ function sendChatingNotify(data){
  * 发送文件发送完毕通知
  * @param {*} data 
  */
- function sendFileDoneNotify(data){
+function sendFileDoneNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `发送方ID: ${data.from}\n` + 
-                    `接收方ID: ${data.to}\n` + 
-                    `文件名称: ${data.name}\n` + 
-                    `文件类型: ${data.type}\n` +
-                    `文件大小: ${data.size} == (${data.size / 1024 / 1024}M)\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `发送方ID: ${data.from}\n` +
+        `接收方ID: ${data.to}\n` +
+        `文件名称: ${data.name}\n` +
+        `文件类型: ${data.type}\n` +
+        `文件大小: ${data.size} == (${data.size / 1024 / 1024}M)\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -174,15 +189,15 @@ function sendChatingNotify(data){
  * 发送文本内容通知
  * @param {*} data 
  */
- function sendTxtNotify(data){
+function sendTxtNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `库记录ID: ${data.recoderId}\n` + 
-                    `发送方ID: ${data.from}\n` +
-                    `文本内容: ${decodeURIComponent(data.content)}\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `库记录ID: ${data.recoderId}\n` +
+        `发送方ID: ${data.from}\n` +
+        `文本内容: ${decodeURIComponent(data.content)}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -191,11 +206,11 @@ function sendChatingNotify(data){
  * 发送开始录屏通知
  * @param {*} data 
  */
- function sendStartScreenNotify(data){
+function sendStartScreenNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -204,13 +219,13 @@ function sendChatingNotify(data){
  * 发送停止录屏通知
  * @param {*} data 
  */
- function sendStopScreenNotify(data){
+function sendStopScreenNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
-                    `录屏时长: ${data.cost}秒\n` +
-                    `录屏大小: ${data.size} == (${data.size / 1024 / 1024}M)\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        `录屏时长: ${data.cost}秒\n` +
+        `录屏大小: ${data.size} == (${data.size / 1024 / 1024}M)\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -219,11 +234,11 @@ function sendChatingNotify(data){
  * 发送开始屏幕共享通知
  * @param {*} data 
  */
- function sendStartScreenShareNotify(data){
+function sendStartScreenShareNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -232,12 +247,12 @@ function sendChatingNotify(data){
  * 发送停止屏幕共享通知
  * @param {*} data 
  */
- function sendStopScreenShareNotify(data){
+function sendStopScreenShareNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
-                    `共享时长: ${data.cost}秒\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        `共享时长: ${data.cost}秒\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -246,11 +261,11 @@ function sendChatingNotify(data){
  * 发送开始音视频通话通知
  * @param {*} data 
  */
- function sendStartVideoShareNotify(data){
+function sendStartVideoShareNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -259,12 +274,12 @@ function sendChatingNotify(data){
  * 发送停止音视频通话通知
  * @param {*} data 
  */
- function sendStopVideoShareNotify(data){
+function sendStopVideoShareNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
-                    `通话时长: ${data.cost}秒\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        `通话时长: ${data.cost}秒\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -273,12 +288,12 @@ function sendChatingNotify(data){
  * 发送意见反馈通知
  * @param {*} data 
  */
- function sendBugNotify(data){
+function sendBugNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
-                    `反馈内容: ${data.msg}\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        `反馈内容: ${data.msg}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -287,13 +302,13 @@ function sendChatingNotify(data){
  * 发送管理后台登录失败通知
  * @param {*} data 
  */
- function sendManageLoginFailedNotify(data){
+function sendManageLoginFailedNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `访问密码: ${data.value}\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `访问密码: ${data.value}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -302,14 +317,14 @@ function sendChatingNotify(data){
  * 发送管理后台登录成功通知
  * @param {*} data 
  */
- function sendManageLoginSuccessNotify(data){
+function sendManageLoginSuccessNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `访问密码: ${data.value}\n` +
-                    `TOKEN: ${data.token}\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `访问密码: ${data.value}\n` +
+        `TOKEN: ${data.token}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -318,14 +333,14 @@ function sendChatingNotify(data){
  * 发送管理后台修改配置通知
  * @param {*} data 
  */
- function sendManageUpdateInfoNotify(data){
+function sendManageUpdateInfoNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `修改内容: ${data.content}\n` +
-                    `TOKEN: ${data.token}\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `修改内容: ${data.content}\n` +
+        `TOKEN: ${data.token}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -334,14 +349,14 @@ function sendChatingNotify(data){
  * 发送管理后台非法修改配置通知
  * @param {*} data 
  */
- function sendManageUpdateFailedNotify(data){
+function sendManageUpdateFailedNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `修改内容: ${data.content}\n` +
-                    `TOKEN: ${data.token}\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `修改内容: ${data.content}\n` +
+        `TOKEN: ${data.token}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -350,14 +365,14 @@ function sendChatingNotify(data){
  * 发送创建/加入房间通知
  * @param {*} data 
  */
- function sendCreateJoinRoomNotify(data){
+function sendCreateJoinRoomNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `库记录ID: ${data.recoderId}\n` + 
-                    `连接方ID: ${data.socketId}\n` +
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `库记录ID: ${data.recoderId}\n` +
+        `连接方ID: ${data.socketId}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -366,14 +381,14 @@ function sendChatingNotify(data){
  * 退出房间通知
  * @param {*} data 
  */
- function sendExitRoomNotify(data){
+function sendExitRoomNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
-                    ` - <font color="comment">${data.room}</font>\n` +
-                    `库记录ID: ${data.recoderId}\n` + 
-                    `连接方ID: ${data.socketId}\n` + 
-                    `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
-                    `访问IP: ${data.ip}\n` +
-                    `访问设备: ${data.userAgent}\n`;
+        ` - <font color="comment">${data.room}</font>\n` +
+        `库记录ID: ${data.recoderId}\n` +
+        `连接方ID: ${data.socketId}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
 }
 
@@ -383,25 +398,25 @@ function sendChatingNotify(data){
  * @param {*} data 
  * @returns 
  */
-async function getRoomPageHtml(data){
+async function getRoomPageHtml(data) {
 
-    if(!dbOpen){
+    if (!dbOpen) {
         return 'db配置未开启';
     }
 
     let resData = await room.getManageRoomInfo({
         ctx: {
             tables: data.tables,
-            sql : data.sql,
+            sql: data.sql,
             sockets: data.sockets,
         },
         params: {
-            limit : 10,
-            day :  data.day,
+            limit: 10,
+            day: data.day,
         }
     }, null)
 
-    return  `
+    return `
     <style>
         .layui-layer{
             box-sizing: content-box;
@@ -572,19 +587,19 @@ async function getRoomPageHtml(data){
  * @param {*} data 
  * @returns 
  */
-async function getDataPageHtml(data){
-    if(!dbOpen){
+async function getDataPageHtml(data) {
+    if (!dbOpen) {
         return 'db配置未开启';
     }
     let resData = await dog.getDogManageInfo({
         ctx: {
             tables: data.tables,
-            sql : data.sql,
+            sql: data.sql,
             sockets: data.sockets,
         },
         params: {
-            limit : 10,
-            day :  data.day,
+            limit: 10,
+            day: data.day,
         }
     }, null)
 
@@ -793,34 +808,34 @@ async function getDataPageHtml(data){
  * @param {*} data 
  * @returns 
  */
-async function getSettingPageHtml(data){
-    if(!dbOpen){
+async function getSettingPageHtml(data) {
+    if (!dbOpen) {
         return 'db配置未开启';
     }
     let resData = await getOrCreateManageRoom({
-        tables : data.tables,
+        tables: data.tables,
         rname: data.room,
         sid: data.socketId,
         ip: data.ip,
         device: data.userAgent,
-        content : JSON.stringify({
-            openSendBug : true,
-            openScreen : true,
-            openVideoShare : true,
-            openScreenShare : true,
-            openOnlineUser : true,
-            openShareRoom : true,
-            openFileTransfer : true,
-            openTxtTransfer : true,
-            openCommRoom : true,
-            openRefleshRoom : true,
-            allowNumber : true,
-            allowChinese : true,
-            allowSymbol : true,
-            keys : []
+        content: JSON.stringify({
+            openSendBug: true,
+            openScreen: true,
+            openVideoShare: true,
+            openScreenShare: true,
+            openOnlineUser: true,
+            openShareRoom: true,
+            openFileTransfer: true,
+            openTxtTransfer: true,
+            openCommRoom: true,
+            openRefleshRoom: true,
+            allowNumber: true,
+            allowChinese: true,
+            allowSymbol: true,
+            keys: []
         })
     })
-    
+
 
     return `
     <style>
@@ -1010,5 +1025,6 @@ module.exports = {
     dogData,
     getRoomPageHtml,
     getDataPageHtml,
-    getSettingPageHtml
+    getSettingPageHtml,
+    getDogChating10Info
 }
