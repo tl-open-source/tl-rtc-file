@@ -59,10 +59,12 @@ async function excute(tabs, sequelize, config) {
         config.ws.beforeInit();
     }
 
-    chating = await getDogChating10Info({
-        tables: tables,
-        sql: sql,
-    });
+    if(Object.keys(sql).length > 0 && Object.keys(tables).length > 0){
+        chating = await getDogChating10Info({
+            tables: tables,
+            sql: sql,
+        });
+    }
 
     listen(io);
 
