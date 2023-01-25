@@ -87,12 +87,10 @@ function listen(io) {
         socket.on("getCommData", async function () {
             if (!dbOpen) {
                 handler._message({
-                    emitType: "switchData",
-                    data: {
+                    emitType: "commData",
+                    switchData: {
                         openSendBug: true,
                         openScreen: true,
-                        openScreenShare: true,
-                        openVideoShare: true,
                         openOnlineUser: true,
                         openShareRoom: true,
                         openFileTransfer: true,
@@ -102,7 +100,8 @@ function listen(io) {
                         allowNumber: true,
                         allowChinese: true,
                         allowSymbol: true,
-                    }
+                    },
+                    chatingData :chating
                 })
                 return
             }
