@@ -280,12 +280,31 @@
                 id="chooseFileListDisable" v-show="(uploadDisabled && !createDisabled) || noOthersInRoom" disabled>
                 <i class="layui-icon"></i>
                 <p style="color: antiquewhite;">(当前禁选)，请确保双方先加入房间，才可选择文件发送，支持多文件拖拽发送</p>
-
+            </div>
+            <div class="layui-upload-drag layui-btn-disabled" style="width: 100%;user-select: none;"
+                v-show="createDisabled && !noOthersInRoom && isSending" disabled>
+                <i class="layui-icon" id="isSendingIcon" style="transition: all 0.8s;"></i>
+                <p style="color: antiquewhite;">正在发送中...</p>
+                <p style="color: antiquewhite; margin-top: 10px;">当前已发送 <b>{{getFileSizeStr(currentReceiveAllSize)}}</b> </p>
+                <div class="fileRoomDisabled swiper-container" style="margin-top: 20px;">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide fileBlock" v-for="file in chooseFileList">
+                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 0"
+                                class="layui-icon layui-icon-play"></i>
+                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 1"
+                                class="layui-icon layui-icon-loading layui-anim-rotate layui-anim-loop"></i>
+                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 2"
+                                class="layui-icon layui-icon-ok-circle"></i>
+                            <i style="font-size: 40px;" class="layui-icon layui-icon-list"></i>
+                            <b style="font-size: 12px;word-break: break-all;">{{file.name}}</b>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="layui-upload-drag" style="width: 100%;" id="chooseFileList"
-                v-show="createDisabled && !noOthersInRoom">
+                v-show="createDisabled && !noOthersInRoom && !isSending">
                 <i class="layui-icon"></i>
-                <p style="color: antiquewhite;">点击上传，或将文件拖拽到此处，支持多文件拖拽发送</p>
+                <p style="color: antiquewhite;">点击选取文件，或将文件拖拽到此处，支持多文件拖拽发送</p>
                 <div class="fileRoom swiper-container" style="margin-top: 20px;">
                     <div class="swiper-wrapper">
                         <div class="swiper-slide fileBlock" v-for="file in chooseFileList">
@@ -299,7 +318,6 @@
                             <b style="font-size: 12px;word-break: break-all;">{{file.name}}</b>
                         </div>
                     </div>
-                    <div class="swiper-scrollbar"></div>
                 </div>
             </div>
         </div>
@@ -480,7 +498,7 @@
             <div class="swiper-scrollbar"></div>
         </div>
 
-        <button class="sendFileBtn" style="background-color: #79b0e8;" @click="initSendFile()" v-show="!uploadDisabled">
+        <button class="sendFileBtn" style="background-color: #79b0e8;" @click="initSendFile()" v-show="!uploadDisabled && !isSending">
             <svg viewBox="0 0 1024 1024" style="width: 30px;height: 25px;margin-left: -8px;margin-right: 10px;">
                 <path
                     d="M341.333333 277.333333l115.2-115.2c8.533333-8.533333 17.066667-12.8 29.866667-17.066666v473.6c0 17.066667 12.8 29.866667 25.6 29.866666s25.6-12.8 25.6-29.866666V140.8c8.533333 4.266667 21.333333 8.533333 29.866667 17.066667L682.666667 277.333333c4.266667 4.266667 12.8 8.533333 21.333333 8.533334s12.8-4.266667 21.333333-8.533334c12.8-12.8 12.8-29.866667 0-38.4l-115.2-115.2C554.666667 68.266667 469.333333 68.266667 418.133333 119.466667L302.933333 234.666667c-12.8 12.8-12.8 29.866667 0 38.4s25.6 12.8 38.4 4.266666z"
@@ -582,13 +600,16 @@
                 loop: false,
                 slidesPerView: slidesPerViewFile,
                 observer: true,
-                scrollbar: {
-                    el: '.swiper-scrollbar',
-                }
             })
-            fileRoomSwiper.scrollbar.$dragEl.css('background', '#ff6600');
-            fileRoomSwiper.scrollbar.$el.css('height', '4px');
             window.fileRoomSwiper = fileRoomSwiper;
+
+            let fileRoomDisabledSwiper = new Swiper('.fileRoomDisabled', {
+                direction: 'horizontal',
+                loop: false,
+                slidesPerView: slidesPerViewFile,
+                observer: true,
+            })
+            window.fileRoomDisabledSwiper = fileRoomDisabledSwiper;
 
             let slidesPerViewScreenShare = parseInt((clientWidth / 100)) - 1;
             let mediaShareRoomSwiper = new Swiper('.mediaShareRoom', {

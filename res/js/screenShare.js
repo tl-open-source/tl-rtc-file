@@ -28,28 +28,7 @@ var screenShare = new Vue({
                     },
                     audio:true
                 });
-            }else if (window.navigator.mozGetUserMedia) {
-                media = navagator.mozGetUserMedia({
-                    video: true,
-                    audio: true
-                });
-            } else if (window.navigator.getUserMedia) {
-                media = window.navigator.getUserMedia({
-                    video: true,
-                    audio: true
-                })
-            } else if (window.navigator.webkitGetUserMedia) {
-                media = new Promise((resolve, reject) => {
-                    window.navigator.webkitGetUserMedia({
-                        video: true,
-                        audio: true
-                    }, (res) => {
-                        resolve(res)
-                    }, (err) => {
-                        reject(err)
-                    });
-                })
-            } 
+            }
             return media
         },
         startScreenShare: async function (id, callback) {

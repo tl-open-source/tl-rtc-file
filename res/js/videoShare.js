@@ -11,40 +11,38 @@ var videoShare = new Vue({
     methods: {
         getMediaPlay: function () {
             let media = null;
-            if (window.navigator.getDisplayMedia) {
-                media = window.navigator.getDisplayMedia({
-                    video: true,
-                    audio:true
-                });
-            } else if (window.navigator.mediaDevices && window.navigator.mediaDevices.getDisplayMedia) {
-                media = window.navigator.mediaDevices.getDisplayMedia({
-                    video: true,
-                    audio:true
-                });
-            } else if(window.navigator.mediaDevices && window.navigator.mediaDevices.getUserMedia){
-                media = window.navigator.mediaDevices.getUserMedia({
-                    video: {
-                        mediaSource: 'screen'
+            let constraints = {
+                // 音频轨道
+                audio:true,
+                // 视频轨道
+                video: {
+                    // 前后置
+                    facingMode: true ? "user" : "environment",
+                    // 分辨率
+                    width: {
+                        ideal : 1280
+                    }, 
+                    height: {
+                        ideal : 720
                     },
-                    audio:true
-                });
-
+                    // 码率
+                    frameRate: {
+                        ideal: 10,
+                        max: 15 
+                    },
+                    // 指定设备
+                    // deviceId: "",
+                },
+            };
+            if(window.navigator.mediaDevices && window.navigator.mediaDevices.getUserMedia){
+                media = window.navigator.mediaDevices.getUserMedia(constraints);
             } else if (window.navigator.mozGetUserMedia) {
-                media = navagator.mozGetUserMedia({
-                    video: true,
-                    audio: true
-                });
+                media = navagator.mozGetUserMedia(constraints);
             } else if (window.navigator.getUserMedia) {
-                media = window.navigator.getUserMedia({
-                    video: true,
-                    audio: true
-                })
+                media = window.navigator.getUserMedia(constraints)
             } else if (window.navigator.webkitGetUserMedia) {
                 media = new Promise((resolve, reject) => {
-                    window.navigator.webkitGetUserMedia({
-                        video: true,
-                        audio: true
-                    }, (res) => {
+                    window.navigator.webkitGetUserMedia(constraints, (res) => {
                         resolve(res)
                     }, (err) => {
                         reject(err)

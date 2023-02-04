@@ -35,10 +35,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 rtcConns: {}, //远程连接
                 remoteMap: {}, //远程连接map
 
-                chunkSize: 256 * 1024, //webrtc 一块256kb
+                chunkSize: 16 * 1024, //webrtc 一块16kb
                 allSended: false,//当前文件是否全部发送给房间内所有用户
-                currentReceiveSize: 0, //统计收到文件的大小
-                currentSendSize : 0, //统计发送文件的大小
+                isSending: false, //是否正在发送文件中
+                currentReceiveSize: 0, //统计收到文件的大小 (单个文件进度)
+                currentSendSize : 0, //统计发送文件的大小 (单个文件进度)
+                currentReceiveAllSize:0, // 统计收到文件总大小 (流量统计)
+                sendingIconInterverlId : 0, // 图标变换定时器
 
                 currentChooseFile : null, //当前发送中的文件
                 chooseFileList : [], //选择的文件列表
@@ -91,6 +94,19 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             allSended: function (newV, oldV) {
 
+            },
+            isSending : function(newV, oldV){
+                if(newV === true){
+                    //计算时间
+                    this.sendingIconInterverlId = setInterval(() => {
+                        $("#isSendingIcon").css("color","#4c7673")
+                        setTimeout(() => {
+                            $("#isSendingIcon").css("color","#07c7b5")
+                        }, 500)
+                    }, 1000);
+                }else{
+                    clearInterval(this.sendingIconInterverlId)
+                }
             },
             currentReceiveSize: function (newV, oldV) {
                 this.currentReceiveSize = newV;
@@ -899,27 +915,23 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 let sendChannel = this.rtcConns[id].createDataChannel('sendDataChannel');
                 sendChannel.binaryType = 'arraybuffer';
 
-                sendChannel.addEventListener('open', () => {
+                sendChannel.addEventListener('open', (event) => {
                     if (sendChannel.readyState === 'open') {
                         that.logs.push("建立连接 : channel open")
                     }
                 });
-
-                sendChannel.addEventListener('close', () => {
+                sendChannel.addEventListener('close', (event) => {
                     if (sendChannel.readyState === 'close') {
                         that.logs.push("连接关闭 : channel close")
                     }
                 });
-
                 sendChannel.addEventListener('error', (error) => {
                     console.error(error.error)
                     that.logs.push("连接断开 : " + error)
                 });
-
                 this.rtcConns[id].addEventListener('datachannel', (event) => {
                     that.initReceiveDataChannel(event, id);
                 });
-
                 this.setRemoteInfo(id, { sendChannel: sendChannel });
             },
             // 初始发送
@@ -928,7 +940,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.changeSendFileNext();
 
                 //发送给房间内所有人
-                this.sendFileToRemoteAll();
+                this.sendFileToRemoteAllByLoop();
+
+                this.touchResize();
             },
             // 选一个未发送的文件进行发送，如有下一个，切换下一个文件
             changeSendFileNext: async function(){
@@ -959,33 +973,32 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
             },
             // 轮询着发送给房间内所有人
-            sendFileToRemoteAll: function () {
+            sendFileToRemoteAllByLoop: function () {
                 let that = this;
-                if(that.currentChooseFile === null){
-                    that.chooseFileList = []
+                if(this.currentChooseFile === null){
+                    this.chooseFileList = []
                     console.log("文件全部发送完毕");
-                    that.addPopup("文件全部发送完毕");
-                    that.logs.push("文件全部发送完毕")
+                    this.addPopup("文件全部发送完毕");
+                    this.logs.push("文件全部发送完毕");
+                    this.isSending = false;
                     return;
                 }
+                this.isSending = true;
 
                 //当前选中文件已发送给房间内所有人
-                let nextSendingId = that.getSendFileNextRemote();
+                let nextSendingId = this.getSendFileNextRemote();
                 if (nextSendingId === '') {
                     //切下一个文件的时候延迟一会，不要发的太急   
                     setTimeout(() => {
-                        //选中一个文件
-                        this.changeSendFileNext();
-                        //发送给房间内所有人
-                        this.sendFileToRemoteAll();
-                    }, 1000);
+                        that.initSendFile()
+                    }, 1500);
                     return
                 }
 
-                let remote = that.remoteMap[nextSendingId]
-                let fileReader = remote[that.currentChooseFile.index + "reader"];
+                let remote = this.remoteMap[nextSendingId]
+                let fileReader = remote[this.currentChooseFile.index + "reader"];
 
-                fileReader.addEventListener('loadend', this.sendFileToRemote);
+                fileReader.addEventListener('loadend', this.sendFileToRemoteByLoop);
 
                 fileReader.addEventListener('error', error => {
                     that.logs.push("读取文件错误 : " + error);
@@ -995,27 +1008,29 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.logs.push("读取文件中断 : " + event);
                 });
 
-                that.readSlice(0);
+                this.readSlice(0);
             },
             //一次发送一个文件给一个用户
-             sendFileToRemote: function (event) {
+             sendFileToRemoteByLoop: function (event) {
+                let that = this;
                 let nextSendingId = this.getSendFileNextRemote();
                 if (nextSendingId === '') {
                     return
                 }
-                
-                this.setRemoteInfo(nextSendingId, {
-                    [this.currentChooseFile.index + "status"] : 1
-                }) 
-
+        
                 let remote = this.remoteMap[nextSendingId];
-
+                let fileOffset = remote[this.currentChooseFile.index+"offset"]
                 let sendChannel = remote.sendChannel;
                 if (!sendChannel || sendChannel.readyState !== 'open') {
                     return;
                 }
 
-                if (remote[this.currentChooseFile.index+"offset"] === 0) {
+                this.setRemoteInfo(nextSendingId, {
+                    [this.currentChooseFile.index + "status"] : 1
+                }) 
+
+                // 开始发送通知
+                if (fileOffset === 0) {
                     this.addPopup("正在发送给" + nextSendingId.substr(0, 4) + ",0%。");
                     this.logs.push("正在发送给" + nextSendingId.substr(0, 4) + ",0%。")
                     this.updateSendFileProcess(nextSendingId, {
@@ -1023,23 +1038,32 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     })
                 }
 
-                sendChannel.send(event.target.result);
-                remote[this.currentChooseFile.index+"offset"] += event.target.result.byteLength;
+                // 缓冲区満了
+                if (sendChannel.bufferedAmount > sendChannel.bufferedAmountLowThreshold) {
+                    sendChannel.onbufferedamountlow = () => {
+                        sendChannel.onbufferedamountlow = null;
+                        that.sendFileToRemoteByLoop(event);
+                    }
+                    return;
+                }
 
+                // 发送数据
+                sendChannel.send(event.target.result);
+                fileOffset += event.target.result.byteLength;
+                remote[this.currentChooseFile.index+"offset"] = fileOffset
                 this.currentSendSize += event.target.result.byteLength;
+                this.currentReceiveAllSize += event.target.result.byteLength;
 
                 //更新发送进度
                 this.updateSendFileProcess(nextSendingId, {
-                    process: parseInt((remote[this.currentChooseFile.index+"offset"] / this.currentChooseFile.size) * 100)
+                    process: parseInt((fileOffset / this.currentChooseFile.size) * 100)
                 })
 
                 //发送完一份重置相关数据
-                if (remote[this.currentChooseFile.index+"offset"] === this.currentChooseFile.size) {
+                if (fileOffset === this.currentChooseFile.size) {
+                    this.currentSendSize = 0
                     this.addPopup("正在发送给" + nextSendingId.substr(0, 4) + ",100%。");
                     this.logs.push("正在发送给" + nextSendingId.substr(0, 4) + ",100%。")
-
-                    this.currentSendSize = 0
-
                     this.socket.emit('message', {
                         emitType: "sendDone",
                         room: this.roomId,
@@ -1049,15 +1073,22 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         type: this.currentChooseFile.type,
                         to: nextSendingId
                     });
-
                     //更新发送进度
                     this.updateSendFileProcess(nextSendingId, {
                         done: true
                     })
-                    
                     this.setRemoteInfo(nextSendingId, {
                         [this.currentChooseFile.index + "status"] : 2 
                     })
+
+                    //继续下一个文件
+                    this.sendFileToRemoteAllByLoop()
+                    return
+                }
+
+                // 继续下一个分片
+                if(fileOffset < this.currentChooseFile.size){
+                    this.readSlice(fileOffset + this.chunkSize)
                 }
             },
             //获取需要进行发送的远程id
@@ -1105,27 +1136,16 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 return nextSendingId;
             },
-            //文件分片 -- 点击发送时首次自动，后续就是收到ack回执后自动
+            //文件分片 -- 发送
             readSlice: function (offset) {
                 let nextSendingId = this.getSendFileNextRemote();
                 if(nextSendingId !== ''){
                     let remote = this.remoteMap[nextSendingId]
-                    const slice = this.currentChooseFile.slice(remote[this.currentChooseFile.index+"offset"], offset + this.chunkSize);
+                    let fileOffset = remote[this.currentChooseFile.index+"offset"]
                     let fileReader = remote[this.currentChooseFile.index + "reader"]
+                    let slice = this.currentChooseFile.slice(fileOffset, offset + this.chunkSize);
                     fileReader.readAsArrayBuffer(slice);
                 }
-            },
-            //分片发送反馈ack
-            receivedAck: function (socketId, receivedSize, name) {
-                this.socket.emit('message', {
-                    emitType: "receivedAck",
-                    room: this.roomId,
-                    from: this.socketId,
-                    offset: receivedSize,
-                    chunkSize: this.chunkSize,
-                    name :name,
-                    to: socketId,
-                });
             },
             //创建接收文件事件
             initReceiveDataChannel: function (event, id) {
@@ -1178,20 +1198,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 let receiveBuffer = currentRtc.receiveBuffer || new Array();
                 let receivedSize = currentRtc.receivedSize || 0;
 
-                if (receivedSize === 0) {
-                    this.updateReceiveProcess(id, {
-                        start: Date.now()
-                    })
-                }
                 receiveBuffer.push(event.data);
                 receivedSize += event.data.byteLength;
                 this.$refs['receiveProgress'].value = receivedSize;
 
                 this.setRemoteInfo(id, { receiveBuffer: receiveBuffer, receivedSize: receivedSize })
                 this.currentReceiveSize += event.data.byteLength;
-
-                //收到分片后反馈ack
-                this.receivedAck(id, receivedSize, name);
 
                 //更新接收进度
                 this.updateReceiveProcess(id, {
@@ -1245,6 +1257,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 for (let i = 0; i < this.receiveFileList.length; i++) {
                     let item = this.receiveFileList[i];
                     if (item.id === id && !item.done) {
+                        if(item.start === 0){
+                            item.start = Date.now();
+                        }
                         data.cost = parseInt((Date.now() - item.start) / 1000);
                         Object.assign(this.receiveFileList[i], data);
                     }
@@ -1455,21 +1470,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     })
                 });
 
-                //收到文件回传ack，继续分片回传
-                this.socket.on('receivedAck', function (data) {
-                    let to = data.to;
-                    if (to === that.socketId) {
-                        // 当前文件分片接收方正在接收
-                        if (data.offset < that.currentChooseFile.size) {
-                            that.readSlice(data.offset)
-                        }
-                        // 当前文件分片接收方全部接收完毕
-                        if(data.offset === that.currentChooseFile.size){
-                            that.sendFileToRemoteAll()
-                        }
-                    }
-                });
-
                 //发送文字内容
                 this.socket.on('sendTxt', function (data) {
                     let fromId = data.from;
@@ -1647,6 +1647,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (window.fileRoomSwiper) {
                     let slidesPerView = parseInt((clientWidth / 100)) - 1;
                     window.fileRoomSwiper.params.slidesPerView = slidesPerView;
+                }
+                if (window.fileRoomDisabledSwiper) {
+                    let slidesPerView = parseInt((clientWidth / 100)) - 1;
+                    window.fileRoomDisabledSwiper.params.slidesPerView = slidesPerView;
                 }
                 if (window.mediaShareRoomSwiper) {
                     let slidesPerView = parseInt((clientWidth / 100)) - 1;

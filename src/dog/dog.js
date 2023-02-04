@@ -170,8 +170,12 @@ async function getDogChating10Info(req, res, next) {
 
 
 
-module.exports = {
+module.exports = dbOpen ? {
     add,
     getDogManageInfo,
     getDogChating10Info
+} : {
+    add : () => {},
+    getDogManageInfo : () => {},
+    getDogChating10Info : () => {}
 }
