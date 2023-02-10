@@ -59,6 +59,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 videoShareTimes: 0,  //当前音视频时间
 
                 switchData : {}, //配置开关数据
+                switchDataGet : false, // 是否已经拿到配置开关数据
                 token: "", //登录token
                 manageIframeId : 0 //实现自适应
             }
@@ -142,7 +143,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     if (!this.socketId) return;
 
                     newV.forEach((file)=>{
-                        that.$refs['sendProgress'].max += file.size;
+                        document.querySelector("#sendProgress").max += file.size;
                         that.allSended = false;
 
                         let idList = [];
@@ -207,6 +208,141 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             document.querySelector(".layui-layer-title").style.backgroundColor = "#000000"
                         },
                         content: `<img style=" width: 100%; height: 100%;border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;" src="/image/coffee.jpg" alt="img"> `
+                    }
+                    layer.open(options)
+                }
+            },
+            setting : function() {
+                let that = this;
+                if (window.layer) {
+                    let options = {
+                        type: 1,
+                        fixed: false,
+                        maxmin: false,
+                        shadeClose:true,
+                        area: ['300px', '350px'],
+                        title: "功能设置",
+                        success: function (layero, index) {
+                            let active = null;
+                            if (that.currentMenu === 1) {
+                                active = document.querySelector("#btnHome");
+                            } else if (that.currentMenu === 2) {
+                                active = document.querySelector("#btnReceive");
+                            } else if (that.currentMenu === 3) {
+                                active = document.querySelector("#btnTxt");
+                            }
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
+                            document.querySelector(".layui-layer").style.borderRadius = "15px"
+                            document.querySelector(".layui-layer-content").style.borderRadius = "15px"
+                            document.querySelector(".setting-main-body ul").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                            document.querySelector(".layui-layer-title").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                            document.querySelector(".layui-layer").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                        },
+                        content: `
+                        <div class="setting-main">
+                            <div class="setting-main-body">
+                                <ul class="layui-row layui-col-space10">
+                                    <li class="layui-col-xs4">
+                                        <a title="博客" href="https://blog.iamtsm.cn" target="_blank">
+                                            <svg  viewBox="0 0 1024 1024" p-id="4914" width="42px" height="56px" id="blog">
+                                                <path d="M512 520m-480 0a480 480 0 1 0 960 0 480 480 0 1 0-960 0Z" fill="#F8C5B9" p-id="4915">
+                                                </path>
+                                                <path
+                                                    d="M512 1020c-276 0-500-224-500-500S236 20 512 20s500 224 500 500-224.8 500-500 500z m0-960C258.4 60 52 266.4 52 520s206.4 460 460 460 460-206.4 460-460S765.6 60 512 60z"
+                                                    p-id="4916"></path>
+                                                <path
+                                                    d="M277.6 276c5.6 0.8 9.6-4 8.8-9.6-8-46.4-43.2-227.2-100-237.6C132 18.4 12.8 137.6 32 189.6c20.8 56 200 80.8 245.6 86.4z"
+                                                    fill="#F8C5B9" p-id="4917"></path>
+                                                <path
+                                                    d="M278.4 296h-3.2c-88-10.4-238.4-37.6-261.6-99.2C-0.8 158.4 32 112 52.8 87.2 89.6 44 148 1.6 189.6 9.6c33.6 6.4 81.6 56 116 254.4 1.6 8.8-0.8 17.6-7.2 24-5.6 4.8-12.8 8-20 8zM178.4 48c-20 0-60.8 24.8-95.2 64.8-28 32.8-36.8 59.2-32.8 69.6 9.6 27.2 96 56 212.8 71.2-24-129.6-59.2-201.6-81.6-205.6h-3.2z"
+                                                    p-id="4918"></path>
+                                                <path
+                                                    d="M751.2 276c-5.6 0.8-9.6-4-8.8-9.6 8-46.4 43.2-227.2 100-237.6 54.4-10.4 172.8 108.8 153.6 160.8-20.8 56-199.2 80.8-244.8 86.4z"
+                                                    fill="#F8C5B9" p-id="4919"></path>
+                                                <path
+                                                    d="M750.4 296c-8 0-15.2-3.2-20-8.8-6.4-6.4-8.8-15.2-7.2-24C757.6 64.8 804.8 16 838.4 9.6c41.6-8 100 35.2 136.8 77.6 20.8 24.8 53.6 71.2 40 109.6-23.2 61.6-173.6 88.8-261.6 99.2h-3.2z m99.2-248h-4c-22.4 4-56.8 76-81.6 205.6 116-15.2 202.4-44 212.8-71.2 4-10.4-4.8-36.8-32.8-69.6-33.6-40-74.4-64.8-94.4-64.8zM509.6 859.2c-82.4 0-128.8-58.4-130.4-61.6L361.6 776h284l-12 20.8c-1.6 2.4-37.6 61.6-122.4 62.4h-1.6z m-84.8-56c18.4 13.6 47.2 28.8 84.8 28.8h1.6c38.4-0.8 64-15.2 80-28.8H424.8z"
+                                                    p-id="4920"></path>
+                                                <path
+                                                    d="M354.4 789.6c-12.8 0-21.6-12.8-16.8-24.8 15.2-37.6 59.2-104.8 175.2-103.2 113.6 1.6 158.4 65.6 174.4 102.4 5.6 12-3.2 25.6-16.8 25.6H354.4z"
+                                                    fill="#EF866D" p-id="4921"></path>
+                                                <path
+                                                    d="M669.6 803.2H354.4c-10.4 0-20.8-5.6-26.4-14.4-5.6-8.8-7.2-20-3.2-29.6 17.6-41.6 64-111.2 184-111.2h4c121.6 1.6 168.8 69.6 186.4 110.4 4 9.6 3.2 21.6-2.4 30.4-6.4 8.8-16 14.4-27.2 14.4z m-160.8-128c-104 0-144 59.2-158.4 94.4-0.8 1.6 0 3.2 0.8 4 0.8 0.8 1.6 2.4 4 2.4h315.2c2.4 0 3.2-1.6 4-2.4 0.8-0.8 1.6-2.4 0-4.8-15.2-34.4-56-92.8-161.6-94.4-1.6 0.8-3.2 0.8-4 0.8z"
+                                                    p-id="4922"></path>
+                                                <path
+                                                    d="M368 674.4c-3.2 0-6.4-0.8-9.6-3.2-5.6-4.8-6.4-13.6-0.8-19.2 36.8-40 88.8-60.8 155.2-59.2 64 0.8 115.2 20.8 152 58.4 5.6 5.6 4.8 14.4 0 19.2-5.6 5.6-14.4 4.8-19.2 0-31.2-32-76-48.8-132.8-49.6-57.6-0.8-103.2 16-134.4 50.4-3.2 1.6-7.2 3.2-10.4 3.2z"
+                                                    p-id="4923"></path>
+                                                <path
+                                                    d="M368 618.4c-3.2 0-6.4-0.8-9.6-3.2-5.6-4.8-6.4-13.6-0.8-19.2 36.8-40 88.8-60.8 155.2-59.2 64 0.8 115.2 20.8 152 58.4 5.6 5.6 4.8 14.4 0 19.2-5.6 5.6-14.4 4.8-19.2 0-31.2-32-76-48.8-132.8-49.6-57.6-0.8-103.2 16-134.4 50.4-3.2 1.6-7.2 3.2-10.4 3.2z"
+                                                    p-id="4924"></path>
+                                                <path d="M456 734.4m-24 0a24 24 0 1 0 48 0 24 24 0 1 0-48 0Z" p-id="4925"></path>
+                                                <path d="M568 734.4m-24 0a24 24 0 1 0 48 0 24 24 0 1 0-48 0Z" p-id="4926"></path>
+                                                <path d="M133.6 655.2a87.2 40 0 1 0 174.4 0 87.2 40 0 1 0-174.4 0Z" fill="#EF866D" p-id="4927">
+                                                </path>
+                                                <path d="M709.6 655.2a87.2 40 0 1 0 174.4 0 87.2 40 0 1 0-174.4 0Z" fill="#EF866D" p-id="4928">
+                                                </path>
+                                                <path d="M284 478.4a72 48 90 1 0 96 0 72 48 90 1 0-96 0Z" p-id="4929"></path>
+                                                <path d="M644 478.4a72 48 90 1 0 96 0 72 48 90 1 0-96 0Z" p-id="4930"></path>
+                                                <path d="M353.6 473.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4931"></path>
+                                                <path d="M329.6 465.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4932"></path>
+                                                <path d="M705.6 473.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4933"></path>
+                                                <path d="M681.6 465.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4934"></path>
+                                            </svg>
+                                            <cite>个人博客</cite>
+                                        </a>
+                                    </li>
+
+                                    <li class="layui-col-xs4">
+                                        <a title="github" href="https://github.com/iamtsm" target="_blank">
+                                            <svg width="42px" height="56px" id="github" viewBox="0 0 1049 1024" p-id="2500" width="64"
+                                                height="64">
+                                                <path
+                                                    d="M524.979332 0C234.676191 0 0 234.676191 0 524.979332c0 232.068678 150.366597 428.501342 358.967656 498.035028 26.075132 5.215026 35.636014-11.299224 35.636014-25.205961 0-12.168395-0.869171-53.888607-0.869171-97.347161-146.020741 31.290159-176.441729-62.580318-176.441729-62.580318-23.467619-60.841976-58.234462-76.487055-58.234463-76.487055-47.804409-32.15933 3.476684-32.15933 3.476685-32.15933 53.019436 3.476684 80.83291 53.888607 80.83291 53.888607 46.935238 79.963739 122.553122 57.365291 152.97411 43.458554 4.345855-33.897672 18.252593-57.365291 33.028501-70.402857-116.468925-12.168395-239.022047-57.365291-239.022047-259.012982 0-57.365291 20.860106-104.300529 53.888607-140.805715-5.215026-13.037566-23.467619-66.926173 5.215027-139.067372 0 0 44.327725-13.906737 144.282399 53.888607 41.720212-11.299224 86.917108-17.383422 131.244833-17.383422s89.524621 6.084198 131.244833 17.383422C756.178839 203.386032 800.506564 217.29277 800.506564 217.29277c28.682646 72.1412 10.430053 126.029806 5.215026 139.067372 33.897672 36.505185 53.888607 83.440424 53.888607 140.805715 0 201.64769-122.553122 245.975415-239.891218 259.012982 19.121764 16.514251 35.636014 47.804409 35.636015 97.347161 0 70.402857-0.869171 126.898978-0.869172 144.282399 0 13.906737 9.560882 30.420988 35.636015 25.205961 208.601059-69.533686 358.967656-265.96635 358.967655-498.035028C1049.958663 234.676191 814.413301 0 524.979332 0z"
+                                                    fill="#191717" p-id="2501"></path>
+                                                <path
+                                                    d="M199.040177 753.571326c-0.869171 2.607513-5.215026 3.476684-8.691711 1.738342s-6.084198-5.215026-4.345855-7.82254c0.869171-2.607513 5.215026-3.476684 8.691711-1.738342s5.215026 5.215026 4.345855 7.82254z m-6.953369-4.345856M219.900283 777.038945c-2.607513 2.607513-7.82254 0.869171-10.430053-2.607514-3.476684-3.476684-4.345855-8.691711-1.738342-11.299224 2.607513-2.607513 6.953369-0.869171 10.430053 2.607514 3.476684 4.345855 4.345855 9.560882 1.738342 11.299224z m-5.215026-5.215027M240.760389 807.459932c-3.476684 2.607513-8.691711 0-11.299224-4.345855-3.476684-4.345855-3.476684-10.430053 0-12.168395 3.476684-2.607513 8.691711 0 11.299224 4.345855 3.476684 4.345855 3.476684 9.560882 0 12.168395z m0 0M269.443034 837.011749c-2.607513 3.476684-8.691711 2.607513-13.906737-1.738342-4.345855-4.345855-6.084198-10.430053-2.607513-13.037566 2.607513-3.476684 8.691711-2.607513 13.906737 1.738342 4.345855 3.476684 5.215026 9.560882 2.607513 13.037566z m0 0M308.555733 853.526c-0.869171 4.345855-6.953369 6.084198-13.037566 4.345855-6.084198-1.738342-9.560882-6.953369-8.691711-10.430053 0.869171-4.345855 6.953369-6.084198 13.037566-4.345855 6.084198 1.738342 9.560882 6.084198 8.691711 10.430053z m0 0M351.145116 857.002684c0 4.345855-5.215026 7.82254-11.299224 7.82254-6.084198 0-11.299224-3.476684-11.299224-7.82254s5.215026-7.82254 11.299224-7.82254c6.084198 0 11.299224 3.476684 11.299224 7.82254z m0 0M391.126986 850.049315c0.869171 4.345855-3.476684 8.691711-9.560882 9.560882-6.084198 0.869171-11.299224-1.738342-12.168395-6.084197-0.869171-4.345855 3.476684-8.691711 9.560881-9.560882 6.084198-0.869171 11.299224 1.738342 12.168396 6.084197z m0 0"
+                                                    fill="#191717" p-id="2502"></path>
+                                            </svg>
+                                            <cite>github</cite>
+                                        </a>
+                                    </li>
+
+                                    <li class="layui-col-xs4" >
+                                        <a title="webrtc检测" onclick="webrtcCheck()">
+                                            <svg id="check" viewBox="0 0 1024 1024" p-id="7867" width="42px" height="56px">
+                                                <path
+                                                    d="M824.593094 277.816453l-202.741656 202.741657a20.48 20.48 0 1 1-28.963094-28.963094l202.741657-202.741657-14.481547-14.481546-202.741656 202.741656a20.48 20.48 0 1 1-28.963094-28.963094l217.223203-217.223203a20.48 20.48 0 0 1 28.963094 0l86.889281 86.889281a20.48 20.48 0 0 1 0 28.963094l-217.223203 217.223203a20.48 20.48 0 1 1-28.963094-28.963094l202.741656-202.741656-14.481547-14.481547z m-346.10897 119.038316c2.114306 0.955782 4.054833 2.317048 5.792619 4.054833l304.112484 304.112484a102.4 102.4 0 0 1-144.815469 144.815469l-304.112484-304.112485c-1.737786-1.737786-3.084569-3.692794-4.054833-5.792618a176.72192 176.72192 0 0 1-156.212446-49.077963 176.88576 176.88576 0 0 1-43.097084-180.092517 20.48 20.48 0 0 1 30.324359-11.005975c10.904605 6.820809 47.238806 28.6445 108.756417 65.311776l27.674237-27.99283c-37.145168-62.545801-59.026785-98.966891-65.282814-108.669528a20.48 20.48 0 0 1 10.745308-30.527101 176.90624 176.90624 0 0 1 181.091744 42.764008 176.72192 176.72192 0 0 1 49.077962 156.183483z m-100.270231 129.696733l294.322959 294.322959a61.44 61.44 0 1 0 86.889282-86.889281L465.103175 439.662221a176.55808 176.55808 0 0 1-35.697013 51.192268 176.55808 176.55808 0 0 1-51.192269 35.697013z m-170.056805-64.660106a135.96672 135.96672 0 1 0 78.982357-231.038599c12.64239 20.954798 32.264886 53.871354 58.997822 98.908965a20.48 20.48 0 0 1-3.041125 24.850334l-50.062707 50.64197A20.48 20.48 0 0 1 268.009322 408.440006c-44.74798-26.646046-77.60661-46.297505-98.691742-59.012303a135.84384 135.84384 0 0 0 38.868472 112.43473z m95.1148 337.246263a20.48 20.48 0 0 1-28.963093-28.963093l115.852375-115.852375a20.48 20.48 0 1 1 28.963093 28.963093l-115.852375 115.852375z"
+                                                    fill="#2c2c2c" p-id="7868"></path>
+                                                <path
+                                                    d="M695.504586 777.429821m-21.722321 21.72232a30.72 30.72 0 1 0 43.444641-43.444641 30.72 30.72 0 1 0-43.444641 43.444641Z"
+                                                    fill="#2c2c2c" p-id="7869"></path>
+                                                <path
+                                                    d="M152.446578 871.559875l50.685414-94.130054 43.44464-14.481547 43.444641 43.44464-14.481547 43.444641L181.409671 900.522969z"
+                                                    fill="#2c2c2c" p-id="7870"></path>
+                                            </svg>
+                                            <cite >webrtc检测</cite>
+                                        </a>
+                                    </li>
+                                    <li class="layui-col-xs4" style="${ this.switchData.openSendBug ? '' : 'display:none;'}">
+                                        <a title="反馈问题" onclick="sendBugs()" >
+                                            <svg viewBox="0 0 1024 1024" p-id="4621" width="42px" height="56px" id="sendBugs">
+                                                <path d="M360.389512 557.544289l184.919617 0 0 30.819936-184.919617 0 0-30.819936Z" p-id="4622">
+                                                </path>
+                                                <path d="M360.389512 480.981543l308.200384 0 0 30.819936-308.200384 0 0-30.819936Z" p-id="4623">
+                                                </path>
+                                                <path d="M360.389512 404.417773l308.200384 0 0 30.819936-308.200384 0 0-30.819936Z" p-id="4624">
+                                                </path>
+                                                <path
+                                                    d="M511.999488 64.021106c-247.27171 0-447.724091 200.452381-447.724091 447.724091s200.452381 447.724091 447.724091 447.724091 447.724091-200.453405 447.724091-447.724091S759.271198 64.021106 511.999488 64.021106zM761.050728 620.157325c0 34.041304-27.599591 61.639872-61.640895 61.639872l-154.09968 0 0 123.280768L422.029384 681.798221 329.569576 681.798221c-34.040281 0-61.639872-27.599591-61.639872-61.639872L267.929704 373.597837c0-34.040281 27.599591-61.639872 61.639872-61.639872l369.840256 0c34.042327 0 61.640895 27.599591 61.640895 61.639872L761.050728 620.157325z"
+                                                    p-id="4625"></path>
+                                            </svg>
+                                            <cite>反馈问题</cite>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        `
                     }
                     layer.open(options)
                 }
@@ -384,11 +520,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         success: function (layero, index) {
                             let active = null;
                             if (that.currentMenu === 1) {
-                                active = that.$refs['btnHome'];
+                                active = document.querySelector("#btnHome");
                             } else if (that.currentMenu === 2) {
-                                active = that.$refs['btnReceive'];
+                                active = document.querySelector("#btnReceive");
                             } else if (that.currentMenu === 3) {
-                                active = that.$refs['btnTxt'];
+                                active = document.querySelector("#btnTxt");
                             }
                             document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
                             document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
@@ -496,18 +632,24 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             sendBugs: function () {
                 if (window.layer) {
                     let that = this;
-                    layer.prompt({
-                        formType: 2,
-                        title: '请描述您需要反馈的问题',
-                    }, function (value, index, elem) {
-                        that.socket.emit('message', {
-                            emitType: "sendBugs",
-                            msg: value,
-                            room: that.roomId,
+                    $("#sendBugs").removeClass("layui-anim-rotate")
+                    setTimeout(() => {
+                        $("#sendBugs").addClass("layui-anim-rotate")
+                    }, 50)
+                    setTimeout(() => {
+                        layer.prompt({
+                            formType: 2,
+                            title: '请描述您需要反馈的问题',
+                        }, function (value, index, elem) {
+                            that.socket.emit('message', {
+                                emitType: "sendBugs",
+                                msg: value,
+                                room: that.roomId,
+                            });
+                            layer.msg("问题反馈成功，更多问题可以加群交流，将更快解决")
+                            layer.close(index);
                         });
-                        layer.msg("问题反馈成功，更多问题可以加群交流，将更快解决")
-                        layer.close(index);
-                    });
+                    }, 500);
                 }
             },
             refleshRoom: function () {
@@ -556,6 +698,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     this.socket.emit('message', {
                         emitType: "sendTxt",
+                        real : isRealContentMode,
                         content: encodeURIComponent(realContent),
                         room: this.roomId,
                         from: this.socketId,
@@ -596,6 +739,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     this.socket.emit('message', {
                         emitType: "sendTxt",
+                        real : isRealContentMode,
                         content: encodeURIComponent(content),
                         room: this.roomId,
                         from: this.socketId,
@@ -625,9 +769,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             clickHome: function (show = true) {
                 this.currentMenu = 1;
 
-
-                let active = this.$refs['btnHome'];
-                
+                let active = document.querySelector("#btnHome");
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
@@ -648,7 +790,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             clickReceive: function (show = true) {
                 this.currentMenu = 2;
 
-                let active = this.$refs['btnReceive'];
+                let active = document.querySelector("#btnReceive");
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
@@ -669,7 +811,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             clickTxt: function (show = true) {
                 this.currentMenu = 3;
 
-                let active = this.$refs['btnTxt'];
+                let active = document.querySelector("#btnTxt");
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
@@ -697,7 +839,23 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
                 return head + '.' + tail + "M";
             },
-            //点击下载文件
+            //点击切换发送文件或者发送文本
+            changeFileOrTxt : function(){
+                this.isTxtMode = !this.isTxtMode;
+                if (window.layui && window.layedit) {
+                    this.txtEditId = window.layedit.build('txt', {
+                        tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right', 'face']
+                    });
+                }
+                $("#changeMode").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#changeMode").addClass("layui-anim-rotate")
+                    if(window.layer){
+                        layer.msg(`切换为${this.isTxtMode ? '文本模式' : '文件模式'}`)
+                    }
+                }, 50)
+            },
+            //点击下载文件面板
             clickReceiveFile: function () {
                 this.showReceiveFile = !this.showReceiveFile;
                 if (this.showReceiveFile) {
@@ -706,17 +864,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.numReceiveFile = 150;
                 }
             },
-            //点击接收文字
-            clickReceiveTxt: function (change = true) {
-                if (change) {
-                    this.isTxtMode = !this.isTxtMode;
-                    if (window.layui && window.layedit) {
-                        this.txtEditId = window.layedit.build('txt', {
-                            tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right', 'face']
-                        });
-                    }
-                }
-
+            //点击接收文字面板
+            clickReceiveTxt: function () {
                 this.showReceiveTxt = !this.showReceiveTxt;
                 if (this.showReceiveTxt) {
                     this.numReceiveTxt = 50;
@@ -724,7 +873,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.numReceiveTxt = 150;
                 }
             },
-            //点击发送文件
+            //点击发送文件面板
             clickSendFile: function () {
                 this.showSendFile = !this.showSendFile;
                 if (this.showSendFile) {
@@ -733,7 +882,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.numSendFile = 150;
                 }
             },
-            //点击查看日志
+            //点击查看日志面板
             clickLogs: function () {
                 this.showLogs = !this.showLogs;
                 if (this.showLogs) {
@@ -1200,7 +1349,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 receiveBuffer.push(event.data);
                 receivedSize += event.data.byteLength;
-                this.$refs['receiveProgress'].value = receivedSize;
+                document.querySelector("#receiveProgress").value = receivedSize;
 
                 this.setRemoteInfo(id, { receiveBuffer: receiveBuffer, receivedSize: receivedSize })
                 this.currentReceiveSize += event.data.byteLength;
@@ -1213,7 +1362,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (receivedSize === size) {
                     console.log(name + " 接收完毕");
                     this.logs.push("接收完毕...");
-                    this.$refs['receiveProgress'].value = 0;
+                    document.querySelector("#receiveProgress").value = 0;
                     this.addPopup("文件[ " + name + " ]接收完毕，可点击右下角查看。");
 
                     //更新接收进度
@@ -1454,7 +1603,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.setRemoteInfo(fromId, { receiveFiles : data });
                     that.addPopup(data.from + "选择了文件 [ " + data.name + " ]，即将发送。");
                     that.logs.push(data.from + "选择了文件 [ " + data.name + " ]，即将发送。");
-                    that.$refs['receiveProgress'].max = data.size;
+                    document.querySelector("#receiveProgress").max = data.size;
 
                     that.receiveFileList.push({
                         id: fromId,
@@ -1478,6 +1627,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                     that.receiveTxtList.push({
                         id: fromId,
+                        real : data.real,
                         content: decodeURIComponent(data.content),
                         time: new Date().toLocaleString(),
                         c_id: "txt_" + that.receiveTxtList.length,
@@ -1521,6 +1671,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //开关数据
                 this.socket.on('commData', function (data) {
                     that.switchData = data.switchData
+                    that.switchDataGet = true;
                     data.chatingData.forEach(elem=>{
                         that.chatingList.push(elem)
                     })
@@ -1786,6 +1937,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     content: data.time,
                 });
             })
+            window.Bus.$on("webrtcCheck", (res) => {
+                this.webrtcCheck()
+            })
+            window.Bus.$on("sendBugs", (res) => {
+                this.sendBugs()
+            })
         },
         destroyed: function () {
 
@@ -1799,6 +1956,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
     }
     window.sendChating = function () {
         window.Bus.$emit("sendChating", {})
+    }
+    window.webrtcCheck = function () {
+        window.Bus.$emit("webrtcCheck", {})
+    }
+    window.sendBugs = function () {
+        window.Bus.$emit("sendBugs", {})
     }
 })
 
