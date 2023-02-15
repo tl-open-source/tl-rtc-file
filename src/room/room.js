@@ -231,9 +231,36 @@ module.exports = dbOpen ? {
      exitRoomBySid,
      getOrCreateManageRoom
 } : {
-     getManageRoomInfo : function(){},
-     createJoinRoom : function(){},
-     updateRoomContent : function(){},
-     exitRoomBySid : function(){},
-     getOrCreateManageRoom : function(){},
+     getManageRoomInfo : () => {
+          return {}
+     },
+     createJoinRoom : () => {
+          return {}
+     },
+     updateRoomContent : () => {
+          return {}
+     },
+     exitRoomBySid : () => {
+          return {}
+     },
+     getOrCreateManageRoom : () => {
+          return {
+               content : JSON.stringify({
+                    openSendBug: true,
+                    openScreen: true,
+                    openOnlineUser: true,
+                    openShareRoom: true,
+                    openScreenShare: true,
+                    openVideoShare: true,
+                    openPasswordRoom: true,
+                    openFileTransfer: true,
+                    openTxtTransfer: true,
+                    openCommRoom: true,
+                    openRefleshRoom: true,
+                    allowNumber: true,
+                    allowChinese: true,
+                    allowSymbol: true,
+               })
+          }
+     },
 }

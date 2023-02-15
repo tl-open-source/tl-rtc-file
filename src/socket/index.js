@@ -1,7 +1,11 @@
 const template = require("./template");
+const seafile = require('../oss/seafile')
+const openai = require("../openai/openai")
 const SocketHandler = template.SocketHandler;
-const dbOpen = require("../../conf/cfg.json").db.open;
-const manageConfig = require("../../conf/cfg.json").router.manage;
+const {
+    router
+} = require("../../conf/cfg.json");
+const manageConfig = router.manage;
 const {
     genRoom,
     formateDateTime
@@ -24,6 +28,7 @@ const {
     sendFileDoneNotify,
     sendFileInfoNotify,
     sendChatingNotify,
+    sendCodeFileNotify,
     updateManageRoom,
     exitRoom,
     createJoinRoom,
@@ -34,10 +39,33 @@ const {
     getSettingPageHtml,
     getDogChating10Info
 } = require("./bussiness");
+
+// 数据表
 let tables = {};
+// 登陆token数组
 let tokens = [];
+// sql操作
 let sql = {};
+// 公共聊天数据
 let chating = []
+// 通知事件定义
+let opName = {
+    "sendFileInfo": "准备发送文件",
+    "sendDone": "文件发送完毕",
+    "sendBugs": "收到问题反馈",
+    "sendTxt": "发送文本内容",
+    "startScreen": "开始网页录屏",
+    "stopScreen": "停止网页录屏",
+    "startScreenShare": "开始屏幕共享",
+    "stopScreenShare": "停止屏幕共享",
+    "startVideoShare": "开始音视频通话",
+    "stopVideoShare": "停止音视频通话",
+    "startPasswordRoom": "创建密码房间",
+    "addCodeFile": "添加取货码文件",
+    "getCodeFile" : "取件码取件",
+    "openaiChat" : "ChatGPT聊天"
+
+}
 
 /**
  * 执行器
@@ -59,12 +87,10 @@ async function excute(tabs, sequelize, config) {
         config.ws.beforeInit();
     }
 
-    if(Object.keys(sql).length > 0 && Object.keys(tables).length > 0){
-        chating = await getDogChating10Info({
-            tables: tables,
-            sql: sql,
-        });
-    }
+    chating = await getDogChating10Info({
+        tables: tables,
+        sql: sql,
+    });
 
     listen(io);
 
@@ -84,140 +110,33 @@ function listen(io) {
 
         var handler = new SocketHandler(io.sockets, socket);
 
-        socket.on("getCommData", async function () {
-            if (!dbOpen) {
-                handler._message({
-                    emitType: "commData",
-                    switchData: {
-                        openSendBug : true,
-                        openScreen : true,
-                        openOnlineUser : true,
-                        openShareRoom : true,
-                        openScreenShare : true,
-                        openVideoShare : true,
-                        openPasswordRoom : true,
-                        openFileTransfer : true,
-                        openTxtTransfer : true,
-                        openCommRoom : true,
-                        openRefleshRoom : true,
-                        allowNumber : true,
-                        allowChinese : true,
-                        allowSymbol : true,
-                    },
-                    chatingData :chating
-                })
-                return
-            }
-            let handshake = socket.handshake
-            let userAgent = handshake.headers['user-agent'].toString().substr(0, 255);
-            let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'];
-
-            let manageInfo = await getOrCreateManageRoom({
-                tables: tables,
-                sid: socket.id,
-                ip: ip,
-                device: userAgent,
-                content: JSON.stringify({
-                    openSendBug : true,
-                    openScreen : true,
-                    openOnlineUser : true,
-                    openShareRoom : true,
-                    openScreenShare : true,
-                    openVideoShare : true,
-                    openPasswordRoom : true,
-                    openFileTransfer : true,
-                    openTxtTransfer : true,
-                    openCommRoom : true,
-                    openRefleshRoom : true,
-                    allowNumber : true,
-                    allowChinese : true,
-                    allowSymbol : true,
-                    keys: []
-                })
-            })
-            let switchData = JSON.parse(manageInfo.content)
-            if (switchData && switchData.keys) {
-                delete switchData.keys;
-            }
-            handler._message({
-                emitType: "commData",
-                switchData: switchData,
-                chatingData: chating
-            })
-        })
-
+        // 断开连接
         socket.on('disconnect', async function (reason) {
             handler._disconnect({});
             await exitRoom({ sid: socket.id, tables: tables })
         });
 
-        socket.on('createAndJoin', async function (message) {
-            try {
-                let room = message.room;
-                if (room && room.length > 15) {
-                    room = room.toString().substr(0, 14);
-                }
-
-                let handshake = socket.handshake
-                let userAgent = handshake.headers['user-agent'].toString().substr(0, 255);
-                let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'];
-
-                let recoderId = 0;
-                if (manageConfig.room !== room) {
-                    recoderId = await createJoinRoom({
-                        socketId: socket.id,
-                        roomName: room,
-                        ip: ip,
-                        device: userAgent,
-                        content: { handshake: handshake },
-                        tables: tables
-                    });
-                }
-
-                handler._createAndJoin(message, {
-                    created: { recoderId: recoderId },
-                    joined: { recoderId: recoderId }
-                })
-
-                // 管理员房间
-                if (room === manageConfig.room) {
-                    message.socketId = socket.id;
-                    socket.emit("manageCheck", message)
-                }
-
-                sendCreateJoinRoomNotify({
-                    title: recoderId === 0 ? "创建/加入后台管理房间" : "创建/加入房间",
-                    socketId: socket.id,
-                    room: room,
-                    recoderId: recoderId,
-                    userAgent: userAgent,
-                    ip: ip,
-                })
-
-                io.sockets.adapter.rooms[room].createTime = formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")
-            } catch (e) {
-                console.log(e)
-                handler._message({
-                    room: message.room,
-                    emitType: "tips",
-                    to: socket.id,
-                    msg: "系统错误"
-                }, {})
-            }
-        });
-
+        // ice
         socket.on('offer', function (message) {
             handler._offer(message, {})
         });
 
+        // ice
         socket.on('answer', function (message) {
             handler._answer(message, {})
         });
 
+        // ice
         socket.on('candidate', function (message) {
             handler._candidate(message, {})
         });
 
+        // 在线人数统计
+        socket.on('count', function (message) {
+            handler._count(message, {})
+        });
+
+        // 退出
         socket.on('exit', async function (message) {
             try {
                 let recoderId = message.recoderId;
@@ -249,6 +168,109 @@ function listen(io) {
             }
         });
 
+
+        socket.on("getCommData", async function () {
+            let handshake = socket.handshake
+            let userAgent = handshake.headers['user-agent'].toString().substr(0, 255);
+            let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'];
+
+            let manageInfo = await getOrCreateManageRoom({
+                tables: tables,
+                sid: socket.id,
+                ip: ip,
+                device: userAgent,
+                content: JSON.stringify({
+                    openSendBug: true,
+                    openScreen: true,
+                    openOnlineUser: true,
+                    openShareRoom: true,
+                    openScreenShare: true,
+                    openVideoShare: true,
+                    openPasswordRoom: true,
+                    openFileTransfer: true,
+                    openTxtTransfer: true,
+                    openCommRoom: true,
+                    openRefleshRoom: true,
+                    allowNumber: true,
+                    allowChinese: true,
+                    allowSymbol: true,
+                })
+            })
+            let switchData = JSON.parse(manageInfo.content)
+            if (switchData && switchData.keys) {
+                delete switchData.keys;
+            }
+            handler._message({
+                emitType: "commData",
+                switchData: switchData,
+                chatingData: chating
+            })
+        })
+
+        // 创建或加入房间
+        socket.on('createAndJoin', async function (message) {
+            try {
+                let room = message.room;
+                let type = message.type;
+                if (room && room.length > 15) {
+                    room = room.toString().substr(0, 14);
+                }
+                let password = message.password || '';
+                if (password && password.length > 6) {
+                    password = password.toString().substr(0, 6);
+                }
+
+                let handshake = socket.handshake
+                let userAgent = handshake.headers['user-agent'].toString().substr(0, 255);
+                let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'];
+
+                let recoderId = 0;
+                if (manageConfig.room !== room) {
+                    recoderId = await createJoinRoom({
+                        socketId: socket.id,
+                        roomName: room,
+                        ip: ip,
+                        device: userAgent,
+                        content: { handshake: handshake },
+                        password: password,
+                        tables: tables
+                    });
+                }
+
+                handler._createAndJoin(message, {
+                    created: { recoderId: recoderId },
+                    joined: { recoderId: recoderId }
+                })
+
+                // 管理员房间
+                if (room === manageConfig.room) {
+                    message.socketId = socket.id;
+                    socket.emit("manageCheck", message)
+                }
+
+                sendCreateJoinRoomNotify({
+                    title: recoderId === 0 ? "创建/加入后台管理房间" : "创建/加入房间",
+                    password: password,
+                    socketId: socket.id,
+                    room: room,
+                    recoderId: recoderId,
+                    userAgent: userAgent,
+                    ip: ip,
+                })
+
+                io.sockets.adapter.rooms[room].createTime = formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")
+            } catch (e) {
+                console.log(e)
+                handler._message({
+                    room: message.room,
+                    emitType: "tips",
+                    to: socket.id,
+                    msg: "系统错误"
+                }, {})
+            }
+        });
+
+        // 管理后台登陆验证
         socket.on('manageConfirm', async function (message) {
             try {
                 let handshake = socket.handshake
@@ -311,7 +333,7 @@ function listen(io) {
                             rname: message.room,
                             sid: socket.socketId,
                             ip: ip,
-                            device: userAgent,
+                            device: userAgent
                         })
                     }]
                 })
@@ -326,6 +348,7 @@ function listen(io) {
             }
         });
 
+        // 管理后台修改数据
         socket.on('manageChange', async function (message) {
             try {
                 let handshake = socket.handshake
@@ -377,6 +400,7 @@ function listen(io) {
             }
         });
 
+        // 管理后台刷新
         socket.on('manageReload', async function (message) {
             try {
                 let handshake = socket.handshake
@@ -447,25 +471,13 @@ function listen(io) {
             }
         });
 
+        // 公共消息
         socket.on('message', async function (message) {
             try {
                 let emitType = message.emitType;
                 let handshake = socket.handshake
                 let userAgent = handshake.headers['user-agent'].toString().substr(0, 255);
                 let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'];
-
-                let opName = {
-                    "sendFileInfo": "准备发送文件",
-                    "sendDone": "文件发送完毕",
-                    "sendBugs": "收到问题反馈",
-                    "sendTxt": "发送文本内容",
-                    "startScreen": "开始网页录屏",
-                    "stopScreen": "停止网页录屏",
-                    "startScreenShare": "开始屏幕共享",
-                    "stopScreenShare": "停止屏幕共享",
-                    "startVideoShare": "开始音视频通话",
-                    "stopVideoShare": "停止音视频通话"
-                }
 
                 handler._message(message, {})
 
@@ -538,12 +550,12 @@ function listen(io) {
                     })
                 }
 
-
                 if (emitType === 'startScreenShare') {
                     sendStartScreenShareNotify({
                         title: opName.startScreenShare,
                         userAgent: userAgent,
-                        ip: ip
+                        ip: ip,
+                        room: message.room
                     })
                 }
 
@@ -553,7 +565,8 @@ function listen(io) {
                         userAgent: message.userAgent,
                         cost: message.cost,
                         userAgent: userAgent,
-                        ip: ip
+                        ip: ip,
+                        room: message.room
                     })
                 }
 
@@ -561,7 +574,8 @@ function listen(io) {
                     sendStartVideoShareNotify({
                         title: opName.startVideoShare,
                         userAgent: userAgent,
-                        ip: ip
+                        ip: ip,
+                        room: message.room
                     })
                 }
 
@@ -571,7 +585,8 @@ function listen(io) {
                         userAgent: message.userAgent,
                         cost: message.cost,
                         userAgent: userAgent,
-                        ip: ip
+                        ip: ip,
+                        room: message.room
                     })
                 }
 
@@ -599,6 +614,7 @@ function listen(io) {
             }
         });
 
+        // 公共聊天频道
         socket.on('chating', async function (message) {
             try {
                 if (chating.length < 10) {
@@ -646,19 +662,10 @@ function listen(io) {
                 }, {})
             }
         });
-
-        socket.on('count', function (message) {
-            handler._count(message, {})
-        });
-
-        socket.on('close', function (message) {
-            handler._close(message, {})
-        });
-
     });
 }
 
 
 module.exports = {
-    excute: excute
+    excute
 }

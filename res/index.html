@@ -1,33 +1,37 @@
 <!DOCTYPE html>
 <html lang="en" id="iamtsm">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>tl-rtc-file</title>
 
-    <link rel="stylesheet" href="/static/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="static/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="static/layui/css/admin.css" media="all">
     <link rel="stylesheet" href="/css/index.min.css" media="all">
     <link rel="stylesheet" href="/css/comm.min.css" media="all">
-    <link rel="stylesheet" href="/static/css/swiper-bundle.min.css" media="all">
-    <script type="text/javascript" src="/static/js/swiper-bundle.min.js"></script>
-    <script type="text/javascript" src="/static/js/socket.io.js"></script>
-    <script type="text/javascript" src="/static/js/vue.min.js"></script>
-    <script type="text/javascript" src="/static/js/axios.js"></script>
-    <script type="text/javascript" src="/static/js/clipboard.min.js"></script>
+    <link rel="stylesheet" href="static/css/swiper-bundle.min.css" media="all">
+    <script type="text/javascript" src="static/js/swiper-bundle.min.js"></script>
+    <script type="text/javascript" src="static/js/socket.io.js"></script>
+    <script type="text/javascript" src="static/js/vue.min.js"></script>
+    <script type="text/javascript" src="static/js/axios.js"></script>
+    <script type="text/javascript" src="static/js/clipboard.min.js"></script>
     <link href="/image/44826979.png" rel="shortcut icon" type="image/x-icon">
 
     <script>
         window.Bus = new Vue({});
         window.prefix = "";
     </script>
+    
     <style>
         .layui-layedit {
             border: none;
             border-radius: 20px;
-            box-shadow: 0 0px 20px rgb(0 0 0 / 40%);
+            box-shadow: 0 0px 20px rgb(255 255 255 / 40%);
         }
-        .new-dot{
+
+        .new-dot {
             padding: 0px 3px;
             position: absolute;
             border-radius: 50%;
@@ -39,20 +43,79 @@
         }
     </style>
 </head>
+
 <body>
-    
+
     <div class="verticalPannel">
         <iframe frameborder="0" scrolling="no" src="./vertical.html" width="100%" height="30px"></iframe>
     </div>
 
     <div id="fileApp" v-cloak>
+
+        <div class="header-tool">
+            <a title="中继服务已启用" id="useTurn" v-show="switchData.openUseTurnIcon && useTurn" @click="useTurnMsg">
+                <svg viewBox="0 0 1130 1024" p-id="8399" width="128" height="128"
+                    style="width: 20px;height: 20px;margin-right: 10px;">
+                    <path
+                        d="M297.160348 734.608696C129.317843 726.349913 0 702.09447 0 550.662678c0-121.143652 82.543304-228.525635 206.358261-269.824C225.618365 121.143652 365.946435 0 531.033043 0c121.063513 0 231.121252 63.327722 288.901566 165.197913C996.031443 181.715478 1130.852174 327.644383 1130.852174 501.10553 1130.852174 685.576904 982.274226 734.608696 800.678957 734.608696H297.155896z m236.143304-681.182609c-142.905878 0-263.82247 107.45767-274.814887 247.977183l-2.746991 19.286817-19.233391 5.511791C132.073739 353.756383 57.878261 444.678678 57.878261 549.380452c0 123.993043 107.177183 123.53447 241.833182 131.802157h502.904209c151.146852 0 274.810435-24.344487 274.810435-181.394922 0-148.791652-120.916591-272.775791-274.810435-281.043478h-16.490852l-8.240974-13.775026C733.914157 111.286539 640.476383 53.426087 533.2992 53.426087z"
+                        fill="#979797" p-id="8400"></path>
+                    <path
+                        d="M667.149357 499.382539h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713s5.743304-14.362713 14.358261-14.362713h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362713 0 8.614957-5.743304 14.362713-14.362713 14.362713z m0 74.680765h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713 0-8.614957 5.743304-14.362713 14.358261-14.362713h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362713s-5.743304 14.362713-14.362713 14.362713z m0 73.247166h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713s5.743304-14.362713 14.358261-14.362714h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362714 0 8.614957-5.743304 14.362713-14.362713 14.362713zM342.817391 353.823165v572.037565c0 52.98087 42.611757 95.592626 95.276522 95.592627h254.664348c52.918539 0 95.276522-42.611757 95.276522-95.592627V353.818713C788.034783 300.837843 745.423026 258.226087 692.758261 258.226087H438.093913C385.175374 258.226087 342.817391 300.775513 342.817391 353.818713z"
+                        fill="#979797" p-id="8401"></path>
+                </svg>
+            </a>
+            <a :title="network" id="currentNetwork" @click="networkMsg" v-show="switchData.openNetworkIcon">
+                <svg v-show="network === '2g' " viewBox="0 0 1024 1024" p-id="7121" width="128" height="128"
+                    style="width: 20px;height: 20px;margin-right: 10px;">
+                    <path
+                        d="M832 256v512H192V256h640m85.333333-85.333333H106.666667v682.666666h810.666666V170.666667zM704 469.333333v-42.666666a42.666667 42.666667 0 0 0-85.333333 0v170.666666a42.666667 42.666667 0 0 0 85.333333 0h-42.666667v-85.333333h128v85.333333a128 128 0 0 1-256 0v-170.666666a128 128 0 0 1 256 0v42.666666z m-247.68 44.373334A128 128 0 1 0 234.666667 426.666667v42.666666h85.333333v-42.666666a42.666667 42.666667 0 0 1 85.333333 0 42.666667 42.666667 0 0 1-10.666666 27.733333L234.666667 640v85.333333h256v-85.333333h-143.36z"
+                        p-id="7122" fill="#067e06"></path>
+                </svg>
+                <svg v-show="network === '3g' " viewBox="0 0 1024 1024" p-id="8249" width="128" height="128"
+                    style="width: 20px;height: 20px;margin-right: 10px;">
+                    <path
+                        d="M832 256v512H192V256h640m85.333333-85.333333H106.666667v682.666666h810.666666V170.666667zM704 469.333333v-42.666666a42.666667 42.666667 0 0 0-85.333333 0v170.666666a42.666667 42.666667 0 0 0 85.333333 0h-42.666667v-85.333333h128v85.333333a128 128 0 0 1-256 0v-170.666666a128 128 0 0 1 256 0v42.666666z m-213.333333-42.666666a128 128 0 0 0-256 0h85.333333a42.666667 42.666667 0 1 1 42.666667 42.666666h-42.666667v85.333334h42.666667a42.666667 42.666667 0 1 1-42.666667 42.666666h-85.333333a128 128 0 0 0 256 0 126.506667 126.506667 0 0 0-32.853334-85.333333A126.506667 126.506667 0 0 0 490.666667 426.666667z"
+                        p-id="8250" fill="#067e06"></path>
+                </svg>
+                <svg v-show="network === '4g' " viewBox="0 0 1024 1024" p-id="12424" width="128" height="128"
+                    style="width: 20px;height: 20px;margin-right: 10px;">
+                    <path
+                        d="M832 256v512H192V256h640m85.333333-85.333333H106.666667v682.666666h810.666666V170.666667zM704 469.333333v-42.666666a42.666667 42.666667 0 0 0-85.333333 0v170.666666a42.666667 42.666667 0 0 0 85.333333 0h-42.666667v-85.333333h128v85.333333a128 128 0 0 1-256 0v-170.666666a128 128 0 0 1 256 0v42.666666z m-298.666667-170.666666v170.666666h-85.333333v-170.666666h-85.333333v256h170.666666v170.666666h85.333334V298.666667z"
+                        p-id="12425" fill="#067e06"></path>
+                </svg>
+                <svg v-show="network === '5g' " viewBox="0 0 1024 1024" p-id="13616" width="128" height="128"
+                    style="width: 20px;height: 20px;margin-right: 10px;">
+                    <path
+                        d="M832 256v512H192V256h640m85.333333-85.333333H106.666667v682.666666h810.666666V170.666667zM704 469.333333v-42.666666a42.666667 42.666667 0 0 0-85.333333 0v170.666666a42.666667 42.666667 0 0 0 85.333333 0h-42.666667v-85.333333h128v85.333333a128 128 0 0 1-256 0v-170.666666a128 128 0 0 1 256 0v42.666666z m-213.333333-85.333333v-85.333333h-205.226667l-33.28 188.16 80.426667 80.426666A42.666667 42.666667 0 0 1 362.666667 554.666667a42.666667 42.666667 0 1 1-42.666667 42.666666h-85.333333a128 128 0 0 0 106.666666 126.08 132.266667 132.266667 0 0 0 21.333334 1.92 128 128 0 0 0 21.333333-254.08 132.266667 132.266667 0 0 0-21.333333-1.92 113.706667 113.706667 0 0 0-21.333334 1.92l15.573334-87.253333z"
+                        p-id="13617" fill="#067e06"></path>
+                </svg>
+                <svg v-show="network === 'wifi'" viewBox="0 0 1024 1024" p-id="14693" width="128" height="128"
+                    style="width: 20px;height: 20px;margin-right: 10px;">
+                    <path
+                        d="M512 810.24c-12.074667 0-21.12-2.986667-30.165333-12.074667s-12.074667-18.090667-12.074667-30.165333c0-6.016 0-12.074667 2.986667-15.104s3.029333-9.045333 9.088-15.061333l6.016-6.058667c3.029333-2.986667 3.029333-2.986667 9.045333-2.986667 3.029333-2.986667 3.029333-2.986667 9.088-2.986666 15.061333-3.072 27.136 2.986667 36.181333 12.032 2.986667 2.986667 9.045333 9.045333 9.045334 15.061333 2.986667 3.029333 2.986667 9.088 2.986666 15.104 0 12.074667-2.986667 21.12-12.032 30.165333s-18.090667 12.074667-30.165333 12.074667zM632.661333 689.578667c-12.032 0-21.12-3.029333-30.165333-12.074667-51.285333-51.285333-129.706667-51.285333-180.992 0-18.133333 18.090667-42.24 18.090667-60.373333 0-18.090667-18.133333-18.090667-42.24 0-60.373333 84.48-84.48 217.258667-84.48 301.738666 0 18.090667 18.133333 18.090667 42.24 0 60.373333-9.088 9.045333-18.133333 12.074667-30.208 12.074667z"
+                        p-id="14694" fill="#067e06"></path>
+                    <path
+                        d="M753.365333 568.874667c-12.074667 0-21.12-2.986667-30.165333-12.074667a296.832 296.832 0 0 0-422.4 0c-18.090667 18.133333-42.24 18.133333-60.330667 0s-18.090667-42.24 0-60.330667a382.421333 382.421333 0 0 1 543.061334 0c18.090667 18.090667 18.090667 42.24 0 60.330667-9.045333 9.045333-18.090667 12.074667-30.165334 12.074667z"
+                        p-id="14695" fill="#067e06"></path>
+                    <path
+                        d="M874.026667 448.213333c-12.074667 0-21.12-3.029333-30.165334-12.074666a467.968 467.968 0 0 0-663.722666 0c-18.090667 18.090667-42.24 18.090667-60.330667 0s-18.133333-42.24 0-60.330667a553.557333 553.557333 0 0 1 784.384 0c18.133333 18.090667 18.133333 42.24 0 60.330667-9.045333 9.045333-18.090667 12.074667-30.165333 12.074666z"
+                        p-id="14696" fill="#067e06"></path>
+                </svg>
+            </a>
+        </div>
+
         <div class="tool">
 
-            <a title="官网主页" href="https://im.iamtsm.cn">
+            <a title="官网主页" href="/home.html">
                 <i class="layui-icon layui-icon-home"
                     style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;"></i>
             </a>
-            
+
+            <a title="取文件" @click="getCodeFile()">
+                <i class="layui-icon layui-icon-key"
+                    style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;"></i>
+            </a>
+
             <a title="分享房间链接" @click="shareUrl" id="shareUrl" v-show="switchData.openShareRoom">
                 <svg viewBox="0 0 1024 1024" style="width: 24px;height: 24px;margin-right: 10px;" p-id="3083"
                     width="128" height="128">
@@ -60,6 +123,11 @@
                         d="M512 1024C229.228 1024 0 794.772 0 512S229.228 0 512 0s512 229.228 512 512-229.228 512-512 512z m54.545-565.02l-1.798-1.764a102.207 102.207 0 0 0-11.002-9.523l-35.453 35.442c4.176 2.446 8.078 5.393 11.605 8.92l1.866 1.763a58.277 58.277 0 0 1 0 82.341l-96.904 96.882a58.334 58.334 0 0 1-82.341 0l-1.832-1.798a58.243 58.243 0 0 1 0-82.306l43.816-43.828a149.675 149.675 0 0 1-10.866-58.732l-67.812 67.72c-41.836 41.825-41.836 110.251 0 152.053l1.787 1.798c41.836 41.79 110.228 41.79 152.052 0l96.882-96.916c41.757-41.825 41.757-110.25 0-152.052z m141.38-141.37l-1.82-1.797c-41.802-41.825-110.228-41.825-152.053 0l-96.882 96.916c-41.824 41.79-41.824 110.216 0 152.053l1.798 1.763c3.505 3.425 7.225 6.576 11.002 9.523l35.454-35.476a57.845 57.845 0 0 1-11.583-8.92l-1.798-1.763a58.311 58.311 0 0 1 0-82.375l96.905-96.882a58.197 58.197 0 0 1 82.284 0l1.798 1.797a58.277 58.277 0 0 1 0 82.341l-43.76 43.828c7.612 18.796 11.196 38.81 10.844 58.766l67.789-67.755c41.824-41.79 41.824-110.216 0.022-152.007z"
                         p-id="3084" fill="#707070"></path>
                 </svg>
+            </a>
+
+            <a title="密码房间" @click="startPassword()" v-show="switchData.openPasswordRoom">
+                <i id="password" class="layui-icon layui-icon-password" :style="isPasswordRoom?'color: red;':''"
+                    style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;transition: color 0.8s;"></i>
             </a>
 
             <a title="网页录屏" @click="startScreen()" v-show="switchData.openScreen">
@@ -86,7 +154,7 @@
 
             <a title="公共聊天频道" @click="chating()" v-show="switchData.openCommRoom">
                 <span v-show="chatingList.length > 0"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop">{{Math.min(chatingList.length,
+                    class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop">{{Math.min(chatingList.length,
                     99)}}</span>
                 <svg style="margin-left: -5px;width:34px;height: 34px;" viewBox="0 0 1024 1024" p-id="6507">
                     <path
@@ -169,6 +237,7 @@
                 <i id="setting" class="layui-icon layui-icon-set"
                     style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;transition: color 0.8s;"></i>
             </a>
+
         </div>
 
         <div style="text-align: center;font-size: 20px;color: beige;">注 : 仅用于学习用途, 请勿他用</div>
@@ -196,13 +265,13 @@
             </div>
         </div>
 
-        <div style="text-align: center; margin-top: 15px;">
+        <div style="text-align: center; margin-top: 15px;margin-bottom: 15px;">
             <i class="layui-icon layui-icon-find-fill layui-anim" id="changeMode" @click="changeFileOrTxt()"
-                    style="font-size: 20px; font-weight: bold;cursor: pointer;"></i>
+                style="font-size: 20px; font-weight: bold;cursor: pointer;"></i>
         </div>
 
         <div id="self" v-show="!isTxtMode">
-            <div class="layui-upload-drag layui-btn-disabled" style="width: 100%;user-select: none;"
+            <div class="layui-upload-drag layui-btn-disabled" style="width: 100%;user-select: none;border-radius: 20px;"
                 id="chooseFileListDisable" v-show="(uploadDisabled && !createDisabled) || noOthersInRoom" disabled>
                 <i class="layui-icon"></i>
                 <p style="color: antiquewhite;">(当前禁选)，请确保双方先加入房间，才可选择文件发送，支持多文件拖拽发送</p>
@@ -211,14 +280,15 @@
                 v-show="createDisabled && !noOthersInRoom && isSending" disabled>
                 <i class="layui-icon" id="isSendingIcon" style="transition: all 0.8s;"></i>
                 <p style="color: antiquewhite;">正在发送中...</p>
-                <p style="color: antiquewhite; margin-top: 10px;">当前已发送 <b>{{getFileSizeStr(currentReceiveAllSize)}}</b> </p>
+                <p style="color: antiquewhite; margin-top: 10px;">当前已发送 <b>{{getFileSizeStr(currentSendAllSize)}}</b>
+                </p>
                 <div class="fileRoomDisabled swiper-container" style="margin-top: 20px;">
                     <div class="swiper-wrapper">
                         <div class="swiper-slide fileBlock" v-for="file in chooseFileList">
                             <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 0"
                                 class="layui-icon layui-icon-play"></i>
                             <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 1"
-                                class="layui-icon layui-icon-loading layui-anim-rotate layui-anim-loop"></i>
+                                class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
                             <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 2"
                                 class="layui-icon layui-icon-ok-circle"></i>
                             <i style="font-size: 40px;" class="layui-icon layui-icon-list"></i>
@@ -227,7 +297,7 @@
                     </div>
                 </div>
             </div>
-            <div class="layui-upload-drag" style="width: 100%;" id="chooseFileList"
+            <div class="layui-upload-drag" style="width: 100%;border-radius: 20px;" id="chooseFileList"
                 v-show="createDisabled && !noOthersInRoom && !isSending">
                 <i class="layui-icon"></i>
                 <p style="color: antiquewhite;">点击选取文件，或将文件拖拽到此处，支持多文件拖拽发送</p>
@@ -237,7 +307,7 @@
                             <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 0"
                                 class="layui-icon layui-icon-play"></i>
                             <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 1"
-                                class="layui-icon layui-icon-loading layui-anim-rotate layui-anim-loop"></i>
+                                class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
                             <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 2"
                                 class="layui-icon layui-icon-ok-circle"></i>
                             <i style="font-size: 40px;" class="layui-icon layui-icon-list"></i>
@@ -249,10 +319,11 @@
         </div>
 
         <div class="layui-col-sm6 layui-col-md3" id="txtSelf" v-show="isTxtMode"
-            style="width: 70%; margin-left: 15%;margin-top: 5%;display: grid;">
+            style="width: 70%; margin-left: 15%;display: grid;">
             <textarea name="txt" id="txt"></textarea>
             <button type="button" class="layui-btn sendTxt" @click="sendTxt(false)">发送文本</button>
-            <button type="button" style="margin-left:50%;" class="layui-btn sendTxt" @click="sendTxt(true)">发送富文本</button>
+            <button type="button" style="margin-left:50%;" class="layui-btn sendTxt"
+                @click="sendTxt(true)">发送富文本</button>
         </div>
 
         <div class="maskBottom" :style="{top: numSendFile + '%'}">
@@ -266,23 +337,23 @@
                         <table class="layui-table">
                             <thead>
                                 <tr>
-                                    <th>用户</th>
                                     <th>名称</th>
                                     <th>格式</th>
                                     <th>大小</th>
                                     <th>进度</th>
                                     <th>耗时</th>
+                                    <th>暂存进度{{uploadCodeFileProcess}}%</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="file in sendFileList">
-                                    <td><span>自己</span></td>
                                     <td v-if="file.id === 'txt'"><span v-html="file.name"></span></td>
                                     <td v-else><span>{{file.name}}</span></td>
                                     <td><span>{{file.type}}</span></td>
                                     <td><span>{{getFileSizeStr(file.size)}}</span></td>
                                     <td><span>{{file.process}}%</span></td>
                                     <td><span>{{file.cost}}秒</span></td>
+                                    <td style="cursor: pointer;"><span @click="uploadCodeFile(file)"><a >暂存</a></span></td>
                                 </tr>
                                 <div style="display: flex;padding:5px;">
                                     <span style="word-break: keep-all;font-size: 12px;">进度：</span>
@@ -343,7 +414,7 @@
                 <div class="layui-card">
                     <div class="layui-card-header">
                         接收的文本内容
-                        <i @click="clickReceiveTxt(false)" class="layui-icon layui-icon-close"
+                        <i @click="clickReceiveTxt()" class="layui-icon layui-icon-close"
                             style="cursor: pointer; right: 10px;position: absolute;"></i>
                     </div>
                     <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
@@ -351,7 +422,7 @@
                             <thead>
                                 <tr>
                                     <th>发送方ID</th>
-                                    <th>富文本内容</th>
+                                    <th>接收内容</th>
                                     <th>接收时间</th>
                                 </tr>
                             </thead>
@@ -373,6 +444,36 @@
             </div>
         </div>
 
+        
+        <div class="maskBottom" :style="{top: numCodeFile + '%'}">
+            <div class="layui-col-sm2" style="width: 100%;">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        取件码接收的文件
+                        <i @click="clickCodeFile" class="layui-icon layui-icon-close"
+                            style="cursor: pointer; right: 10px;position: absolute;"></i>
+                    </div>
+                    <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
+                        <table class="layui-table">
+                            <thead>
+                                <tr>
+                                    <th>取件码</th>
+                                    <th>文件名称</th>
+                                    <th>文件大小</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for=" (code , index) in codeFileList">
+                                    <td><span>{{code.codeId}}</span></td>
+                                    <td><span>{{code.name}}</span></td>
+                                    <td><span>{{code.size}}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="maskRight" @click="clickLogs" :style="{left: numLogs + '%'}">
             <div class="layui-col-sm2" style="width: 100%;">
@@ -428,7 +529,8 @@
             <div class="swiper-scrollbar"></div>
         </div>
 
-        <button class="sendFileBtn" style="background-color: #79b0e8;" @click="initSendFile()" v-show="!uploadDisabled && !isSending">
+        <button class="sendFileBtn" style="background-color: #79b0e8;" @click="initSendFile()"
+            v-show="!uploadDisabled && !isSending">
             <svg viewBox="0 0 1024 1024" style="width: 30px;height: 25px;margin-left: -8px;margin-right: 10px;">
                 <path
                     d="M341.333333 277.333333l115.2-115.2c8.533333-8.533333 17.066667-12.8 29.866667-17.066666v473.6c0 17.066667 12.8 29.866667 25.6 29.866666s25.6-12.8 25.6-29.866666V140.8c8.533333 4.266667 21.333333 8.533333 29.866667 17.066667L682.666667 277.333333c4.266667 4.266667 12.8 8.533333 21.333333 8.533334s12.8-4.266667 21.333333-8.533334c12.8-12.8 12.8-29.866667 0-38.4l-115.2-115.2C554.666667 68.266667 469.333333 68.266667 418.133333 119.466667L302.933333 234.666667c-12.8 12.8-12.8 29.866667 0 38.4s25.6 12.8 38.4 4.266666z"
@@ -442,11 +544,11 @@
 
         <menu class="menu" style="z-index: 10000;">
             <button id="btnHome" @click="clickHome" class="menuItem" :class="currentMenu === 1 ? 'active' : ''"
-                style="--bgColorBody: #ffb457; --bgColorItem: #ff8c00;">
+                style="--bgColorBody: #f48150; --bgColorItem: #f28759;">
                 <span v-show="sendFileList.length > 0 && sendFileList.length < 10"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop"
+                    class="layui-badge new-dot layui-anim-rotate layui-anim layui-anim-loop"
                     style="padding: 0;position: relative; top: -20px;">{{Math.min(sendFileList.length, 99)}}</span>
-                <span v-show="sendFileList.length >= 10" class="layui-badge new-dot layui-anim-rotate layui-anim-loop"
+                <span v-show="sendFileList.length >= 10" class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop"
                     style="position: relative; top: -20px;">{{Math.min(sendFileList.length, 99)}}</span>
                 <svg class="icon" viewBox="0 0 24 24">
                     <path d="M3.8,6.6h16.4"></path>
@@ -457,9 +559,9 @@
             <button id="btnTxt" @click="clickTxt" class="menuItem" :class="currentMenu === 3 ? 'active' : ''"
                 style="--bgColorBody: rgb(122, 197, 111); --bgColorItem: rgb(122, 197, 111)">
                 <span v-show="receiveTxtList.length > 0 && receiveTxtList.length < 10"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop"
+                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop layui-anim"
                     style="padding: 0; position: relative; top: -20px;">{{Math.min(receiveTxtList.length, 99)}}</span>
-                <span v-show="receiveTxtList.length >= 10" class="layui-badge new-dot layui-anim-rotate layui-anim-loop"
+                <span v-show="receiveTxtList.length >= 10" class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop"
                     style="position: relative; top: -20px;">{{Math.min(receiveTxtList.length, 99)}}</span>
                 <svg class="icon" viewBox="0 0 1024 1024" p-id="21754" width="128" height="128">
                     <path
@@ -473,10 +575,10 @@
             <button id="btnReceive" @click="clickReceive" class="menuItem" :class="currentMenu === 2 ? 'active' : ''"
                 style="--bgColorBody: rgb(112, 161, 255); --bgColorItem: rgb(112, 161, 255)">
                 <span v-show="receiveFileList.length > 0 && receiveFileList.length < 10"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop"
+                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop layui-anim"
                     style="padding: 0; position: relative; top: -20px;">{{Math.min(receiveFileList.length, 99)}}</span>
                 <span v-show="receiveFileList.length >= 10"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop"
+                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop layui-anim"
                     style="position: relative; top: -20px;">{{Math.min(receiveFileList.length, 99)}}</span>
                 <svg class="icon" viewBox="0 0 24 24">
                     <path d="M6.7,4.8h10.7c0.3,0,0.6,0.2,0.7,0.5l2.8,7.3c0,0.1,0,0.2,0,0.3v5.6c0,0.4-0.4,0.8-0.8,0.8H3.8
@@ -485,6 +587,15 @@
                 </svg>
             </button>
 
+            <button id="btnCodeFile" @click="clickCodeFile" class="menuItem" :class="currentMenu === 4 ? 'active' : ''"
+                style="--bgColorBody: rgb(58, 184, 157); --bgColorItem: rgb(112, 161, 255)">
+                <svg class="icon" viewBox="0 0 1024 1024" p-id="2708" width="64" height="64">
+                    <path
+                        d="M768.73106 703.537712c-35.606921 0-67.945574 14.793214-91.167479 38.359147l-309.109357-171.670082c9.116748-17.545439 14.621199-37.155048 14.621199-58.312783 0-12.55703-2.408198-24.426004-5.676466-35.950949l304.63699-189.215522c22.705863 20.469679 52.464304 33.198723 85.146985 33.198723 70.525785 0 127.978498-57.452713 127.978498-127.978498S837.708718 63.989249 767.182933 63.989249s-127.978498 57.452713-127.978498 127.978498c0 14.621199 2.92424 28.382328 7.396607 41.455401L344.716278 420.746514c-23.049891-22.705863-54.700487-36.983034-89.791366-36.983034-70.525785 0-127.978498 57.452713-127.978498 127.978498s57.452713 127.978498 127.978498 127.978498c25.630102 0 49.540064-7.740635 69.493701-20.813707l321.150344 178.378633c-3.096254 11.008903-5.160423 22.18982-5.160423 34.058794 0 70.525785 57.452713 127.978498 127.978498 127.978498s127.978498-57.452713 127.978498-127.978498S839.256845 703.537712 768.73106 703.537712zM767.182933 127.978498c35.262893 0 63.989249 28.726356 63.989249 63.989249s-28.726356 63.989249-63.989249 63.989249-63.989249-28.726356-63.989249-63.989249S731.92004 127.978498 767.182933 127.978498zM191.107677 511.913993c0-35.262893 28.726356-63.989249 63.989249-63.989249s63.989249 28.726356 63.989249 63.989249-28.726356 63.989249-63.989249 63.989249S191.107677 547.176886 191.107677 511.913993zM768.73106 895.505459c-35.262893 0-63.989249-28.726356-63.989249-63.989249s28.726356-63.989249 63.989249-63.989249 63.989249 28.726356 63.989249 63.989249C832.720309 866.951117 803.993953 895.505459 768.73106 895.505459z"
+                        fill="#ffffff" p-id="2709"></path>
+                </svg>
+            </button>
+            
             <div class="menuBorder" style="transform: translate3d(108px, 0px, 0px);"></div>
         </menu>
 
@@ -501,11 +612,11 @@
     </div>
 
     <script type="text/javascript" src="/js/comm.min.js"></script>
-    <script type="text/javascript" src="/js/screen.min.js"></script>
-    <script type="text/javascript" src="/js/index.min.js"></script>
-    <script type="text/javascript" src="/js/screenShare.min.js"></script>
     <script type="text/javascript" src="/js/videoShare.min.js"></script>
-    <script src="/static/layui/layui.js"></script>
+    <script type="text/javascript" src="/js/screen.min.js"></script>
+    <script type="text/javascript" src="/js/screenShare.min.js"></script>
+    <script type="text/javascript" src="/js/index.min.js"></script>
+    <script src="static/layui/layui.js"></script>
     <script>
         setTimeout(() => {
             let clientWidth = document.body.clientWidth;
@@ -556,12 +667,15 @@
             window.mediaShareRoomSwiper = mediaShareRoomSwiper;
         }, 1000)
 
-        layui.use(['layedit', 'form', 'layer', 'laytpl', 'upload'], function () {
+        layui.use(['layedit', 'form', 'layer', 'laytpl', 'upload', 'dropdown', 'carousel'], function () {
             window.layer = layui.layer;
+            window.form = layui.form;
             window.$ = layui.$;
             window.layedit = layui.layedit;
             window.laytpl = layui.laytpl;
             window.upload = layui.upload;
+            window.dropdown = layui.dropdown;
+            window.carousel = layui.carousel;
 
             let alert = window.localStorage.getItem("tl-rtc-file-alert")
             if (!alert) {
@@ -586,7 +700,7 @@
                             <div style="text-align: center;line-height: 40px;">2. 双方选择需要的文件发送</div>
                             <div style="text-align: center;line-height: 40px;">3. 右下角是你接收到的文件</div>
                             <div style="text-align: center;line-height: 40px;">4. 左下角是你发送过的文件</div>
-                            <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 中继服务器配置带宽不高，大约500kb/s ~ 600kb/s，（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽</div>
+                            <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 中继服务器配置带宽不高，大约500kb/s ~ 600kb/s，（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽）</div>
                         </div>
                     `
                     , success: function (layero) {
@@ -600,4 +714,5 @@
         });
     </script>
 </body>
+
 </html>

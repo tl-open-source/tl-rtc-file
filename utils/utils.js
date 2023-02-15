@@ -18,14 +18,14 @@ function getLocalIP() {
          }
  
      } else if (osType === 'Linux') {
-          for (var dev in netInfo) {
-               var iface = netInfo[dev];
+          for (var dev in netInfo) {　　　　
+               var iface = netInfo[dev];　　　　　　
                for (var i = 0; i < iface.length; i++) {
                    var alias = iface[i];
                    if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
                        return alias.address;
                    }
-               }
+               }　　
            }
      }
  
@@ -55,6 +55,7 @@ function genFlow(req) {
 function genRoom(req) {
     return num = Math.floor(Math.random(100000000)*100000000+1);   
 }
+
 
 function formateDateTime(time, format) {
     let o = {

@@ -7,7 +7,7 @@ const dbOpen = require("../../conf/cfg.json").db.open;
  * @param {*} res 
  * @param {*} next 
  */
-async function add(req, res, next) {
+async function addDogData(req, res, next) {
     let ctx = req.ctx || {};
     let params = req.params || {};
 
@@ -136,7 +136,6 @@ async function getDogManageInfo(req, res, next) {
 }
 
 
-
 /**
  * 初始获取最近10条公共聊天记录
  * @param {*} req 
@@ -167,15 +166,18 @@ async function getDogChating10Info(req, res, next) {
     }
 }
 
-
-
-
 module.exports = dbOpen ? {
-    add,
+    addDogData,
     getDogManageInfo,
     getDogChating10Info
 } : {
-    add : () => {},
-    getDogManageInfo : () => {},
-    getDogChating10Info : () => {}
+    addDogData : () => {
+        return {}
+    },
+    getDogManageInfo : () => {
+        return {}
+    },
+    getDogChating10Info : () => {
+        return [];
+    }
 }

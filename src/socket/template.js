@@ -116,6 +116,11 @@
     _createAndJoin(message, params){
         let room = message.room;
         let type = message.type;
+        let password = message.password || '';
+
+        if(password && password.length > 6){
+            password = password.toString().substr(0,6);
+        }
 
         let clientsInRoom = this.sockets.adapter.rooms[room];
         let numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
@@ -131,6 +136,8 @@
             Object.assign(createdData,params['created'])
             this.socket.emit('created', createdData);
 
+            // 首次创建-直接设置密码即可
+            this.sockets.adapter.rooms[room].password = password
         }else {
             //流媒体房间只允许两个人同时在线
             if((type === 'screen' || type === 'video') && numClients >= 2){
@@ -138,6 +145,18 @@
                     room : message.room,
                     to : this.socket.id,
                     msg : "当前房间已满，请开启其他房间号发起操作"
+                });
+                return
+            }
+
+            // 密码不对
+            let roomPassword = this.sockets.adapter.rooms[room].password;
+            if(roomPassword !== password){
+                this.socket.emit("tips", {
+                    room : message.room,
+                    to : this.socket.id,
+                    msg : "密码错误",
+                    reload : true
                 });
                 return
             }
@@ -267,6 +286,22 @@
                     otherSocket.emit(emitType, message);
                 }
             }
+        }
+    }
+
+    _getCodeFile(message){
+        let to = this.socket.id;
+        let otherSocket = this.sockets.connected[to];
+        if(otherSocket){
+            otherSocket.emit("getCodeFile", message);
+        }
+    }
+
+    _openaiChat(message){
+        let to = this.socket.id;
+        let otherSocket = this.sockets.connected[to];
+        if(otherSocket){
+            otherSocket.emit("openaiChat", message);
         }
     }
 }

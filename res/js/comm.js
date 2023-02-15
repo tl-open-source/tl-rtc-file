@@ -84,6 +84,11 @@ window.tlrtcfile = {
         let ua = navigator.userAgent;
         let networkStr = ua.match(/NetType\/\w+/) ? ua.match(/NetType\/\w+/)[0] : 'NetType/other';
         networkStr = networkStr.toLowerCase().replace('nettype/', '');
+        if(!['wifi','5g','3g','4g','2g','3gnet','slow-2g'].includes(networkStr)){
+            if(navigator.connection){
+                networkStr = navigator.connection.effectiveType 
+            }
+        }
         switch (networkStr) {
             case 'wifi':
                 return 'wifi';
@@ -93,10 +98,10 @@ window.tlrtcfile = {
                 return '4g';
             case '3g' || '3gnet':
                 return '3g';
-            case '2g':
+            case '2g' || 'slow-2g':
                 return '2g';
             default:
-                return '未知';
+                return 'unknow';
         }
     },
     shaking: function (id, top, left) {

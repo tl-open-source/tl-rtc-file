@@ -1,11 +1,9 @@
 
 const room = require("../room/room");
 const dog = require("../dog/dog");
-const request = require('request');
 const comm = require("../comm/comm");
 const utils = require("../../utils/utils");
 const dbOpen = require("../../conf/cfg.json").db.open;
-
 
 /**
  * 操作记录
@@ -20,11 +18,11 @@ async function dogData(data) {
     };
     let res = 0;
     try {
-        res = await dog.add(req, null);
+        res = await dog.addDogData(req, null);
     } catch (e) {
         console.log(e)
     }
-    return res && res.dataValues ? res.dataValues.id : 0;
+    return res && res.dataValues ? res.dataValues.id : 0
 }
 
 
@@ -42,6 +40,7 @@ async function createJoinRoom(data) {
             uname: "user",
             rname: data.roomName,
             sid: data.socketId,
+            pwd: data.password,
             ip: data.ip,
             device: data.device,
             url: data.url || "",
@@ -51,7 +50,7 @@ async function createJoinRoom(data) {
 
     let res = await room.createJoinRoom(req, null);
 
-    return res && res.dataValues ? res.dataValues.id : 0;
+    return res && res.dataValues ? res.dataValues.id : 0
 }
 
 
@@ -115,6 +114,22 @@ async function getOrCreateManageRoom(data) {
 
 
 /**
+ * 获取最近10条公共聊天室数据
+ * @param {*} data 
+ */
+async function getDogChating10Info(data) {
+    let req = {
+        ctx: {
+            tables: data.tables,
+            sql: data.sql
+        }
+    };
+    let res = await dog.getDogChating10Info(req, null);
+    return res;
+}
+
+
+/**
  * 发送公共频道聊天通知
  * @param {*} data 
  */
@@ -129,21 +144,6 @@ function sendChatingNotify(data) {
         `访问IP: ${data.ip}\n` +
         `访问设备: ${data.userAgent}\n`;
     comm.requestMsg(notifyMsg)
-}
-
-/**
- * 获取最近10条公共聊天室数据
- * @param {*} data 
- */
-async function getDogChating10Info(data) {
-    let req = {
-        ctx: {
-            tables: data.tables,
-            sql: data.sql
-        }
-    };
-    let res = await dog.getDogChating10Info(req, null);
-    return res;
 }
 
 
@@ -235,7 +235,8 @@ function sendStopScreenNotify(data) {
  * @param {*} data 
  */
 function sendStartScreenShareNotify(data) {
-    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
         `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
         `访问IP: ${data.ip}\n` +
         `访问设备: ${data.userAgent}\n`;
@@ -248,7 +249,8 @@ function sendStartScreenShareNotify(data) {
  * @param {*} data 
  */
 function sendStopScreenShareNotify(data) {
-    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
         `共享时长: ${data.cost}秒\n` +
         `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
         `访问IP: ${data.ip}\n` +
@@ -262,7 +264,8 @@ function sendStopScreenShareNotify(data) {
  * @param {*} data 
  */
 function sendStartVideoShareNotify(data) {
-    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
         `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
         `访问IP: ${data.ip}\n` +
         `访问设备: ${data.userAgent}\n`;
@@ -275,8 +278,39 @@ function sendStartVideoShareNotify(data) {
  * @param {*} data 
  */
 function sendStopVideoShareNotify(data) {
-    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
         `通话时长: ${data.cost}秒\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
+    comm.requestMsg(notifyMsg)
+}
+
+
+/**
+ * 发送取件码通知
+ * @param {*} data 
+ */
+function sendCodeFileNotify(data) {
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>\n` +
+        `取件码ID: ${data.codeId}秒\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
+    comm.requestMsg(notifyMsg)
+}
+
+
+/**
+ * 发送openai聊天通知
+ * @param {*} data 
+ */
+function sendOpenaiChatNotify(data) {
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
+        `聊天内容: ${data.content}秒\n` +
+        `回复内容: ${data.answer}秒\n` +
         `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
         `访问IP: ${data.ip}\n` +
         `访问设备: ${data.userAgent}\n`;
@@ -370,6 +404,7 @@ function sendCreateJoinRoomNotify(data) {
         ` - <font color="comment">${data.room}</font>\n` +
         `库记录ID: ${data.recoderId}\n` +
         `连接方ID: ${data.socketId}\n` +
+        `房间密码: ${data.password}\n` +
         `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
         `访问IP: ${data.ip}\n` +
         `访问设备: ${data.userAgent}\n`;
@@ -399,11 +434,9 @@ function sendExitRoomNotify(data) {
  * @returns 
  */
 async function getRoomPageHtml(data) {
-
     if (!dbOpen) {
         return 'db配置未开启';
     }
-
     let resData = await room.getManageRoomInfo({
         ctx: {
             tables: data.tables,
@@ -415,7 +448,6 @@ async function getRoomPageHtml(data) {
             day: data.day,
         }
     }, null)
-
     return `
     <style>
         .layui-layer{
@@ -446,8 +478,9 @@ async function getRoomPageHtml(data) {
             width: 100%;
             padding: 0;
         }
+
     </style>
-    <link rel="stylesheet" href="/static/layui/css/admin.css" media="all">
+    <link rel="stylesheet" href="static/layui/css/admin.css" media="all">
     <div class="layui-fluid" id="manageRoom" v-cloak>
         <span style="position: absolute; top: 22px; font-size: 20px; color: cadetblue; font-weight: 900;  margin-left: 15px;"> 当前查询时间： </span>
         <input type="text" value="${data.day}" class="layui-input" id="dayRoom" style="padding-right: 12px;text-align: right;margin-bottom: 10px; font-size: 20px; color: cadetblue; font-weight: 900;margin-bottom: 10px;" onclick="reRenderDateRoom()">
@@ -470,7 +503,7 @@ async function getRoomPageHtml(data) {
             <div class="layui-col-sm6 layui-col-md3">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                    {{chooseDay}}加入房间人数
+                        {{chooseDay}}加入房间人数
                         <span class="layui-badge layui-bg-cyan layuiadmin-badge">天</span>
                     </div>
                     <div class="layui-card-body layuiadmin-card-list">
@@ -562,9 +595,11 @@ async function getRoomPageHtml(data) {
                 }
             });
         }
+        
         layui.use(['laydate'], function () {
             window.reRenderDateRoom()
         });
+
         new Vue({
             el: '#manageRoom',
             data: function () {
@@ -595,18 +630,17 @@ async function getDataPageHtml(data) {
         ctx: {
             tables: data.tables,
             sql: data.sql,
-            sockets: data.sockets,
+            sockets: data.sockets
         },
         params: {
             limit: 10,
             day: data.day,
         }
     }, null)
-
     return `
     <style>
         .layui-layer{
-            transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s;
+            transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0s;
         }
         .layui-layer-page .layui-layer-content {
             background: #ededed;
@@ -636,7 +670,7 @@ async function getDataPageHtml(data) {
             padding: 0;
         }
     </style>
-    <link rel="stylesheet" href="/static/layui/css/admin.css" media="all">
+    <link rel="stylesheet" href="static/layui/css/admin.css" media="all">
     <div class="layui-fluid" id="manageFile" v-cloak>
         <span style="position: absolute; top: 22px; font-size: 20px; color: cadetblue; font-weight: 900;  margin-left: 15px;"> 当前查询时间： </span>
         <input type="text" class="layui-input" value="${data.day}" id="dayFile" style="padding-right: 12px;text-align: right;margin-bottom: 10px; font-size: 20px; color: cadetblue; font-weight: 900;margin-bottom: 10px;" onclick="reRenderDateFile()">
@@ -644,7 +678,7 @@ async function getDataPageHtml(data) {
             <div class="layui-col-sm6 layui-col-md3">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        {{chooseDay}}文件传输 <span class="layui-badge layui-bg-blue layuiadmin-badge">天</span>
+                    {{chooseDay}}文件传输 <span class="layui-badge layui-bg-blue layuiadmin-badge">天</span>
                     </div>
                     <div class="layui-card-body layuiadmin-card-list">
                         <p class="layuiadmin-big-font">{{transferFileToday}}次</p>
@@ -783,9 +817,11 @@ async function getDataPageHtml(data) {
                 }
             });
         }
+        
         layui.use(['laydate'], function () {
             window.reRenderDateFile()
         });
+    
         new Vue({
             el: '#manageFile',
             data: function () {
@@ -821,12 +857,16 @@ async function getSettingPageHtml(data) {
         content: JSON.stringify({
             openSendBug: true,
             openScreen: true,
-            openVideoShare: true,
-            openScreenShare: true,
             openOnlineUser: true,
             openShareRoom: true,
+            openVideoShare: true,
+            openPasswordRoom: true,
+            openScreenShare: true,
             openFileTransfer: true,
             openTxtTransfer: true,
+            openTurnServer: true,
+            openNetworkIcon: true,
+            openUseTurnIcon: true,
             openCommRoom: true,
             openRefleshRoom: true,
             allowNumber: true,
@@ -835,7 +875,6 @@ async function getSettingPageHtml(data) {
             keys: []
         })
     })
-
 
     return `
     <style>
@@ -896,6 +935,11 @@ async function getSettingPageHtml(data) {
                             </div>
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
+                                    <input type="checkbox" name="openPasswordRoom" title="开启密码房间" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
                                     <input type="checkbox" name="openOnlineUser" title="开启在线人数显示" lay-skin="primary">
                                 </div>
                             </div>
@@ -916,12 +960,27 @@ async function getSettingPageHtml(data) {
                             </div>
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
+                                    <input type="checkbox" name="openTurnServer" title="开启中继设置" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
                                     <input type="checkbox" name="openCommRoom" title="开启公共频道发言" lay-skin="primary">
                                 </div>
                             </div>
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
                                     <input type="checkbox" name="openRefleshRoom" title="开启随机刷新房间号" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="openNetworkIcon" title="展示网络状态图标" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="openUseTurnIcon" title="展示中继服务器图标" lay-skin="primary">
                                 </div>
                             </div>
                         </form>
@@ -1015,9 +1074,11 @@ module.exports = {
     sendStopVideoShareNotify,
     sendStartVideoShareNotify,
     sendTxtNotify,
+    sendCodeFileNotify,
     sendFileDoneNotify,
     sendFileInfoNotify,
     sendChatingNotify,
+    sendOpenaiChatNotify,
     getOrCreateManageRoom,
     updateManageRoom,
     exitRoom,
