@@ -23,7 +23,7 @@
         window.Bus = new Vue({});
         window.prefix = "";
     </script>
-    
+
     <style>
         .layui-layedit {
             border: none;
@@ -51,7 +51,6 @@
     </div>
 
     <div id="fileApp" v-cloak>
-
         <div class="header-tool">
             <a title="中继服务已启用" id="useTurn" v-show="switchData.openUseTurnIcon && useTurn" @click="useTurnMsg">
                 <svg viewBox="0 0 1130 1024" p-id="8399" width="128" height="128"
@@ -109,6 +108,24 @@
             <a title="官网主页" href="/home.html">
                 <i class="layui-icon layui-icon-home"
                     style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;"></i>
+            </a>
+
+            <a title="AI对话" @click="openaiChat" id="openai">
+                <span v-show="aiChatList.length > 0 && isAiAnswering"
+                    class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop">{{Math.min(aiChatList.length-1,
+                    99)}}</span>
+                <span v-show="aiChatList.length > 0 && !isAiAnswering"
+                    class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop">{{Math.min(aiChatList.length,
+                    99)}}</span>
+                <svg viewBox="0 0 1024 1024" style="width: 24px;height: 24px;margin-right: 10px;" p-id="3845" width="64"
+                    height="64">
+                    <path
+                        d="M196.1 989.7c-9.1 0-17.6-3.5-24-9.9-6.3-6.3-9.9-15-9.9-24v-236c0-1.9-1.4-3.5-3.3-3.8-39.1-5.1-108.4-19.7-133.7-60.7-12.4-20.1-13.5-44.2-3.1-67.7 27.2-61.2 72.5-105.4 97-126.2 0.7-0.6 1.2-1.5 1.3-2.4 8.9-71.3 71.3-426.8 428.7-426.8 194.6 0 351.9 88.1 420.8 235.5 73.4 157.3 30.3 352.4-118.3 535.4-0.6 0.7-0.8 1.5-0.8 2.4V950c0 18.7-15.2 33.9-33.9 33.9S783 968.7 783 950V791.8c0-8 2.8-15.7 7.9-21.8C929.1 604.9 972 432.1 908.6 296.2c-57.5-123-191.8-196.4-359.4-196.4-336.2 0-361.8 364.6-362.8 380.1-0.7 10.1-5.7 19.4-13.9 25.4-6.3 4.8-60.7 47.3-88.4 109.7-0.4 1-0.4 2.1 0 3 7.1 16.8 65.6 31.1 113.6 33.5 18.1 0.9 32.2 15.7 32.3 33.8V918c0 2.1 1.7 3.8 3.8 3.8h189.3c18.7 0 33.9 15.2 33.9 33.9s-15.2 33.9-33.9 33.9h-227z"
+                        fill="#333333" p-id="3846"></path>
+                    <path
+                        d="M583.9 687.3c-14.3 0-27.1-9-31.9-22.4l-21.3-62.3c-0.5-1.5-2-2.6-3.6-2.6H415.2c-1.6 0-3.1 1-3.6 2.5L389 665.4c-5.1 12.8-17.5 21.1-31.4 21.1-3.9 0-7.8-0.7-11.5-2-17.2-6.2-26.4-24.7-20.8-42.2l116.3-323.6c4.8-13.4 17.6-22.4 31.9-22.4 14.6 0.1 27.4 9.3 32 22.9l110.7 323.7c5.7 17.4-3.9 36.6-21.3 42.5-3.6 1.3-7.2 1.9-11 1.9z m-111.4-247c-1.6 0-3.1 1-3.6 2.5L438.7 527c-0.4 1.2-0.2 2.5 0.5 3.5s1.9 1.6 3.1 1.6h59c1.2 0 2.4-0.6 3.1-1.6 0.7-1 0.9-2.3 0.5-3.5l-28.8-84.2c-0.5-1.5-1.9-2.5-3.6-2.5z m225 244.5c-18.7 0-33.9-14.7-33.9-32.7V329.3c0-18 15.2-32.7 33.9-32.7s33.9 14.7 33.9 32.7v322.9c-0.1 18-15.3 32.6-33.9 32.6z"
+                        fill="#333333" p-id="3847"></path>
+                </svg>
             </a>
 
             <a title="取文件" @click="getCodeFile()">
@@ -243,7 +260,7 @@
         <div style="text-align: center;font-size: 20px;color: beige;">注 : 仅用于学习用途, 请勿他用</div>
         <div style="text-align: center;font-size: 15px;color: beige;margin-bottom: 5px;margin-top: 8px;">qq交流群 : <a
                 target="_blank" href="https://jq.qq.com/?_wv=1027&k=TKCwMBjN">624214498</a> </div>
-        <div style="text-align: center;font-size: 12px;color: beige;margin-bottom: 5px;margin-top: 8px;">
+        <div class="onlineCount">
             <svg style="width: 13px;height: 8px;" viewBox="0 0 1024 1024" p-id="4241" width="128" height="128">
                 <path
                     d="M512 277.333333a234.666667 234.666667 0 1 0 0 469.333334 234.666667 234.666667 0 0 0 0-469.333334z"
@@ -255,8 +272,7 @@
             <input :disabled="createDisabled" :class="[{'layui-btn-disabled':createDisabled}]" type="text" name="title"
                 maxlength="15" autocomplete="off" class="layui-input cusInput" v-model="roomId" placeholder="输入房间编号">
             <i title="随机刷新房间号" v-show="!createDisabled && switchData.openRefleshRoom" @click="refleshRoom()"
-                id="refresh" class="layui-icon layui-icon-refresh"
-                style="cursor: pointer; left: 85%;position: absolute;font-size: 24px;margin-top: -40px;"></i>
+                id="refresh" class="layui-icon layui-icon-refresh"></i>
             <div class="layui-btn-container center">
                 <button type="button" :class="[{'layui-btn-disabled':createDisabled}]" @click="createFileRoom()"
                     :disabled="createDisabled"> 创建/加入房间 </button>
@@ -353,7 +369,8 @@
                                     <td><span>{{getFileSizeStr(file.size)}}</span></td>
                                     <td><span>{{file.process}}%</span></td>
                                     <td><span>{{file.cost}}秒</span></td>
-                                    <td style="cursor: pointer;"><span @click="uploadCodeFile(file)"><a >暂存</a></span></td>
+                                    <td style="cursor: pointer;"><span @click="uploadCodeFile(file)"><a>暂存</a></span>
+                                    </td>
                                 </tr>
                                 <div style="display: flex;padding:5px;">
                                     <span style="word-break: keep-all;font-size: 12px;">进度：</span>
@@ -430,9 +447,9 @@
                                 <tr v-for=" (txt , index) in receiveTxtList">
                                     <td><span>{{txt.id}}</span></td>
                                     <td>
-                                        <span v-if="txt.real" style="cursor: pointer;" :id="txt.c_id" 
+                                        <span v-if="txt.real" style="cursor: pointer;" :id="txt.c_id"
                                             @click="copyTxt(txt.c_id, txt.content)" v-html="txt.content"></span>
-                                        <span v-if="!txt.real" style="cursor: pointer;" :id="txt.c_id" 
+                                        <span v-if="!txt.real" style="cursor: pointer;" :id="txt.c_id"
                                             @click="copyTxt(txt.c_id, txt.content)">{{txt.content}}</span>
                                     </td>
                                     <td><span>{{txt.time}}</span></td>
@@ -444,7 +461,7 @@
             </div>
         </div>
 
-        
+
         <div class="maskBottom" :style="{top: numCodeFile + '%'}">
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
@@ -475,16 +492,46 @@
             </div>
         </div>
 
-        <div class="maskRight" @click="clickLogs" :style="{left: numLogs + '%'}">
+        <div class="maskRight" :style="{left: numLogs + '%'}">
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
-                    <div class="layui-card-header">执行日志</div>
+                    <div class="layui-card-header">
+                        执行日志 - 共 {{filterLogs.length}} 条
+                        <i @click="clickLogs" class="layui-icon layui-icon-close"
+                            style="cursor: pointer; right: 10px;position: absolute;"></i>
+                    </div>
+                    <div class="layui-card-body logs">
+                        <input type="text" v-model="logsFilter" class="layui-input" style="border-radius: 4px;padding-right: 10px;" placeholder="关键字查询日志">
+                    </div>
                 </div>
-                <div class="layui-card"
-                    style="background-image: linear-gradient(to top, #D8D9DB 0%, #fff 80%, #FDFDFD 100%);">
+                <div class="layui-card">
                     <div :style="{height: logsHeight+'px',overflow: 'scroll'}">
-                        <div class="layui-card-body logs" v-for="log in logs">
-                            {{log}}
+                        <div class="layui-card-body logs" v-for="log in filterLogs">
+                            <div class="logs-time">
+                                <div>{{log.time}}</div>
+                                <svg viewBox="0 0 1024 1024" p-id="2761" width="64" height="64">
+                                    <path d="M0 0h1024v1024H0V0z" fill="#202425" opacity=".01" p-id="2762"></path>
+                                    <path
+                                        d="M955.733333 512c0 245.077333-198.656 443.733333-443.733333 443.733333S68.266667 757.077333 68.266667 512 266.922667 68.266667 512 68.266667s443.733333 198.656 443.733333 443.733333z"
+                                        fill="#11AA66" p-id="2763"></path>
+                                    <path
+                                        d="M512 102.4C285.7984 102.4 102.4 285.7984 102.4 512s183.3984 409.6 409.6 409.6 409.6-183.3984 409.6-409.6S738.2016 102.4 512 102.4zM34.133333 512C34.133333 248.081067 248.081067 34.133333 512 34.133333s477.866667 213.947733 477.866667 477.866667-213.947733 477.866667-477.866667 477.866667S34.133333 775.918933 34.133333 512z"
+                                        fill="#11AA66" p-id="2764"></path>
+                                    <path
+                                        d="M787.114667 339.285333a51.2 51.2 0 0 1 0 72.362667l-307.2 307.2a51.2 51.2 0 0 1-72.362667 0l-170.666667-170.666667a51.2 51.2 0 0 1 72.362667-72.362666L443.733333 610.235733l271.018667-271.018666a51.2 51.2 0 0 1 72.362667 0z"
+                                        fill="#FFFFFF" p-id="2765"></path>
+                                </svg>
+                            </div>
+                            <div v-show="log.msg.length >= 500"  class="logs-msg" style="max-height: 300px; overflow-y: scroll;" >
+                                <b v-show="log.type === '【系统日志】: '" style="color: #b54343;">{{log.type}}</b> 
+                                <b v-show="log.type === '【操作日志】: '" style="color: cadetblue;">{{log.type}}</b> 
+                                {{log.msg}}
+                            </div>
+                            <div v-show="log.msg.length < 500"  class="logs-msg" >
+                                <b v-show="log.type === '【系统日志】: '" style="color: #b54343;">{{log.type}}</b> 
+                                <b v-show="log.type === '【操作日志】: '" style="color: cadetblue;">{{log.type}}</b> 
+                                {{log.msg}}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -542,13 +589,14 @@
             <div style="font-size: 14px;word-break: keep-all;">发送文件</div>
         </button>
 
-        <menu class="menu" style="z-index: 10000;">
+        <menu class="menu" style="z-index: 10000;" :class="menuNeedLowBackground ? 'menuLowBackground': ''">
             <button id="btnHome" @click="clickHome" class="menuItem" :class="currentMenu === 1 ? 'active' : ''"
                 style="--bgColorBody: #f48150; --bgColorItem: #f28759;">
                 <span v-show="sendFileList.length > 0 && sendFileList.length < 10"
                     class="layui-badge new-dot layui-anim-rotate layui-anim layui-anim-loop"
                     style="padding: 0;position: relative; top: -20px;">{{Math.min(sendFileList.length, 99)}}</span>
-                <span v-show="sendFileList.length >= 10" class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop"
+                <span v-show="sendFileList.length >= 10"
+                    class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop"
                     style="position: relative; top: -20px;">{{Math.min(sendFileList.length, 99)}}</span>
                 <svg class="icon" viewBox="0 0 24 24">
                     <path d="M3.8,6.6h16.4"></path>
@@ -561,7 +609,8 @@
                 <span v-show="receiveTxtList.length > 0 && receiveTxtList.length < 10"
                     class="layui-badge new-dot layui-anim-rotate layui-anim-loop layui-anim"
                     style="padding: 0; position: relative; top: -20px;">{{Math.min(receiveTxtList.length, 99)}}</span>
-                <span v-show="receiveTxtList.length >= 10" class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop"
+                <span v-show="receiveTxtList.length >= 10"
+                    class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop"
                     style="position: relative; top: -20px;">{{Math.min(receiveTxtList.length, 99)}}</span>
                 <svg class="icon" viewBox="0 0 1024 1024" p-id="21754" width="128" height="128">
                     <path
@@ -595,8 +644,8 @@
                         fill="#ffffff" p-id="2709"></path>
                 </svg>
             </button>
-            
-            <div class="menuBorder" style="transform: translate3d(108px, 0px, 0px);"></div>
+
+            <div :class="menuNeedLowBackground ? 'menuLowBackground': ''" class="menuBorder" style="transform: translate3d(108px, 0px, 0px);"></div>
         </menu>
 
         <div class="svg-container">
@@ -667,7 +716,7 @@
             window.mediaShareRoomSwiper = mediaShareRoomSwiper;
         }, 1000)
 
-        layui.use(['layedit', 'form', 'layer', 'laytpl', 'upload', 'dropdown', 'carousel'], function () {
+        layui.use(['layedit', 'form', 'layer', 'laytpl', 'upload', 'dropdown', 'carousel', 'util'], function () {
             window.layer = layui.layer;
             window.form = layui.form;
             window.$ = layui.$;
@@ -676,6 +725,7 @@
             window.upload = layui.upload;
             window.dropdown = layui.dropdown;
             window.carousel = layui.carousel;
+            window.util = layui.util;
 
             let alert = window.localStorage.getItem("tl-rtc-file-alert")
             if (!alert) {

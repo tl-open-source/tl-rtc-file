@@ -50,6 +50,7 @@ body{
     background-color: var(--bgColorMenu);
     position: fixed;
     z-index: 1000;
+    transition: background-color 0.8s;
 }
 .menuItem{
     all: unset;
@@ -71,6 +72,7 @@ body{
     border-radius: 50%;
     position: absolute;
     transform: scale(0);
+    transition: background-color 0.8s;
     transition: background-color var(--duration), transform var(--duration);
 }
 .menuItem.active {
@@ -80,6 +82,17 @@ body{
     transform: scale(1);
     background-color: var(--bgColorMenu);
 }
+
+.menuLowBackground{
+    transition: background-color 0.8s;
+    background-color: #1d1d277a !important;
+}
+
+.menuLowBackground .menuItem::before{
+    transition: background-color 0.8s;
+    background-color: #4f4f5a7a !important;
+}
+
 .icon{
     width: 2.6em;
     height: 2.6em;
@@ -107,6 +120,7 @@ body{
     height: 2.4em;
     position: absolute;
     clip-path: url(#menu);
+    transition: background-color 0.8s;
     background-color: var(--bgColorMenu);
     transition: transform var(--duration);
 }
@@ -357,44 +371,6 @@ body{
     -webkit-tap-highlight-color: rgba(4,32,23,.2);
 }
 
-/* 480px以下 */
-@media screen and (max-width: 480px) {
-    #fileApp .exitBtn{
-        position: absolute;
-        right: 10%;
-    }
-    #fileApp .roomClass button{
-        width: 6rem;
-        height: 2.5rem;
-    }
-    #fileApp .roomClass .center{
-        width: 100%;
-        margin-top: 20px;
-        margin-left: 0;
-    }
-}
-/* 500px以下 */
-@media screen and (max-width: 500px) {
-    /* .sendFileBtn{
-        width: 80%;
-        margin-left: 10%;
-    } */
-}
-/* 480px到765px */
-@media screen and (min-width: 480px) and (max-width: 765px) {
-}
-
-/* 765px以上 */
-@media screen and (min-width: 765px) {
-
-}
-/* 765px到1000px */
-@media screen and (min-width: 765px) and (max-width: 775px) {
-}
-
-@media screen and (min-width: 1000px) {
-}
-
 .side-shadown-rigth{
     border-radius: 50%;
     position: absolute;
@@ -421,12 +397,11 @@ body{
     opacity: .5;
 }
 
-
 .tool{
     position: absolute;
     right: 10px;
     float: right;
-    top: 30%;
+    top: 20%;
     display: grid;
 }
 
@@ -438,6 +413,23 @@ body{
     width: 30px;
     height: 30px;
     cursor: pointer;
+}
+
+#refresh {
+    cursor: pointer; 
+    left: 75%;
+    position: absolute;
+    font-size: 24px;
+    margin-top: -40px;
+    transition: left .5s;
+}
+
+.onlineCount{
+    text-align: center;
+    font-size: 12px;
+    color: beige;
+    margin-bottom: 5px;
+    margin-top: 8px;
 }
 
 .userRoom{
@@ -578,6 +570,28 @@ video{
     border-bottom: 1px solid #f6f6f6;
     word-break: break-all;
 }
+.logs .logs-time{
+    font-size: 12px; 
+    text-align: left; 
+    font-weight: bold;
+}
+
+.logs .logs-time svg{
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    right: 14px;
+    top: 14px;
+}
+
+.logs .logs-msg{
+    margin: 10px 0 10px 0;
+    text-align: left;
+    border: 1px dashed #e2e2e2; 
+    border-radius: 4px; 
+    padding: 5px; 
+    background: #f1f8fe;
+}
 
 .infoMsg{
     width: 70%;
@@ -596,4 +610,43 @@ video{
     color: #d2d2d2!important;
     cursor: not-allowed!important;
     opacity: 1;
+}
+
+
+/* 480px以下 */
+@media screen and (max-width: 480px) {
+    #fileApp .exitBtn{
+        position: absolute;
+        right: 10%;
+    }
+    #fileApp .roomClass button{
+        width: 6rem;
+        height: 2.5rem;
+    }
+    #fileApp .roomClass .center{
+        width: 100%;
+        margin-top: 20px;
+        margin-left: 0;
+    }
+    #refresh{
+        left: 70%;
+    }
+}
+/* 500px以下 */
+@media screen and (max-width: 500px) {
+}
+/* 480px到765px */
+@media screen and (min-width: 480px) and (max-width: 765px) {
+}
+/* 765px到1280px */
+@media screen and (min-width: 765px) and (max-width: 1280px) {
+    #refresh{
+        left: 77%;
+    }
+}
+/** 1280px以上 */
+@media screen and (min-width: 1280px) {
+    #refresh{
+        left: 79%;
+    }
 }

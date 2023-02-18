@@ -301,7 +301,7 @@
         let to = this.socket.id;
         let otherSocket = this.sockets.connected[to];
         if(otherSocket){
-            otherSocket.emit("openaiChat", message);
+            otherSocket.emit("openaiAnswer", message);
         }
     }
 }

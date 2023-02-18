@@ -34,7 +34,7 @@
     安装一些依赖 : npm install
 
 
-    如果需要自行开发修改res目录文件, 保持下面两个后台命令开启即可
+    如果需要自行开发修改res目录文件, 保持下面两个后台命令开启一个即可
 
     npm run dev 打包开发环境min
 
@@ -42,11 +42,15 @@
 
 ## 测试环境 
 
+    启动以下两个服务
+
     本地启动file-res : npm run dev
 
     本地启动file-socket : npm run devsocket
 
 ## 线上环境 （需要配置wss）
+
+    启动以下两个服务
 
     公网环境启动file-res : npm run svr 
 
@@ -96,6 +100,10 @@
     输入配置的房间号，输入密码，即可进入管理后台
 
     ps : 如有需要配置企业微信通知，修改conf/cfg.json中的notify的qiwei数组，填入企业微信机器人的key即可
+
+## Chat-GPT
+
+    修改conf/cfg.json中的openai.apiKeys，填写你自己openai账号生成的apiKey
 
 ## 概述图
 

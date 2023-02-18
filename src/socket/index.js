@@ -29,6 +29,7 @@ const {
     sendFileInfoNotify,
     sendChatingNotify,
     sendCodeFileNotify,
+    sendOpenaiChatNotify,
     updateManageRoom,
     exitRoom,
     createJoinRoom,
@@ -64,7 +65,6 @@ let opName = {
     "addCodeFile": "添加取货码文件",
     "getCodeFile" : "取件码取件",
     "openaiChat" : "ChatGPT聊天"
-
 }
 
 /**
@@ -134,6 +134,11 @@ function listen(io) {
         // 在线人数统计
         socket.on('count', function (message) {
             handler._count(message, {})
+        });
+
+        // 管理员发送网站维护通知
+        socket.on('close', function (message) {
+            handler._close(message, {})
         });
 
         // 退出
@@ -624,6 +629,7 @@ function listen(io) {
                     chating.push(message)
                 }
 
+                message.time = new Date().toLocaleString()
                 handler._chating(message, {})
 
                 let handshake = socket.handshake
@@ -662,9 +668,49 @@ function listen(io) {
                 }, {})
             }
         });
+
+        // openai聊天
+        socket.on('openai', async function (message) {
+            let roomId = message.room || 10086;
+            let content = message.content;
+            if(content){
+                content = content.substr(0, 5000);
+            }
+
+            let handshake = socket.handshake
+            let userAgent = handshake.headers['user-agent'].toString().substr(0, 255);
+            let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'];
+
+            message.time = new Date().toLocaleString()
+            message.type = "openai";
+            message.content = await openai.openaiChat(content, roomId);
+            handler._openaiChat(message)
+
+            await dogData({
+                name: opName.openaiChat,
+                tables: tables,
+                roomId: roomId,
+                socketId: message.socketId,
+                device: userAgent,
+                flag: 0,
+                content: decodeURIComponent(message.content),
+                handshake: JSON.stringify(handshake),
+                ip: ip
+            });
+
+            sendOpenaiChatNotify({
+                title: opName.openaiChat,
+                room: roomId,
+                keys : JSON.stringify(openai.apiKeysStatus()),
+                content: content,
+                answer : message.content,
+                userAgent: userAgent,
+                ip: ip
+            })
+        });
+
     });
 }
-
 
 module.exports = {
     excute

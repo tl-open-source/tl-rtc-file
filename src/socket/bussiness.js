@@ -309,8 +309,9 @@ function sendCodeFileNotify(data) {
 function sendOpenaiChatNotify(data) {
     let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
         ` - <font color="comment">${data.room}</font>\n` +
-        `聊天内容: ${data.content}秒\n` +
-        `回复内容: ${data.answer}秒\n` +
+        `KEYS状态: ${data.keys}\n` +
+        `聊天内容: ${data.content}\n` +
+        `回复内容: ${data.answer}\n` +
         `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
         `访问IP: ${data.ip}\n` +
         `访问设备: ${data.userAgent}\n`;
