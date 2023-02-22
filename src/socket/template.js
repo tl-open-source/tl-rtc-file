@@ -13,22 +13,8 @@
      * @param {*} params 
      */
      _chating( message, params){
-        try{
-            let allRoom = this.sockets.adapter.rooms;
-            
-            for(let room in allRoom){
-                if(room === this.socket.id){
-                    continue
-                }
-                let clientsInRoom = allRoom[room];
-                let otherSocketIds = Object.keys(clientsInRoom.sockets);
-                if( otherSocketIds.length > 0){
-                    for (let i = 0; i < otherSocketIds.length; i++) {
-                        let otherSocket = this.sockets.connected[otherSocketIds[i]];
-                        otherSocket.emit("chating", message);
-                    }
-                }
-            }
+        try{            
+            this.sockets.emit("chating", message)
         }catch(e){
             console.log(e)
         }
@@ -41,31 +27,10 @@
      */
     _count( message, params){
         try{
-            let allRoom = this.sockets.adapter.rooms;
-            let allManCount = 0;
-    
-            for(let room in allRoom){
-                let clientsInRoom = allRoom[room];
-                let otherSocketIds = Object.keys(clientsInRoom.sockets);
-                let numClients = clientsInRoom ? otherSocketIds.length : 0;
-                allManCount += numClients;
-            }
-    
-            for(let room in allRoom){
-                // if(room.length  > 15){
-                //     continue
-                // }
-                let clientsInRoom = allRoom[room];
-                let otherSocketIds = Object.keys(clientsInRoom.sockets);
-                if( otherSocketIds.length > 0){
-                    for (let i = 0; i < otherSocketIds.length; i++) {
-                        let otherSocket = this.sockets.connected[otherSocketIds[i]];
-                        otherSocket.emit("count", {
-                            mc : allManCount
-                        });
-                    }
-                }
-            }
+            let allManCount = Object.keys(this.sockets.connected).length || 0;
+            this.sockets.emit("count", {
+                mc : allManCount
+            })
         }catch(e){
            console.log(e)
         }
@@ -78,17 +43,7 @@
      */
     _close( message, params){
         try{
-            let allRoom = this.sockets.adapter.rooms;
-            for(let room in allRoom){
-                let clientsInRoom = allRoom[room];
-                let otherSocketIds = Object.keys(clientsInRoom.sockets);
-                if( otherSocketIds.length > 0){
-                    for (let i = 0; i < otherSocketIds.length; i++) {
-                        let otherSocket = this.sockets.connected[otherSocketIds[i]];
-                        otherSocket.emit("close", message);
-                    }
-                }
-            }
+            this.sockets.emit("close", message)
         }catch(e){
            console.log(e)
         }
@@ -221,7 +176,6 @@
     }
 
 
-
     /**
      * 【candidate】转发candidate消息至room其他客户端 [from,to,room,candidate[sdpMid,sdpMLineIndex,sdp]]
      * @param {*} message 
@@ -246,6 +200,7 @@
         let room = message.room;
   
         this.socket.leave(room);
+        
         let clientsInRoom = this.sockets.adapter.rooms[room];
         if (clientsInRoom) {
             let otherSocketIds = Object.keys(clientsInRoom.sockets);

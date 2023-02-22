@@ -3,6 +3,29 @@ const utils = require("../../utils/utils");
 const manageConfig = require("../../conf/cfg.json").router.manage;
 const dbOpen = require("../../conf/cfg.json").db.open;
 
+// 默认开关数据
+const defaultSwitchData = {
+     openSendBug: true,
+     openScreen: true,
+     openOnlineUser: true,
+     openShareRoom: true,
+     openAiChat: true,
+     openGetCodeFile: true,
+     openVideoShare: true,
+     openPasswordRoom: true,
+     openScreenShare: true,
+     openFileTransfer: true,
+     openTxtTransfer: true,
+     openTurnServer: true,
+     openNetworkIcon: true,
+     openUseTurnIcon: true,
+     openCommRoom: true,
+     openRefleshRoom: true,
+     allowNumber: true,
+     allowChinese: true,
+     allowSymbol: true
+ }
+
 /**
  * 管理后台特殊房间入口、配置信息
  * @param {*} req 
@@ -29,7 +52,7 @@ async function getOrCreateManageRoom(req, res, next) {
                sid: params.sid,
                ip: params.ip,
                device: params.device,
-               content: params.content
+               content: JSON.stringify(defaultSwitchData)
           });
 
           console.log("创建管理房间配置成功")
@@ -245,22 +268,7 @@ module.exports = dbOpen ? {
      },
      getOrCreateManageRoom : () => {
           return {
-               content : JSON.stringify({
-                    openSendBug: true,
-                    openScreen: true,
-                    openOnlineUser: true,
-                    openShareRoom: true,
-                    openScreenShare: true,
-                    openVideoShare: true,
-                    openPasswordRoom: true,
-                    openFileTransfer: true,
-                    openTxtTransfer: true,
-                    openCommRoom: true,
-                    openRefleshRoom: true,
-                    allowNumber: true,
-                    allowChinese: true,
-                    allowSymbol: true,
-               })
+               content : JSON.stringify(defaultSwitchData)
           }
      },
 }

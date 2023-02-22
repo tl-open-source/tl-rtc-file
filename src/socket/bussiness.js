@@ -751,7 +751,7 @@ async function getDataPageHtml(data) {
                             <tbody>
                                 <tr v-for="file in fileList">
                                     <td>{{file.room}}</td>
-                                    <td>{{file.name}}</td>
+                                    <td><pre>{{file.name}}</pre></td>
                                     <td>{{file.size}}M</td>
                                     <td>{{file.createTime}}</td>
                                 </tr>
@@ -770,7 +770,7 @@ async function getDataPageHtml(data) {
                             <tbody>
                                 <tr v-for="txt in txtList">
                                     <td>{{txt.room}}</td>
-                                    <td>{{txt.content}}</td>
+                                    <td><pre>{{txt.content}}</pre></td>
                                     <td>{{txt.size}}字符</td>
                                     <td>{{txt.createTime}}</td>
                                 </tr>
@@ -789,7 +789,7 @@ async function getDataPageHtml(data) {
                             <tbody>
                                 <tr v-for="txt in commTxtList">
                                     <td>{{txt.room}}</td>
-                                    <td>{{txt.content}}</td>
+                                    <td><pre>{{txt.content}}</pre></td>
                                     <td>{{txt.size}}字符</td>
                                     <td>{{txt.createTime}}</td>
                                 </tr>
@@ -860,6 +860,8 @@ async function getSettingPageHtml(data) {
             openScreen: true,
             openOnlineUser: true,
             openShareRoom: true,
+            openAiChat: true,
+            openGetCodeFile: true,
             openVideoShare: true,
             openPasswordRoom: true,
             openScreenShare: true,
@@ -872,8 +874,7 @@ async function getSettingPageHtml(data) {
             openRefleshRoom: true,
             allowNumber: true,
             allowChinese: true,
-            allowSymbol: true,
-            keys: []
+            allowSymbol: true
         })
     })
 
@@ -967,6 +968,16 @@ async function getSettingPageHtml(data) {
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
                                     <input type="checkbox" name="openCommRoom" title="开启公共频道发言" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="openGetCodeFile" title="开启取件码取件" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="openAiChat" title="开启AI对话聊天" lay-skin="primary">
                                 </div>
                             </div>
                             <div class="layui-form-item">

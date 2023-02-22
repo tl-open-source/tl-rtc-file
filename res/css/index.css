@@ -161,7 +161,7 @@ body{
     height: 100%;
     width: 50%;
     background: white;
-    z-index: 99;
+    z-index: 10000;
     box-shadow: 0 0px 20px rgb(0 0 0 / 40%);
     transition: all 1s;
     -moz-transition: all 1s;
@@ -401,8 +401,9 @@ body{
     position: absolute;
     right: 10px;
     float: right;
-    top: 20%;
+    top: 30%;
     display: grid;
+    transition: top 0.5s;
 }
 
 .tool a{
@@ -610,6 +611,94 @@ video{
     color: #d2d2d2!important;
     cursor: not-allowed!important;
     opacity: 1;
+}
+
+.layui-layedit {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 0px 20px rgb(255 255 255 / 40%);
+}
+
+.new-dot {
+    padding: 0px 3px;
+    position: absolute;
+    border-radius: 50%;
+    height: 18px;
+    width: 18px;
+    font-size: 10px;
+    line-height: 18px;
+    right: -5px;
+}
+
+.toolList {
+    transition: all 0.5s ease-in-out;
+    position: relative;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    display: grid;
+}
+
+.toolList a {
+    z-index: 10000;
+    position: absolute;
+    font-size: 24px;
+    color: #d8c9c9;
+    background-color: rgb(244 129 80 / 0%);
+    cursor: pointer;
+    transition: transform 0.8s ease-in-out;
+}
+
+.toolList a:hover {
+    color: #fff;
+}
+
+.toolList.fan-out a {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+#closeTool{
+    height: 32px;
+    transform: translate(0%, -50%) scale(1);
+    width: 40px;
+    top: 15px;
+    right: 1px;
+    background-color: rgb(75, 75, 74);
+}
+
+.toolList.fan-out a:nth-child(1) {
+    transform: translate(-20%, 0%) rotate(-180deg) translateY(-100px) scale(1);
+}
+
+.toolList.fan-out a:nth-child(2) {
+    transform: translate(-20%, 0%) rotate(-150deg) translateY(-100px) scale(1);
+}
+
+.toolList.fan-out a:nth-child(3) {
+    transform: translate(-20%, 0%) rotate(-120deg) translateY(-100px) scale(1);
+}
+
+.toolList.fan-out a:nth-child(4) {
+    transform: translate(-20%, 0%) rotate(-90deg) translateY(-100px) scale(1);
+}
+
+.toolList.fan-out a:nth-child(5) {
+    transform: translate(-20%, 0%) rotate(-60deg) translateY(-100px) scale(1);
+}
+
+.toolList.fan-out a:nth-child(6) {
+    transform: translate(-20%, 0%) rotate(-30deg) translateY(-100px) scale(1);
+}
+
+.toolList.fan-out a:nth-child(7) {
+    transform: translate(-20%, 0%) rotate(0deg) translateY(-100px) scale(1);
+}
+
+.toolDisabled i, .toolDisabled svg path{
+    cursor: no-drop !important;
+    color: grey !important;
+    fill: grey !important;
 }
 
 

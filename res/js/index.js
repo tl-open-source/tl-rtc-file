@@ -45,7 +45,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 rtcConns: {}, //远程连接
                 remoteMap: {}, //远程连接map
 
-                chunkSize: 16 * 1024, //一块16kb 最大应该可以设置到64kb
+                chunkSize: 16 * 1024, // 一块16kb 最大应该可以设置到64kb
                 allSended: false,//当前文件是否全部发送给房间内所有用户
                 isSending: false, //是否正在发送文件中
                 currentReceiveSize: 0, //统计收到文件的大小 (单个文件进度)
@@ -82,6 +82,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 aiAnsweringTxt : "思考中...", //ai思考中的文字
                 openaiSendContext : false, // ai对话是否发送上下文
                 logsFilter : "", //日志过滤参数
+                toolListShadeIndex : -1, //控制展示遮罩
             }
         },
         computed: {
@@ -239,6 +240,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
         },
         methods: {
             openaiChat : function(){
+                if(!this.switchData.openAiChat){
+                    if(window.layer){
+                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
+                    }
+                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    return
+                }
                 let that = this;
                 if (window.layer) {
                     let options = {
@@ -272,6 +280,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             <div class="layui-col-sm12" style="padding: 15px;">
                                 <div class="layui-card chating-content" id="openaiChat_tpl_view" style="padding: 5px;"> </div>
                                 <script id="openaiChat_tpl" type="text/html">
+                                    {{#  if(d.openaiSendContext) { }}
+                                    <div style="text-align: center; color: #ffe2bc; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
+                                        已开启同步上下文开关，AI能更好的理解您的问题，但也可能会导致回答变得不可预测，可在设置中关闭
+                                    </div>
+                                    {{#  }else{ }}
+                                    <div style="text-align: center; color: #ffe2bc; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
+                                        可尝试在设置中开启同步对话上下文开关，帮助AI能更好的连贯的理解您的问题
+                                    </div>
+                                    {{#  } }}
                                     <div style="text-align: center; color: #ffe2bc; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
                                         -------- 房间 ${this.roomId} - AI对话记录 -------- 
                                     </div>
@@ -281,13 +298,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                             <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
                                             <div style="margin-left: 15px; margin-top: -5px;width:100%;">
                                                 <div style="word-break: break-all;"> <small> AI博主: </small> - <small>时间: <b>{{info.time}}</b></small> </div>
-                                                <div style="margin-top: 5px;word-break: break-all;width: 90%;"> <b style="font-weight: bold; font-size: large;"> {{info.content}} </b></div>
+                                                <div style="margin-top: 5px;word-break: break-all;width: 90%;"> <b style="font-weight: bold; font-size: large;"> <pre> {{info.content}} </pre> </b></div>
                                             </div>
                                         </div>
                                         {{#  }else { }}
                                         <div style="margin-bottom: 30px;display: inline-flex;text-align: right;float: right;width:100%;">
                                             <div style="margin-right: 15px; margin-top: -5px;width:100%;">
-                                                <div style="word-break: break-all;"> <small>我: <b>{{info.socketId}}</b> </small> - <small>时间: <b>{{info.time}}</b></small>  </div>
+                                                <div style="word-break: break-all;"> <small>我: <b>{{info.socketId}}</b> </small> <small>时间: <b>{{info.time}}</b></small>  </div>
                                                 <div style="margin-top: 5px;word-break: break-all;width: 90%; margin-left: 10%;"> <b style="font-weight: bold; font-size: large;"> <pre> {{info.content}} </pre> </b></div>
                                             </div>
                                             <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
@@ -337,7 +354,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         list : this.aiChatList,
                         isAiAnswering : this.isAiAnswering,
                         aiAnsweringTxt : this.aiAnsweringTxt,
-                        time : window.util ? util.timeAgo(new Date().toDateString) : new Date().toDateString
+                        time : window.util ? util.timeAgo(new Date().toDateString) : new Date().toDateString,
+                        openaiSendContext : this.openaiSendContext
                     }, tpl_view_html, callback)
 
                     let chatDom = document.querySelector("#openaiChat_tpl_view")
@@ -383,34 +401,61 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.addUserLogs("请先填写内容哦")
                     return
                 }
-                if (value.length > 3000) {
+                if (value.length > 1000) {
                     if (window.layer) {
-                        layer.msg("内容太长啦，不能超过3000个字")
+                        layer.msg("内容太长啦，不能超过1000个字")
                     }
-                    this.addUserLogs("内容太长啦，不能超过3000个字")
+                    this.addUserLogs("内容太长啦，不能超过1000个字")
                     return
                 }
 
-                let question = {
+                this.aiChatList.push({
                     room: this.roomId,
                     socketId : this.socketId,
                     content : value
-                }
-
-                this.aiChatList.push(question)
+                })
 
                 // 发送上下文
+                let contextContent = "";
                 if(this.openaiSendContext){
-                    let content = ""
-                    if(this.aiChatList.length > 2){
-                        content = this.aiChatList.slice(this.aiChatList.length - 2).join("\n");
-                    }else{
-                        content =  this.aiChatList.join("\n");
+                    let isShortContentChatList = true;
+                    this.aiChatList.forEach(item=>{
+                        if(item.content.length > 100){
+                            isShortContentChatList = false;
+                        }
+                    })
+                    let isShortChatList = this.aiChatList.length < 6;
+                    
+                    if(isShortChatList){ // 对话次数不多
+                        if(isShortContentChatList){ // 对话内容精简
+                            this.aiChatList.forEach(item=>{
+                                contextContent += item.content + "\n";
+                            })
+                        }else{ //对话内容复杂
+                            this.aiChatList.forEach(item=>{
+                                contextContent += item.content + "\n";
+                            })
+                        }
+                    }else{ // 对话次数较多
+                        if(isShortContentChatList){ // 对话内容精简
+                            this.aiChatList.slice(this.aiChatList.length - 6).forEach(item=>{
+                                contextContent += item.content + "\n";
+                            })
+                        }else{ // 对话内容复杂
+                            this.aiChatList.slice(this.aiChatList.length - 4).forEach(item=>{
+                                contextContent += item.content + "\n";
+                            })
+                        }
                     }
-                    question.content = content.substring(0, 5000);
+                    contextContent = contextContent.substring(0, 5000);
                 }
 
-                this.socket.emit('openai', question);
+                this.socket.emit('openai', {
+                    room: this.roomId,
+                    socketId : this.socketId,
+                    content : contextContent,
+                    value : value
+                });
 
                 this.isAiAnswering = true;
 
@@ -440,6 +485,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             getCodeFile: function () {
                 let that = this;
+                if(!this.switchData.openGetCodeFile){
+                    if(window.layer){
+                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
+                    }
+                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    return
+                }
                 if (window.layer) {
                     layer.prompt({
                         formType: 0,
@@ -455,6 +507,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
             },
             startPassword : function(){
+                if(!this.switchData.openPasswordRoom){
+                    if(window.layer){
+                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
+                    }
+                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    return
+                }
                 if (!this.isPasswordRoom) {
                     if (this.createDisabled) {
                         if (window.layer) {
@@ -607,6 +666,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                             <cite>中继设置</cite>
                                         </a>
                                     </li>
+                                    <li class="layui-col-xs4" style="${ this.switchData.openAiChat ? '' : 'display:none;'}">
+                                        <a title="ai智能对话上下文" onclick="sendOpenaiChatWithContext()">
+                                            <i class="layui-icon layui-icon-service" style="font-size: 40px;color:#abb1ab;" id="aiContext"></i>
+                                            <cite>智能理解</cite>
+                                        </a>
+                                    </li>
                                     <li class="layui-col-xs4" style="${ this.switchData.openSendBug ? '' : 'display:none;'}">
                                         <a title="反馈问题" onclick="sendBugs()" >
                                             <svg viewBox="0 0 1024 1024" p-id="4621" width="42px" height="56px" id="sendBugs">
@@ -667,8 +732,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         <div class="setting-main">
                             <div class="setting-main-body">
                                 <div class="relayDoc" style="padding: 15px; position: absolute; width: 100%; height: 100%;">
-                                    <p style="text-align: center; font-weight: bold; position: relative; top: 2px; display: block; color: #666;  font-size: 17px;"> 中继服务器当前已 ${notUseRelay ? '“禁用”' : '“启用”'} </p>
-                                    <p style="font-weight: bold; position: relative;  top: 15px; display: block; color: #666; font-size: 14px;"> 启用中继服务器可以保证在复杂的p2p网络环境下，提供保底的数据中转传输，如果禁用，则是强制走p2p，可能会出现发送失败！</p>
+                                    <p style="text-align: center; font-weight: bold; position: relative; top: 2px; display: block; color: #d7c3c3;  font-size: 17px;"> 中继服务器当前已 ${notUseRelay ? '“禁用”' : '“启用”'} </p>
+                                    <p style="font-weight: bold; position: relative;  top: 15px; display: block; color: #d7c3c3; font-size: 14px;"> 启用中继服务器可以保证在复杂的p2p网络环境下，提供保底的数据中转传输，如果禁用，则是强制走p2p，可能会出现发送失败！</p>
                                     <div style="position: relative; margin-top: 140px;">
                                         <div style="text-align: center;">
                                             <button onclick="notUseRelay()" type="button" class="layui-btn layui-btn-sm layui-btn-normal" style="margin-right: 45px;"> 启用 </button>
@@ -713,6 +778,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.addUserLogs("打开赞助窗口")
             },
             startVideoShare: function(){
+                if(!this.switchData.openVideoShare){
+                    if(window.layer){
+                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
+                    }
+                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    return
+                }
                 if (this.isScreenShare) {
                     if (window.layer) {
                         layer.msg("当前正在屏幕共享中，退出后再试")
@@ -753,6 +825,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
             },
             startScreenShare: function(){
+                if(!this.switchData.openScreenShare){
+                    if(window.layer){
+                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
+                    }
+                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    return
+                }
                 if (this.isVideoShare) {
                     if (window.layer) {
                         layer.msg("当前正在音视频通话中，退出后再试")
@@ -793,6 +872,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
             },
             startScreen: function () {
+                if(!this.switchData.openScreen){
+                    if(window.layer){
+                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
+                    }
+                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    return
+                }
                 if (this.isMobile) {
                     if (window.layer) {
                         layer.msg("移动端暂不支持屏幕录制")
@@ -886,6 +972,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
             },
             chating: function () {
+                if(!this.switchData.openCommRoom){
+                    if(window.layer){
+                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
+                    }
+                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    return
+                }
                 let that = this;
                 if (window.layer) {
                     let options = {
@@ -1008,8 +1101,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     return
                 }
                 this.socket.emit('chating', {
-                    recoderId: this.recoderId,
-                    msg: content,
+                    msg: encodeURIComponent(content),
                     room: this.roomId,
                     socketId: this.socketId,
                 });
@@ -1194,6 +1286,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+               
+                if(this.toolListShadeIndex === -1){ // 没展开状态下才同步颜色
+                    document.querySelector("#closeTool").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                }
 
                 let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
@@ -1216,6 +1312,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                if(this.toolListShadeIndex === -1){ // 没展开状态下才同步颜色
+                    document.querySelector("#closeTool").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                }
 
                 let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
@@ -1238,6 +1337,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                if(this.toolListShadeIndex === -1){ // 没展开状态下才同步颜色
+                    document.querySelector("#closeTool").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                }
 
                 let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
@@ -1259,6 +1361,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 document.querySelector("#iamtsm").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileListDisable").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                 document.querySelector("#chooseFileList").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                if(this.toolListShadeIndex === -1){ // 没展开状态下才同步颜色
+                    document.querySelector("#closeTool").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
+                }
 
                 let menuBorder = document.querySelector(".menuBorder");
                 let box = active.getBoundingClientRect();
@@ -1997,9 +2102,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             socketListener: function () {
                 let that = this;
-
-                this.socket.emit("count", {});
-
+                
                 this.socket.on('created', async function (data) {
                     that.addSysLogs("创建房间," + JSON.stringify(data));
                     that.socketId = data.id;
@@ -2156,10 +2259,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.addPopup(data.from + "发送了文字 [ " + data.content.substr(0, 10) + " ]");
                     that.addSysLogs(data.from + "发送了文字 [ " + data.content.substr(0, 10) + " ]");
 
+                    try{
+                        data.content = decodeURIComponent(data.content)
+                    }catch(e){
+                        that.addSysLogs("decode msg err : "+data.content);
+                    }
                     that.receiveTxtList.unshift({
                         id: fromId,
                         real : data.real,
-                        content: decodeURIComponent(data.content),
+                        content: data.content,
                         time: new Date().toLocaleString(),
                         c_id: "txt_" + that.receiveTxtList.length,
                         process: 0,
@@ -2230,6 +2338,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.switchData = data.switchData
                     that.switchDataGet = true;
                     data.chatingData.forEach(elem=>{
+                        try{
+                            elem.msg = decodeURIComponent(elem.msg)
+                        }catch(e){
+                            that.addSysLogs("decode msg err : "+elem.msg);
+                        }
                         that.chatingList.push(elem)
                     })
                     that.chatingList.forEach(item=>{
@@ -2240,7 +2353,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //公共聊天频道
                 this.socket.on('chating', function (data) {
                     that.addSysLogs(data.room + "频道的" + data.socketId + "发言: [ " + data.msg + " ]");
-                    data.msg = window.tlrtcfile.escapeHtml().escape(data.msg)
+                    try{
+                        data.msg = decodeURIComponent(data.msg)
+                    }catch(e){
+                        that.addSysLogs("decode msg err : "+data.msg);
+                    }
                     that.chatingList.push(data);
                     if(that.chatingList.length > 10){
                         that.chatingList.shift();
@@ -2393,8 +2510,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (window.location.search && window.location.search.includes("notice=iamtsm&msg=")) {
                     setTimeout(() => {
                         let msg = window.location.search.split("msg=")[1]
+                        try{
+                            msg = decodeURIComponent(msg)
+                        }catch(e){
+                            that.addSysLogs("decode msg err : "+msg);
+                        }
                         that.socket.emit('close', {
-                            msg: decodeURIComponent(msg)
+                            msg: msg
                         });
                         that.addSysLogs("发送网站通知:"+msg)
                     }, 2000)
@@ -2409,6 +2531,46 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         });
                     });
                 }
+            },
+            toolList : function(){
+                let that = this;
+                setTimeout(()=>{
+                    if(window.$){
+                        $('.toolList a').on('click', function () {
+                            let $this = $(this);
+                            if($this.hasClass("layui-icon-component")){
+                                return
+                            }
+                            if ($this.hasClass('fan-out')) {
+                                $('.toolList').removeClass('fan-out');
+                                $('.toolList a').removeClass('fan-out');
+                                $('.toolList').css("marginBottom","0")
+                                $("#layui-layer-shade"+that.toolListShadeIndex).remove()
+                                $("#closeTool").css("backgroundColor","rgb(79, 79, 65)")
+                            } else {
+                                $('.toolList').addClass('fan-out');
+                                $('.toolList a').addClass('fan-out');
+                                $('.toolList').css("marginBottom","110px")
+                                $("#closeTool").css("backgroundColor","rgb(0 0 0)")
+                                layer.msg('', {shade: 0.8, time: 0 ,
+                                    success: function(layero, index){
+                                        that.toolListShadeIndex = index;
+                                        $(layero.selector).remove()
+                                        $("#layui-layer-shade"+index).css("zIndex",1000);
+                                        $("#closeTool").css("backgroundColor","unset")
+                                    }
+                                });
+                            }
+                        });
+                        layer.tips('更多功能都放在这里啦，点开看看吧～', '#closeToolIcon', {
+                            tips: 1
+                        });
+                    }
+                    setInterval(() => {
+                        let colors = ["#deb887","#faebd7","#6495ed","#008b8b","#87ceeb","#48d1cc"]
+                        $("#closeToolIcon").css("color",colors[parseInt(Math.random(1000)*1000) % 6])
+                    }, 1000);
+                },1000)
             },
             windowOnBusEvent : function(){
                 window.Bus.$on("changeScreenState", (res) => {
@@ -2450,6 +2612,17 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 })
                 window.Bus.$on("sendOpenaiChat", (res) => {
                     this.sendOpenaiChat()
+                })
+                window.Bus.$on("sendOpenaiChatWithContext", () => {
+                    this.openaiSendContext = !this.openaiSendContext;
+                    if(window.layer){
+                        layer.msg(`AI智能理解上下文开关${this.openaiSendContext ? '已开启' : '已关闭'}`)
+                        this.addUserLogs(`AI智能理解上下文开关${this.openaiSendContext ? '已开启' : '已关闭'} `)
+                    }
+                    $("#aiContext").removeClass("layui-anim-rotate")
+                    setTimeout(() => {
+                        $("#aiContext").addClass("layui-anim-rotate")
+                    }, 50)
                 })
                 window.Bus.$on("manageChange", (data) => {
                     this.socket.emit('manageChange', {
@@ -2517,15 +2690,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             
             this.addSysLogs("SOCKET监听 初始化中...");
             this.socketListener();
-            this.addSysLogs("SOCKET监听 初始化成功");
+            this.addSysLogs("SOCKET监听 初始化完成");
 
             this.addSysLogs("基础数据 获取中...");
             this.socket.emit('getCommData', {});
-            this.addSysLogs("基础数据 获取成功");
+            this.addSysLogs("基础数据 初始化完成");
 
             this.addSysLogs("窗口事件监听 初始化中...");
             window.onresize = this.initCss;
-            this.addSysLogs("窗口事件监听 初始化成功");
+            this.addSysLogs("窗口事件监听 初始化完成");
 
             this.addSysLogs("分享组件 初始化中...");
             this.handlerRoomHistory();
@@ -2533,13 +2706,17 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
             this.addSysLogs("公共事件监听 初始化中...");
             this.windowOnBusEvent();
-            this.addSysLogs("公共事件监听 初始化成功");
+            this.addSysLogs("公共事件监听 初始化完成");
 
             setTimeout(() => {
                 this.addSysLogs("文件选择组件 初始化中...");
                 this.renderChooseFileComp();
                 this.addSysLogs("文件选择组件 初始化完成");
             }, 2000);
+
+            this.addSysLogs("右侧工具动画 初始化中...");
+            this.toolList();
+            this.addSysLogs("右侧工具动画 初始化完成");
 
             this.addSysLogs("基础样式 初始化中...");
             this.logsHeight = document.documentElement.clientHeight - 55;
@@ -2576,6 +2753,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
     window.sendBugs = function () {
         window.Bus.$emit("sendBugs", {})
     }
+    window.sendOpenaiChatWithContext = function () {
+        window.Bus.$emit("sendOpenaiChatWithContext", {})
+    }
     window.relaySetting = function(){
         window.layer.closeAll(()=>{
             window.Bus.$emit("relaySetting", {})
@@ -2590,8 +2770,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
         }
         window.location.reload()
     }
-
-    // #1d1d277a
 })
 
 

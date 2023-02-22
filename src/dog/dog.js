@@ -90,8 +90,8 @@ async function getDogManageInfo(req, res, next) {
         let content = JSON.parse(element.content);
         data.txtList.push({
             room: element.room_id || content.room,
-            content: decodeURIComponent(content.content),
-            size: decodeURIComponent(content.content).length,
+            content: content.content,
+            size: content.content.length,
             createTime: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
         })
     });

@@ -49,6 +49,8 @@ let tokens = [];
 let sql = {};
 // 公共聊天数据
 let chating = []
+// 开关数据
+let cacheSwitchData = {};
 // 通知事件定义
 let opName = {
     "sendFileInfo": "准备发送文件",
@@ -109,6 +111,9 @@ function listen(io) {
     io.sockets.on('connection', function (socket) {
 
         var handler = new SocketHandler(io.sockets, socket);
+
+        // 通知一下在线人数
+        handler._count()
 
         // 断开连接
         socket.on('disconnect', async function (reason) {
@@ -184,26 +189,14 @@ function listen(io) {
                 sid: socket.id,
                 ip: ip,
                 device: userAgent,
-                content: JSON.stringify({
-                    openSendBug: true,
-                    openScreen: true,
-                    openOnlineUser: true,
-                    openShareRoom: true,
-                    openScreenShare: true,
-                    openVideoShare: true,
-                    openPasswordRoom: true,
-                    openFileTransfer: true,
-                    openTxtTransfer: true,
-                    openCommRoom: true,
-                    openRefleshRoom: true,
-                    allowNumber: true,
-                    allowChinese: true,
-                    allowSymbol: true,
-                })
+                content: ""
             })
             let switchData = JSON.parse(manageInfo.content)
             if (switchData && switchData.keys) {
                 delete switchData.keys;
+            }
+            if(switchData){
+                cacheSwitchData = switchData
             }
             handler._message({
                 emitType: "commData",
@@ -622,6 +615,17 @@ function listen(io) {
         // 公共聊天频道
         socket.on('chating', async function (message) {
             try {
+                if(!cacheSwitchData.openCommRoom){
+                    handler._message({
+                        room: message.room,
+                        emitType: "tips",
+                        to: socket.id,
+                        msg: "当前功能已暂时关闭，有问题可以加群交流"
+                    }, {})
+                    return
+                }
+                message.time = new Date().toLocaleString()
+
                 if (chating.length < 10) {
                     chating.push(message)
                 } else {
@@ -629,7 +633,6 @@ function listen(io) {
                     chating.push(message)
                 }
 
-                message.time = new Date().toLocaleString()
                 handler._chating(message, {})
 
                 let handshake = socket.handshake
@@ -643,7 +646,7 @@ function listen(io) {
                     socketId: message.socketId,
                     device: userAgent,
                     flag: 0,
-                    content: decodeURIComponent(message.msg),
+                    content: message.msg,
                     handshake: JSON.stringify(handshake),
                     ip: ip
                 });
@@ -651,7 +654,7 @@ function listen(io) {
                 sendChatingNotify({
                     title: '公共聊天频道',
                     room: message.room,
-                    recoderId: message.recoderId,
+                    recoderId: recoderId,
                     msgRecoderId: recoderId,
                     socketId: message.socketId,
                     msg: message.msg,
@@ -671,10 +674,30 @@ function listen(io) {
 
         // openai聊天
         socket.on('openai', async function (message) {
+            if(!cacheSwitchData.openAiChat){
+                handler._message({
+                    room: message.room,
+                    emitType: "tips",
+                    to: socket.id,
+                    msg: "当前功能已暂时关闭，有问题可以加群交流"
+                }, {})
+                return
+            }
+
             let roomId = message.room || 10086;
             let content = message.content;
+            let value = message.value;
+            if(value){
+                value = value.substr(0, 1000)
+            }
+
+            // 有上下文，结合上下文
             if(content){
                 content = content.substr(0, 5000);
+                content += "。\n，在上面的基础上继续回答 "+value+"，并且注意如果我的提问内容或者你的回答内容涉及政治，请回复 “我已经被设置关闭涉政问答功能” ";
+            }else{
+                // 没有就默认
+                content = value;
             }
 
             let handshake = socket.handshake
@@ -684,6 +707,7 @@ function listen(io) {
             message.time = new Date().toLocaleString()
             message.type = "openai";
             message.content = await openai.openaiChat(content, roomId);
+            message.value = "";
             handler._openaiChat(message)
 
             await dogData({

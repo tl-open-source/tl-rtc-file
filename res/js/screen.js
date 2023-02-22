@@ -63,8 +63,10 @@ var screen = new Vue({
                 that.times += 1;
                 window.Bus.$emit("changeScreenTimes", that.times)
                 $("#screen").css("color","#fb0404")
+                $("#screenTimes").css("color","#fb0404")
                 setTimeout(() => {
-                    $("#screen").css("color","#000000")
+                    $("#screen").css("color","#ffffff")
+                    $("#screenTimes").css("color","#ffffff")
                 }, 500)
             }, 1000);
 

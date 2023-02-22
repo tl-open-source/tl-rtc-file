@@ -97,9 +97,11 @@ var videoShare = new Vue({
                 that.times += 1;
                 window.Bus.$emit("changeVideoShareTimes", that.times)
                 
-                $("#videoShare").css("fill", "#fb0404")
+                $("#videoShare").css("color", "#fb0404")
+                $("#videoShareTimes").css("color", "#fb0404")
                 setTimeout(() => {
-                    $("#videoShare").css("fill", "#000000")
+                    $("#videoShare").css("color", "#ffffff")
+                    $("#videoShareTimes").css("color", "#ffffff")
                 }, 500)
             }, 1000);
 

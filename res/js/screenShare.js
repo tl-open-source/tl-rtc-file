@@ -71,8 +71,10 @@ var screenShare = new Vue({
                 that.times += 1;
                 window.Bus.$emit("changeScreenShareTimes", that.times)
                 $("#screenShare").css("fill","#fb0404")
+                $("#screenShareTimes").css("fill","#fb0404")
                 setTimeout(() => {
-                    $("#screenShare").css("fill","#000000")
+                    $("#screenShare").css("fill","#ffffff")
+                    $("#screenShareTimes").css("fill","#ffffff")
                 }, 500)
             }, 1000);
 
