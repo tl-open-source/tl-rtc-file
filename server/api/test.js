@@ -1,4 +1,4 @@
-export default defineEventHandler(() => {
+export default defineEventHandler((e) => {
     return {
       title: 'Mount Everest',
       description: "Mount Everest is Earth's highest mountain above sea level, located in the Mahalangur Himal sub-range of the Himalayas. The China–Nepal border runs across its summit point",

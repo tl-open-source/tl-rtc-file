@@ -1,0 +1,3362 @@
+/*
+  ColorUi for MP-weixin  v2.1.4 | by 文晓港 2019年4月25日19:15:42
+  仅供学习交流，如作它用所承受的法律责任一概与作者无关
+  使用ColorUi开发扩展与插件时，请注明基于ColorUi开发
+
+  （QQ交流群：240787041）
+*/
+
+/* ==================
+        初始化
+ ==================== */
+ body {
+	/* Color 可以自定义相关配色 */
+	/* var属性兼容性 --> https://www.caniuse.com/#feat=css-variables */
+	/* 标准色 */
+	--red: #e54d42;
+	--orange: #f37b1d;
+	--yellow: #fbbd08;
+	--olive: #8dc63f;
+	--green: #39b54a;
+	--cyan: #1cbbb4;
+	--blue: #0081ff;
+	--purple: #6739b6;
+	--mauve: #9c26b0;
+	--pink: #e03997;
+	--brown: #a5673f;
+	--grey: #8799a3;
+	--black: #333333;
+	--darkGray: #666666;
+	--gray: #aaaaaa;
+	--ghostWhite: #f1f1f1;
+	--white: #ffffff;
+	/* 浅色 */
+	--redLight: #fadbd9;
+	--orangeLight: #fde6d2;
+	--yellowLight: #fef2ce;
+	--oliveLight: #e8f4d9;
+	--greenLight: #d7f0db;
+	--cyanLight: #d2f1f0;
+	--blueLight: #cce6ff;
+	--purpleLight: #e1d7f0;
+	--mauveLight: #ebd4ef;
+	--pinkLight: #f9d7ea;
+	--brownLight: #ede1d9;
+	--greyLight: #e7ebed;
+	/* 渐变色 */
+	--gradualRed: linear-gradient(45deg, #f43f3b, #ec008c);
+	--gradualOrange: linear-gradient(45deg, #ff9700, #ed1c24);
+	--gradualGreen: linear-gradient(45deg, #39b54a, #8dc63f);
+	--gradualPurple: linear-gradient(45deg, #9000ff, #5e00ff);
+	--gradualPink: linear-gradient(45deg, #ec008c, #6739b6);
+	--gradualBlue: linear-gradient(45deg, #0081ff, #1cbbb4);
+	/* 阴影透明色 */
+	--ShadowSize: 6rpx 6rpx 8rpx;
+	--redShadow: rgba(204, 69, 59, 0.2);
+	--orangeShadow: rgba(217, 109, 26, 0.2);
+	--yellowShadow: rgba(224, 170, 7, 0.2);
+	--oliveShadow: rgba(124, 173, 55, 0.2);
+	--greenShadow: rgba(48, 156, 63, 0.2);
+	--cyanShadow: rgba(28, 187, 180, 0.2);
+	--blueShadow: rgba(0, 102, 204, 0.2);
+	--purpleShadow: rgba(88, 48, 156, 0.2);
+	--mauveShadow: rgba(133, 33, 150, 0.2);
+	--pinkShadow: rgba(199, 50, 134, 0.2);
+	--brownShadow: rgba(140, 88, 53, 0.2);
+	--greyShadow: rgba(114, 130, 138, 0.2);
+	--grayShadow: rgba(114, 130, 138, 0.2);
+	--blackShadow: rgba(26, 26, 26, 0.2);
+
+	background-color: var(--white);
+	font-size: 14px;
+	color: var(--black);
+	height:100vh;
+	font-family: Helvetica Neue, Helvetica, sans-serif;
+}
+
+div,
+button,
+input,
+textarea,
+label,
+img {
+	box-sizing: border-box;
+}
+
+.round {
+	border-radius: 5000px;
+}
+
+.radius {
+	border-radius: 3px;
+}
+
+/* ==================
+          图片
+ ==================== */
+
+img {
+	max-width: 100%;
+	display: inline-block;
+	position: relative;
+	z-index: 0;
+}
+
+img.loading::before {
+	content: "";
+	background-color: #f5f5f5;
+	display: block;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: -2;
+}
+
+img.loading::after {
+	content: "\e7f1";
+	font-family: "cuIcon";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+	right: 0;
+	bottom: 0;
+	z-index: -1;
+	font-size: 16px;
+	margin: auto;
+	color: #ccc;
+	-webkit-animation: cuIcon-spin 2s infinite linear;
+	animation: cuIcon-spin 2s infinite linear;
+	display: block;
+}
+
+.response {
+	width: 100%;
+}
+
+
+/* ==================
+          边框
+ ==================== */
+
+/* -- 实线 -- */
+
+.solid,
+.solid-top,
+.solid-right,
+.solid-bottom,
+.solid-left,
+.solids,
+.solids-top,
+.solids-right,
+.solids-bottom,
+.solids-left,
+.dashed,
+.dashed-top,
+.dashed-right,
+.dashed-bottom,
+.dashed-left {
+	position: relative;
+}
+
+.solid::after,
+.solid-top::after,
+.solid-right::after,
+.solid-bottom::after,
+.solid-left::after,
+.solids::after,
+.solids-top::after,
+.solids-right::after,
+.solids-bottom::after,
+.solids-left::after,
+.dashed::after,
+.dashed-top::after,
+.dashed-right::after,
+.dashed-bottom::after,
+.dashed-left::after {
+	content: " ";
+	width: 200%;
+	height: 200%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	border-radius: inherit;
+	transform: scale(0.5);
+	transform-origin: 0 0;
+	pointer-events: none;
+	box-sizing: border-box;
+}
+
+.solid::after {
+	border: 1px solid #d9d9d9;
+}
+
+.solid-top::after {
+	border-top: 1px solid #d9d9d9;
+}
+
+.solid-right::after {
+	border-right: 1px solid #d9d9d9;
+}
+
+.solid-bottom::after {
+	border-bottom: 1px solid #d9d9d9;
+}
+
+.solid-left::after {
+	border-left: 1px solid #d9d9d9;
+}
+
+.solids::after {
+	border: 4px solid #eee;
+}
+
+.solids-top::after {
+	border-top: 4px solid #eee;
+}
+
+.solids-right::after {
+	border-right: 4px solid #eee;
+}
+
+.solids-bottom::after {
+	border-bottom: 4px solid #eee;
+}
+
+.solids-left::after {
+	border-left: 4px solid #eee;
+}
+
+/* -- 虚线 -- */
+
+.dashed::after {
+	border: 1px dashed #ddd;
+}
+
+.dashed-top::after {
+	border-top: 1px dashed #ddd;
+}
+
+.dashed-right::after {
+	border-right: 1px dashed #ddd;
+}
+
+.dashed-bottom::after {
+	border-bottom: 1px dashed #ddd;
+}
+
+.dashed-left::after {
+	border-left: 1px dashed #ddd;
+}
+
+/* -- 阴影 -- */
+
+.shadow[class*='white'] {
+	--ShadowSize: 0 1px 3px;
+}
+
+.shadow-lg {
+	--ShadowSize: 0px 20px 50px 0px;
+}
+
+.shadow-warp {
+	position: relative;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-warp:before,
+.shadow-warp:after {
+	position: absolute;
+	content: "";
+	top: 10px;
+	bottom: 15px;
+	left: 10px;
+	width: 50%;
+	box-shadow: 0 15px 10px rgba(0, 0, 0, 0.2);
+	transform: rotate(-3deg);
+	z-index: -1;
+}
+
+.shadow-warp:after {
+	right: 10px;
+	left: auto;
+	transform: rotate(3deg);
+}
+
+.shadow-blur {
+	position: relative;
+}
+
+.shadow-blur::before {
+	content: "";
+	display: block;
+	background: inherit;
+	filter: blur(5px);
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 5px;
+	left: 5px;
+	z-index: -1;
+	opacity: 0.4;
+	transform-origin: 0 0;
+	border-radius: inherit;
+	transform: scale(1, 1);
+}
+
+/* ==================
+          徽章
+ ==================== */
+
+.cu-tag {
+	font-size: 12px;
+	vertical-align: middle;
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	padding: 0px 8px;
+	height: 24px;
+	white-space: nowrap;
+}
+
+.cu-tag:not([class*="bg"]):not([class*="line"]) {
+	background-color: var(--ghostWhite);
+}
+
+.cu-tag[class*="line-"]::after {
+	content: " ";
+	width: 200%;
+	height: 200%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	border: 1px solid currentColor;
+	transform: scale(0.5);
+	transform-origin: 0 0;
+	box-sizing: border-box;
+	border-radius: inherit;
+	z-index: 1;
+	pointer-events: none;
+}
+
+.cu-tag.radius[class*="line"]::after {
+	border-radius: 6px;
+}
+
+.cu-tag.round[class*="line"]::after {
+	border-radius: 1000px;
+}
+
+.cu-tag[class*="line-"]::after {
+	border-radius: 0;
+}
+
+.cu-tag+.cu-tag {
+	margin-left: 5px;
+}
+
+.cu-tag.sm {
+	font-size: 10px;
+	padding: 0px 6px;
+	height: 16px;
+}
+
+.cu-capsule {
+	display: inline-flex;
+	vertical-align: middle;
+}
+
+.cu-capsule+.cu-capsule {
+	margin-left: 5px;
+}
+
+.cu-capsule .cu-tag {
+	margin: 0;
+}
+
+.cu-capsule .cu-tag[class*="line-"]:last-child::after {
+	border-left: 0px solid transparent;
+}
+
+.cu-capsule .cu-tag[class*="line-"]:first-child::after {
+	border-right: 0px solid transparent;
+}
+
+.cu-capsule.radius .cu-tag:first-child {
+	border-top-left-radius: 3px;
+	border-bottom-left-radius: 3px;
+}
+
+.cu-capsule.radius .cu-tag:last-child::after,
+.cu-capsule.radius .cu-tag[class*="line-"] {
+	border-top-right-radius: 6px;
+	border-bottom-right-radius: 6px;
+}
+
+.cu-capsule.round .cu-tag:first-child {
+	border-top-left-radius: 100px;
+	border-bottom-left-radius: 100px;
+	text-indent: 2px;
+}
+
+.cu-capsule.round .cu-tag:last-child::after,
+.cu-capsule.round .cu-tag:last-child {
+	border-top-right-radius: 100px;
+	border-bottom-right-radius: 100px;
+	text-indent: -2px;
+}
+
+.cu-tag.badge {
+	border-radius: 100px;
+	position: absolute;
+	top: -5px;
+	right: -5px;
+	font-size: 10px;
+	padding: 0px 5px;
+	height: 14px;
+	color: var(--white);
+}
+
+.cu-tag.badge:not([class*="bg-"]) {
+	background-color: #dd514c;
+}
+
+.cu-tag:empty:not([class*="cuIcon-"]) {
+	padding: 0px;
+	width: 8px;
+	height: 8px;
+	top: -2px;
+	right: -2px;
+}
+
+.cu-tag[class*="cuIcon-"] {
+	width: 16px;
+	height: 16px;
+	top: -2px;
+	right: -2px;
+}
+
+/* ==================
+          头像
+ ==================== */
+
+.cu-avatar {
+	font-variant: small-caps;
+	margin: 0;
+	padding: 0;
+	display: inline-flex;
+	text-align: center;
+	justify-content: center;
+	align-items: center;
+	background-color: #ccc;
+	color: var(--white);
+	white-space: nowrap;
+	position: relative;
+	width: 32px;
+	height: 32px;
+	background-size: cover;
+	background-position: center;
+	vertical-align: middle;
+	font-size: 1.5em;
+}
+
+.cu-avatar.sm {
+	width: 24px;
+	height: 24px;
+	font-size: 1em;
+}
+
+.cu-avatar.lg {
+	width: 48px;
+	height: 48px;
+	font-size: 2em;
+}
+
+.cu-avatar.xl {
+	width: 64px;
+	height: 64px;
+	font-size: 2.5em;
+}
+
+.cu-avatar .avatar-text {
+	font-size: 0.4em;
+}
+
+.cu-avatar-group {
+	direction: rtl;
+	unicode-bidi: bidi-override;
+	padding: 0 5px 0 20px;
+	display: inline-block;
+}
+
+.cu-avatar-group .cu-avatar {
+	margin-left: -15px;
+	border: 2px solid var(--ghostWhite);
+	vertical-align: middle;
+}
+
+.cu-avatar-group .cu-avatar.sm {
+	margin-left: -10px;
+	border: 1px solid var(--ghostWhite);
+}
+
+/* ==================
+         进度条
+ ==================== */
+
+.cu-progress {
+	overflow: hidden;
+	height: 14px;
+	background-color: #ebeef5;
+	display: inline-flex;
+	align-items: center;
+	width: 100%;
+}
+
+.cu-progress+div,
+.cu-progress+span {
+	line-height: 1;
+}
+
+.cu-progress.xs {
+	height: 5px;
+}
+
+.cu-progress.sm {
+	height: 10px;
+}
+
+.cu-progress div {
+	width: 0;
+	height: 100%;
+	align-items: center;
+	display: flex;
+	justify-items: flex-end;
+	justify-content: space-around;
+	font-size: 10px;
+	color: var(--white);
+	transition: width 0.6s ease;
+}
+
+.cu-progress span {
+	align-items: center;
+	display: flex;
+	font-size: 10px;
+	color: var(--black);
+	text-indent: 5px;
+}
+
+.cu-progress.text-progress {
+	padding-right: 30px;
+}
+
+.cu-progress.striped div {
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+	background-size: 36px 36px;
+}
+
+.cu-progress.active div {
+	animation: progress-stripes 2s linear infinite;
+}
+
+@keyframes progress-stripes {
+	from {
+		background-position: 36px 0;
+	}
+
+	to {
+		background-position: 0 0;
+	}
+}
+
+/* ==================
+          加载
+ ==================== */
+
+.cu-load {
+	display: block;
+	line-height: 3em;
+	text-align: center;
+}
+
+.cu-load::before {
+	font-family: "cuIcon";
+	display: inline-block;
+	margin-right: 3px;
+}
+
+.cu-load.loading::before {
+	content: "\e67a";
+	animation: cuIcon-spin 2s infinite linear;
+}
+
+.cu-load.loading::after {
+	content: "加载中...";
+}
+
+.cu-load.over::before {
+	content: "\e64a";
+}
+
+.cu-load.over::after {
+	content: "没有更多了";
+}
+
+.cu-load.erro::before {
+	content: "\e658";
+}
+
+.cu-load.erro::after {
+	content: "加载失败";
+}
+
+.cu-load.load-icon::before {
+	font-size: 16px;
+}
+
+.cu-load.load-icon::after {
+	display: none;
+}
+
+.cu-load.load-icon.over {
+	display: none;
+}
+
+.cu-load.load-modal {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 120px;
+	left: 0;
+	margin: auto;
+	width: 130px;
+	height: 130px;
+	background-color: var(--white);
+	border-radius: 5px;
+	box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+	font-size: 14px;
+	z-index: 9999;
+	line-height: 2.4em;
+}
+
+.cu-load.load-modal [class*="cuIcon-"] {
+	font-size: 30px;
+}
+
+.cu-load.load-modal img {
+	width: 35px;
+	height: 35px;
+}
+
+.cu-load.load-modal::after {
+	content: "";
+	position: absolute;
+	background-color: var(--white);
+	border-radius: 50%;
+	width: 100px;
+	height: 100px;
+	font-size: 10px;
+	border-top: 3px solid rgba(0, 0, 0, 0.05);
+	border-right: 3px solid rgba(0, 0, 0, 0.05);
+	border-bottom: 3px solid rgba(0, 0, 0, 0.05);
+	border-left: 3px solid var(--orange);
+	animation: cuIcon-spin 1s infinite linear;
+	z-index: -1;
+}
+
+.load-progress {
+	pointer-events: none;
+	top: 0;
+	position: fixed;
+	width: 100%;
+	left: 0;
+	z-index: 2000;
+}
+
+.load-progress.hide {
+	display: none;
+}
+
+.load-progress .load-progress-bar {
+	position: relative;
+	width: 100%;
+	height: 2px;
+	overflow: hidden;
+	transition: all 200ms ease 0s;
+}
+
+.load-progress .load-progress-spinner {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	z-index: 2000;
+	display: block;
+}
+
+.load-progress .load-progress-spinner::after {
+	content: "";
+	display: block;
+	width: 12px;
+	height: 12px;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+	border: solid 2px transparent;
+	border-top-color: inherit;
+	border-left-color: inherit;
+	border-radius: 50%;
+	-webkit-animation: load-progress-spinner 0.4s linear infinite;
+	animation: load-progress-spinner 0.4s linear infinite;
+}
+
+@-webkit-keyframes load-progress-spinner {
+	0% {
+		-webkit-transform: rotate(0);
+		transform: rotate(0);
+	}
+
+	100% {
+		-webkit-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes load-progress-spinner {
+	0% {
+		-webkit-transform: rotate(0);
+		transform: rotate(0);
+	}
+
+	100% {
+		-webkit-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+}
+
+/* ==================
+          列表
+ ==================== */
+.grayscale {
+	filter: grayscale(1);
+}
+
+.cu-list+.cu-list {
+	margin-top: 15px
+}
+
+.cu-list>.cu-item {
+	transition: all .6s ease-in-out 0s;
+	transform: translateX(0px)
+}
+
+.cu-list>.cu-item.move-cur {
+	transform: translateX(-130px)
+}
+
+.cu-list>.cu-item .move {
+	position: absolute;
+	right: 0;
+	display: flex;
+	width: 130px;
+	height: 100%;
+	transform: translateX(100%)
+}
+
+.cu-list>.cu-item .move div {
+	display: flex;
+	flex: 1;
+	justify-content: center;
+	align-items: center
+}
+
+.cu-list.menu-avatar {
+	overflow: hidden;
+}
+
+.cu-list.menu-avatar>.cu-item {
+	position: relative;
+	display: flex;
+	padding-right: 5px;
+	height: 120px;
+	background-color: var(--white);
+	justify-content: flex-end;
+	align-items: center
+}
+
+.cu-list.menu-avatar>.cu-item>.cu-avatar {
+	position: absolute;
+	left: 15px
+}
+
+.cu-list.menu-avatar>.cu-item .flex .text-cut {
+	max-width: 260px
+}
+
+.cu-list.menu-avatar>.cu-item .content {
+	position: absolute;
+	left: 73px;
+	width: calc(100% - 48px - 30px - 60px - 10px);
+	line-height: 1.6em;
+}
+
+.cu-list.menu-avatar>.cu-item .content.flex-sub {
+	width: calc(100% - 48px - 30px - 10px);
+}
+
+.cu-list.menu-avatar>.cu-item .content>div:first-child {
+	font-size: 15px;
+	display: flex;
+	align-items: center
+}
+
+.cu-list.menu-avatar>.cu-item .content .cu-tag.sm {
+	display: inline-block;
+	margin-left: 5px;
+	height: 14px;
+	font-size: 8px;
+	line-height: 16px
+}
+
+.cu-list.menu-avatar>.cu-item .action {
+	width: 50px;
+	text-align: center
+}
+
+.cu-list.menu-avatar>.cu-item .action div+div {
+	margin-top: 5px
+}
+
+.cu-list.menu-avatar.comment>.cu-item .content {
+	position: relative;
+	left: 0;
+	width: auto;
+	flex: 1;
+}
+
+.cu-list.menu-avatar.comment>.cu-item {
+	padding: 15px 15px 15px 60px;
+	height: auto
+}
+
+.cu-list.menu-avatar.comment .cu-avatar {
+	align-self: flex-start
+}
+
+.cu-list.menu>.cu-item {
+	position: relative;
+	display: flex;
+	padding: 0 15px;
+	min-height: 50px;
+	background-color: var(--white);
+	justify-content: space-between;
+	align-items: center
+}
+
+.cu-list.menu>.cu-item:last-child:after {
+	border: none
+}
+
+.cu-list.menu>.cu-item:after {
+	position: absolute;
+	top: 0;
+	left: 0;
+	box-sizing: border-box;
+	width: 200%;
+	height: 200%;
+	border-bottom: 1px solid #ddd;
+	border-radius: inherit;
+	content: " ";
+	transform: scale(.5);
+	transform-origin: 0 0;
+	pointer-events: none
+}
+
+.cu-list.menu>.cu-item.grayscale {
+	background-color: #f5f5f5
+}
+
+.cu-list.menu>.cu-item.cur {
+	background-color: #fcf7e9
+}
+
+.cu-list.menu>.cu-item.arrow {
+	padding-right: 45px
+}
+
+.cu-list.menu>.cu-item.arrow:before {
+	position: absolute;
+	top: 0;
+	right: 15px;
+	bottom: 0;
+	display: block;
+	margin: auto;
+	width: 15px;
+	height: 15px;
+	color: var(--grey);
+	content: "\e6a3";
+	text-align: center;
+	font-size: 17px;
+	font-family: "cuIcon";
+	line-height: 15px
+}
+
+.cu-list.menu>.cu-item button.content {
+	padding: 0;
+	background-color: transparent;
+	justify-content: flex-start
+}
+
+.cu-list.menu>.cu-item button.content:after {
+	display: none
+}
+
+.cu-list.menu>.cu-item .cu-avatar-group .cu-avatar {
+	border-color: var(--white)
+}
+
+.cu-list.menu>.cu-item .content>div:first-child {
+	display: flex;
+	align-items: center
+}
+
+.cu-list.menu>.cu-item .content>span[class*=cuIcon] {
+	display: inline-block;
+	margin-right: 5px;
+	width: 1.6em;
+	text-align: center
+}
+
+.cu-list.menu>.cu-item .content>img {
+	display: inline-block;
+	margin-right: 5px;
+	width: 1.6em;
+	height: 1.6em;
+	vertical-align: middle
+}
+
+.cu-list.menu>.cu-item .content {
+	font-size: 15px;
+	line-height: 1.6em;
+	flex: 1
+}
+
+.cu-list.menu>.cu-item .content .cu-tag.sm {
+	display: inline-block;
+	margin-left: 5px;
+	height: 14px;
+	font-size: 8px;
+	line-height: 16px
+}
+
+.cu-list.menu>.cu-item .action .cu-tag:empty {
+	right: 5px
+}
+
+.cu-list.menu {
+	display: block;
+	overflow: hidden
+}
+
+.cu-list.menu.sm-border>.cu-item:after {
+	left: 15px;
+	width: calc(200% - 60px)
+}
+
+.cu-list.grid>.cu-item {
+	position: relative;
+	display: flex;
+	padding: 10px 0 15px;
+	transition-duration: 0s;
+	flex-direction: column
+}
+
+.cu-list.grid>.cu-item:after {
+	position: absolute;
+	top: 0;
+	left: 0;
+	box-sizing: border-box;
+	width: 200%;
+	height: 200%;
+	border-right: 1px solid rgba(0, 0, 0, .1);
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+	border-radius: inherit;
+	content: " ";
+	transform: scale(.5);
+	transform-origin: 0 0;
+	pointer-events: none
+}
+
+.cu-list.grid>.cu-item span {
+	display: block;
+	margin-top: 5px;
+	color: #888;
+	font-size: 13px;
+	line-height: 20px
+}
+
+.cu-list.grid>.cu-item [class*=cuIcon] {
+	position: relative;
+	display: block;
+	margin-top: 10px;
+	width: 100%;
+	font-size: 24px
+}
+
+.cu-list.grid>.cu-item .cu-tag {
+	right: auto;
+	left: 50%;
+	margin-left: 10px
+}
+
+.cu-list.grid {
+	background-color: var(--white);
+	text-align: center
+}
+
+.cu-list.grid.no-border>.cu-item {
+	padding-top: 5px;
+	padding-bottom: 10px
+}
+
+.cu-list.grid.no-border>.cu-item:after {
+	border: none
+}
+
+.cu-list.grid.no-border {
+	padding: 10px 5px
+}
+
+.cu-list.grid.col-3>.cu-item:nth-child(3n):after,
+.cu-list.grid.col-4>.cu-item:nth-child(4n):after,
+.cu-list.grid.col-5>.cu-item:nth-child(5n):after {
+	border-right-width: 0
+}
+
+.cu-list.card-menu {
+	overflow: hidden;
+	margin-right: 15px;
+	margin-left: 15px;
+	border-radius: 10px
+}
+
+
+/* ==================
+          操作条
+ ==================== */
+
+.cu-bar {
+	display: flex;
+	position: relative;
+	align-items: center;
+	min-height: 50px;
+	justify-content: space-between;
+}
+
+.cu-bar .action {
+	display: flex;
+	align-items: center;
+	height: 100%;
+	justify-content: center;
+	max-width: 100%;
+}
+
+.cu-bar .action.border-title {
+	position: relative;
+	top: -5px;
+}
+
+.cu-bar .action.border-title span[class*="bg-"]:last-child {
+	position: absolute;
+	bottom: -0.5rem;
+	min-width: 2rem;
+	height: 3px;
+	left: 0;
+}
+
+.cu-bar .action.sub-title {
+	position: relative;
+	top: -0.2rem;
+}
+
+.cu-bar .action.sub-title span {
+	position: relative;
+	z-index: 1;
+}
+
+.cu-bar .action.sub-title span[class*="bg-"]:last-child {
+	position: absolute;
+	display: inline-block;
+	bottom: -0.2rem;
+	border-radius: 3px;
+	width: 100%;
+	height: 0.6rem;
+	left: 0.6rem;
+	opacity: 0.3;
+	z-index: 0;
+}
+
+.cu-bar .action.sub-title span[class*="text-"]:last-child {
+	position: absolute;
+	display: inline-block;
+	bottom: -0.7rem;
+	left: 0.5rem;
+	opacity: 0.2;
+	z-index: 0;
+	text-align: right;
+	font-weight: 900;
+	font-size: 18px;
+}
+
+.cu-bar.justify-center .action.border-title span:last-child,
+.cu-bar.justify-center .action.sub-title span:last-child {
+	left: 0;
+	right: 0;
+	margin: auto;
+	text-align: center;
+}
+
+.cu-bar .action:first-child {
+	margin-left: 15px;
+	font-size: 15px;
+}
+
+.cu-bar .action span.text-cut {
+	text-align: left;
+	width: 100%;
+}
+
+.cu-bar .cu-avatar:first-child {
+	margin-left: 10px;
+}
+
+.cu-bar .action:first-child>span[class*="cuIcon-"] {
+	margin-left: -0.3em;
+	margin-right: 0.3em;
+}
+
+.cu-bar .action:last-child {
+	margin-right: 15px;
+}
+
+.cu-bar .action>span[class*="cuIcon-"],
+.cu-bar .action>div[class*="cuIcon-"] {
+	font-size: 18px;
+}
+
+.cu-bar .action>span[class*="cuIcon-"]+span[class*="cuIcon-"] {
+	margin-left: 0.5em;
+}
+
+.cu-bar .content {
+	position: absolute;
+	text-align: center;
+	width: calc(100% - 320px);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	top: 0;
+	margin: auto;
+	height: 30px;
+	font-size: 16px;
+	line-height: 30px;
+	cursor: none;
+	pointer-events: none;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.cu-bar.ios .content {
+	bottom: 7px;
+	height: 30px;
+	font-size: 16px;
+	line-height: 30px;
+}
+
+.cu-bar.btn-group {
+	justify-content: space-around;
+}
+
+.cu-bar.btn-group button {
+	padding: 10px 16px;
+}
+
+.cu-bar.btn-group button {
+	flex: 1;
+	margin: 0 10px;
+	max-width: 50%;
+}
+
+.cu-bar .search-form {
+	background-color: #f5f5f5;
+	line-height: 32px;
+	height: 32px;
+	font-size: 12px;
+	color: var(--black);
+	flex: 1;
+	display: flex;
+	align-items: center;
+	margin: 0 15px;
+}
+
+.cu-bar .search-form+.action {
+	margin-right: 15px;
+}
+
+.cu-bar .search-form input {
+	flex: 1;
+	padding-right: 15px;
+	height: 32px;
+	line-height: 32px;
+	font-size: 13px;
+	background-color: transparent;
+}
+
+.cu-bar .search-form [class*="cuIcon-"] {
+	margin: 0 0.5em 0 0.8em;
+}
+
+.cu-bar .search-form [class*="cuIcon-"]::before {
+	top: 0px;
+}
+
+.cu-bar.fixed,
+.nav.fixed {
+	position: fixed;
+	width: 100%;
+	top: 0;
+	z-index: 1024;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cu-bar.foot {
+	position: fixed;
+	width: 100%;
+	bottom: 0;
+	z-index: 1024;
+	box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cu-bar.tabbar {
+	padding: 0;
+	height: calc(50px + env(safe-area-inset-bottom) / 2);
+	padding-bottom: calc(env(safe-area-inset-bottom) / 2);
+}
+
+.cu-tabbar-height {
+	min-height: 50px;
+	height: calc(50px + env(safe-area-inset-bottom) / 2);
+}
+
+.cu-bar.tabbar.shadow {
+	box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cu-bar.tabbar .action {
+	font-size: 12px;
+	position: relative;
+	flex: 1;
+	text-align: center;
+	padding: 0;
+	display: block;
+	height: auto;
+	line-height: 1;
+	margin: 0;
+	overflow: initial;
+}
+
+.cu-bar.tabbar.shop .action {
+	width: 120px;
+	flex: initial;
+}
+
+.cu-bar.tabbar .action.add-action {
+	position: relative;
+	z-index: 2;
+	padding-top: 26px;
+	background-color: inherit;
+}
+
+.cu-bar.tabbar .action.add-action [class*="cuIcon-"] {
+	position: absolute;
+	width: 35px;
+	z-index: 2;
+	height: 36px;
+	border-radius: 50%;
+	line-height: 36px;
+	font-size: 26px;
+	top: -18px;
+	left: 0;
+	right: 0;
+	margin: auto;
+	padding: 0;
+}
+
+.cu-bar.tabbar .action.add-action::after {
+	content: "";
+	position: absolute;
+	width: 50px;
+	height: 50px;
+	top: -25px;
+	left: 0;
+	right: 0;
+	margin: auto;
+	box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.08);
+	border-radius: 25px;
+	background-color: inherit;
+	z-index: 0;
+}
+
+.cu-bar.tabbar .action.add-action::before {
+	content: "";
+	position: absolute;
+	width: 50px;
+	height: 15px;
+	bottom: 15px;
+	left: 0;
+	right: 0;
+	margin: auto;
+	background-color: inherit;
+	z-index: 1;
+}
+
+.cu-bar.tabbar .btn-group {
+	flex: 1;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	padding: 0 5px;
+}
+
+.cu-bar.tabbar button.action::after {
+	border: 0;
+}
+
+.cu-bar.tabbar .action [class*="cuIcon-"] {
+	width: 50px;
+	position: relative;
+	display: block;
+	height: auto;
+	margin: 0 auto 5px;
+	text-align: center;
+	font-size: 20px;
+}
+
+.cu-bar.tabbar .action .cuIcon-cu-img {
+	margin: 0 auto;
+}
+
+.cu-bar.tabbar .action .cuIcon-cu-img img {
+	width: 25px;
+	height: 25px;
+	display: inline-block;
+}
+
+.cu-bar.tabbar .submit {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	text-align: center;
+	position: relative;
+	flex: 2;
+	align-self: stretch;
+}
+
+.cu-bar.tabbar .submit:last-child {
+	flex: 2.6;
+}
+
+.cu-bar.tabbar .submit+.submit {
+	flex: 2;
+}
+
+.cu-bar.tabbar.border .action::before {
+	content: " ";
+	width: 200%;
+	height: 200%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform: scale(0.5);
+	transform-origin: 0 0;
+	border-right: 1px solid rgba(0, 0, 0, 0.1);
+	z-index: 3;
+}
+
+.cu-bar.tabbar.border .action:last-child:before {
+	display: none;
+}
+
+.cu-bar.input {
+	padding-right: 10px;
+	background-color: var(--white);
+}
+
+.cu-bar.input input {
+	overflow: initial;
+	line-height: 32px;
+	height: 32px;
+	min-height: 32px;
+	flex: 1;
+	font-size: 15px;
+	margin: 0 10px;
+}
+
+.cu-bar.input .action {
+	margin-left: 10px;
+}
+
+.cu-bar.input .action [class*="cuIcon-"] {
+	font-size: 24px;
+}
+
+.cu-bar.input input+.action {
+	margin-right: 10px;
+	margin-left: 0px;
+}
+
+.cu-bar.input .action:first-child [class*="cuIcon-"] {
+	margin-left: 0px;
+}
+
+.cu-custom {
+	display: block;
+	position: relative;
+}
+
+.cu-custom .cu-bar .content {
+	width: calc(100% - 420px);
+}
+
+
+.cu-custom .cu-bar .content img {
+	height: 30px;
+	width: 220px;
+}
+
+.cu-custom .cu-bar {
+	min-height: 0px;
+	padding-right: 110px;
+	box-shadow: 0px 0px 0px;
+	z-index: 9999;
+}
+
+.cu-custom .cu-bar .border-custom {
+	position: relative;
+	background: rgba(0, 0, 0, 0.15);
+	border-radius: 1000px;
+	height: 30px;
+}
+
+.cu-custom .cu-bar .border-custom::after {
+	content: " ";
+	width: 200%;
+	height: 200%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	border-radius: inherit;
+	transform: scale(0.5);
+	transform-origin: 0 0;
+	pointer-events: none;
+	box-sizing: border-box;
+	border: 1px solid var(--white);
+	opacity: 0.5;
+}
+
+.cu-custom .cu-bar .border-custom::before {
+	content: " ";
+	width: 1px;
+	height: 110%;
+	position: absolute;
+	top: 22.5%;
+	left: 0;
+	right: 0;
+	margin: auto;
+	transform: scale(0.5);
+	transform-origin: 0 0;
+	pointer-events: none;
+	box-sizing: border-box;
+	opacity: 0.6;
+	background-color: var(--white);
+}
+
+.cu-custom .cu-bar .border-custom span {
+	display: block;
+	flex: 1;
+	margin: auto !important;
+	text-align: center;
+	font-size: 18px;
+}
+
+/* ==================
+         导航栏
+ ==================== */
+
+.nav {
+	white-space: nowrap;
+}
+
+::-webkit-scrollbar {
+	display: none;
+}
+
+.nav .cu-item {
+	height: 90rpx;
+	display: inline-block;
+	line-height: 90rpx;
+	margin: 0 5px;
+	padding: 0 10px;
+}
+
+.nav .cu-item.cur {
+	border-bottom: 2px solid;
+}
+
+/* ==================
+         时间轴
+ ==================== */
+
+.cu-timeline {
+	display: block;
+	background-color: var(--white);
+}
+
+.cu-timeline .cu-time {
+	width: 60px;
+	text-align: center;
+	padding: 10px 0;
+	font-size: 13px;
+	color: #888;
+	display: block;
+}
+
+.cu-timeline>.cu-item {
+	padding: 15px 15px 15px 60px;
+	position: relative;
+	display: block;
+	z-index: 0;
+}
+
+.cu-timeline>.cu-item:not([class*="text-"]) {
+	color: #ccc;
+}
+
+.cu-timeline>.cu-item::after {
+	content: "";
+	display: block;
+	position: absolute;
+	width: 1rpx;
+	background-color: #ddd;
+	left: 60rpx;
+	height: 100%;
+	top: 0;
+	z-index: 8;
+}
+
+.cu-timeline>.cu-item::before {
+	font-family: "cuIcon";
+	display: block;
+	position: absolute;
+	top: 18px;
+	z-index: 9;
+	background-color: var(--white);
+	width: 25px;
+	height: 25px;
+	text-align: center;
+	border: none;
+	line-height: 25px;
+	left: 18px;
+}
+
+.cu-timeline>.cu-item:not([class*="cuIcon-"])::before {
+	content: "\e763";
+}
+
+.cu-timeline>.cu-item[class*="cuIcon-"]::before {
+	background-color: var(--white);
+	width: 25px;
+	height: 25px;
+	text-align: center;
+	border: none;
+	line-height: 25px;
+	left: 18px;
+}
+
+.cu-timeline>.cu-item>.content {
+	padding: 15px;
+	border-radius: 6rpx;
+	display: block;
+	line-height: 1.6;
+}
+
+.cu-timeline>.cu-item>.content:not([class*="bg-"]) {
+	background-color: var(--ghostWhite);
+	color: var(--black);
+}
+
+.cu-timeline>.cu-item>.content+.content {
+	margin-top: 10px;
+}
+
+/* ==================
+         聊天
+ ==================== */
+
+.cu-chat {
+	display: flex;
+	flex-direction: column;
+}
+
+.cu-chat .cu-item {
+	display: flex;
+	padding: 15px 15px 70rpx;
+	position: relative;
+}
+
+.cu-chat .cu-item>.cu-avatar {
+	width: 40px;
+	height: 40px;
+}
+
+.cu-chat .cu-item>.main {
+	max-width: calc(100% - 260rpx);
+	margin: 0 20px;
+	display: flex;
+	align-items: center;
+}
+
+.cu-chat .cu-item>img {
+	height: 320rpx;
+}
+
+.cu-chat .cu-item>.main .content {
+	padding: 10px;
+	border-radius: 6rpx;
+	display: inline-flex;
+	max-width: 100%;
+	align-items: center;
+	font-size: 15px;
+	position: relative;
+	min-height: 40px;
+	line-height: 20px;
+	text-align: left;
+}
+
+.cu-chat .cu-item>.main .content:not([class*="bg-"]) {
+	background-color: var(--white);
+	color: var(--black);
+}
+
+.cu-chat .cu-item .date {
+	position: absolute;
+	font-size: 12px;
+	color: var(--grey);
+	width: calc(100% - 320rpx);
+	bottom: 10px;
+	left: 160rpx;
+}
+
+.cu-chat .cu-item .action {
+	padding: 0 15px;
+	display: flex;
+	align-items: center;
+}
+
+.cu-chat .cu-item>.main .content::after {
+	content: "";
+	top: 27rpx;
+	transform: rotate(45deg);
+	position: absolute;
+	z-index: 100;
+	display: inline-block;
+	overflow: hidden;
+	width: 12px;
+	height: 12px;
+	left: -12rpx;
+	right: initial;
+	background-color: inherit;
+}
+
+.cu-chat .cu-item.self>.main .content::after {
+	left: auto;
+	right: -12rpx;
+}
+
+.cu-chat .cu-item>.main .content::before {
+	content: "";
+	top: 15px;
+	transform: rotate(45deg);
+	position: absolute;
+	z-index: -1;
+	display: inline-block;
+	overflow: hidden;
+	width: 12px;
+	height: 12px;
+	left: -12rpx;
+	right: initial;
+	background-color: inherit;
+	filter: blur(5rpx);
+	opacity: 0.3;
+}
+
+.cu-chat .cu-item>.main .content:not([class*="bg-"])::before {
+	background-color: var(--black);
+	opacity: 0.1;
+}
+
+.cu-chat .cu-item.self>.main .content::before {
+	left: auto;
+	right: -12rpx;
+}
+
+.cu-chat .cu-item.self {
+	justify-content: flex-end;
+	text-align: right;
+}
+
+.cu-chat .cu-info {
+	display: inline-block;
+	margin: 10px auto;
+	font-size: 12px;
+	padding: 8rpx 12rpx;
+	background-color: rgba(0, 0, 0, 0.2);
+	border-radius: 6rpx;
+	color: var(--white);
+	max-width: 400rpx;
+	line-height: 1.4;
+}
+
+/* ==================
+         卡片
+ ==================== */
+
+.cu-card {
+	display: block;
+	overflow: hidden;
+}
+
+.cu-card>.cu-item {
+	display: block;
+	background-color: var(--white);
+	overflow: hidden;
+	border-radius: 5px;
+	margin: 15px;
+}
+
+.cu-card>.cu-item.shadow-blur {
+	overflow: initial;
+}
+
+.cu-card.no-card>.cu-item {
+	margin: 0rpx;
+	border-radius: 0rpx;
+}
+
+.cu-card .grid.grid-square {
+	margin-bottom: -20rpx;
+}
+
+.cu-card.case .img {
+	position: relative;
+}
+
+.cu-card.case .img img {
+	width: 100%;
+}
+
+.cu-card.case .img .cu-tag {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.cu-card.case .img .cu-bar {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	background-color: transparent;
+	padding: 0rpx 15px;
+}
+
+.cu-card.case.no-card .img {
+	margin: 15px 15px 0;
+	overflow: hidden;
+	border-radius: 5px;
+}
+
+.cu-card.dynamic {
+	display: block;
+}
+
+.cu-card.dynamic>.cu-item {
+	display: block;
+	background-color: var(--white);
+	overflow: hidden;
+}
+
+.cu-card.dynamic>.cu-item>.text-content {
+	padding: 0 15px 0;
+	max-height: 6.4em;
+	overflow: hidden;
+	font-size: 15px;
+	margin-bottom: 10px;
+}
+
+.cu-card.dynamic>.cu-item .square-img {
+	width: 100%;
+	height: 200rpx;
+	border-radius: 6rpx;
+}
+
+.cu-card.dynamic>.cu-item .only-img {
+	width: 100%;
+	height: 320rpx;
+	border-radius: 6rpx;
+}
+
+.cu-card.article {
+	display: block;
+}
+
+.cu-card.article>.cu-item {
+	padding-bottom: 15px;
+}
+
+.cu-card.article>.cu-item .title {
+	font-size: 15px;
+	font-weight: 900;
+	color: var(--black);
+	line-height: 50px;
+	padding: 0 15px;
+}
+
+.cu-card.article>.cu-item .content {
+	display: flex;
+	padding: 0 15px;
+}
+
+.cu-card.article>.cu-item .content>img {
+	width: 220px;
+	height: 6.4em;
+	margin-right: 10px;
+	border-radius: 6rpx;
+}
+
+.cu-card.article>.cu-item .content .desc {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.cu-card.article>.cu-item .content .text-content {
+	font-size: 14px;
+	color: #888;
+	height: 4.8em;
+	overflow: hidden;
+}
+
+/* ==================
+         表单
+ ==================== */
+
+.cu-form-group {
+	background-color: var(--white);
+	padding: 1rpx 29rpx;
+	display: flex;
+	align-items: center;
+	min-height: 50px;
+	justify-content: space-between;
+}
+
+.cu-form-group+.cu-form-group {
+	border-top: 1rpx solid #eee;
+}
+
+.cu-form-group .title {
+	text-align: justify;
+	padding-right: 16px;
+	font-size: 16px;
+	position: relative;
+	height: 60rpx;
+	line-height: 60rpx;
+}
+
+.cu-form-group input {
+	flex: 1;
+	font-size: 15px;
+	color: #555;
+	padding-right: 10px;
+}
+
+.cu-form-group>span[class*="cuIcon-"] {
+	font-size: 18px;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.cu-form-group textarea {
+	margin: 16px 0 15px;
+	height: 4.6em;
+	width: 100%;
+	line-height: 1.2em;
+	flex: 1;
+	font-size: 14px;
+	padding: 0;
+}
+
+.cu-form-group.align-start .title {
+	height: 1em;
+	margin-top: 16px;
+	line-height: 1em;
+}
+
+
+.cu-form-group textarea[disabled],
+.cu-form-group textarea[disabled] .placeholder {
+	color: transparent;
+}
+
+/* ==================
+         模态窗口
+ ==================== */
+
+.cu-modal {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1110;
+	opacity: 0;
+	outline: 0;
+	text-align: center;
+	-ms-transform: scale(1.185);
+	transform: scale(1.185);
+	backface-visibility: hidden;
+	perspective: 2000rpx;
+	background: rgba(0, 0, 0, 0.6);
+	transition: all 0.3s ease-in-out 0s;
+	pointer-events: none;
+}
+
+.cu-modal::before {
+	content: "\200B";
+	display: inline-block;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.cu-modal.show {
+	opacity: 1;
+	transition-duration: 0.3s;
+	-ms-transform: scale(1);
+	transform: scale(1);
+	overflow-x: hidden;
+	overflow-y: auto;
+	pointer-events: auto;
+}
+
+.cu-dialog {
+	position: relative;
+	display: inline-block;
+	vertical-align: middle;
+	margin-left: auto;
+	margin-right: auto;
+	width: 640px;
+	max-width: 100%;
+	background-color: #f8f8f8;
+	border-radius: 5px;
+	overflow: hidden;
+}
+
+.cu-modal.bottom-modal::before {
+	vertical-align: bottom;
+}
+
+.cu-modal.bottom-modal .cu-dialog {
+	width: 100%;
+	border-radius: 0;
+}
+
+.cu-modal.bottom-modal {
+	margin-bottom: -1000rpx;
+}
+
+.cu-modal.bottom-modal.show {
+	margin-bottom: 0;
+}
+
+.cu-modal.drawer-modal {
+	transform: scale(1);
+	display: flex;
+}
+
+.cu-modal.drawer-modal .cu-dialog {
+	height: 100%;
+	min-width: 200rpx;
+	border-radius: 0;
+	margin: initial;
+	transition-duration: 0.3s;
+}
+
+.cu-modal.drawer-modal.justify-start .cu-dialog {
+	transform: translateX(-100%);
+}
+
+.cu-modal.drawer-modal.justify-end .cu-dialog {
+	transform: translateX(100%);
+}
+
+.cu-modal.drawer-modal.show .cu-dialog {
+	transform: translateX(0%);
+}
+.cu-modal .cu-dialog>.cu-bar:first-child .action{
+  min-width: 50px;
+  margin-right: 0;
+  min-height: 50px;
+}
+
+
+.screen-swiper img,
+.screen-swiper video,
+.swiper-item img,
+.swiper-item video {
+	width: 100%;
+	display: block;
+	height: 100%;
+	margin: 0;
+	pointer-events: none;
+}
+
+.card-swiper {
+	height: 420rpx !important;
+}
+
+.card-swiper swiper-item {
+	width: 65px !important;
+	left: 70rpx;
+	box-sizing: border-box;
+	padding: 20px 0rpx 70rpx;
+	overflow: initial;
+}
+
+.card-swiper swiper-item .swiper-item {
+	width: 100%;
+	display: block;
+	height: 100%;
+	border-radius: 5px;
+	transform: scale(0.9);
+	transition: all 0.2s ease-in 0s;
+	overflow: hidden;
+}
+
+.card-swiper swiper-item.cur .swiper-item {
+	transform: none;
+	transition: all 0.2s ease-in 0s;
+}
+
+
+.tower-swiper {
+	height: 420rpx;
+	position: relative;
+	max-width: 725px;
+	overflow: hidden;
+}
+
+.tower-swiper .tower-item {
+	position: absolute;
+	width: 300rpx;
+	height: 340px;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	margin: auto;
+	transition: all 0.2s ease-in 0s;
+	opacity: 1;
+}
+
+.tower-swiper .tower-item.none {
+	opacity: 0;
+}
+
+.tower-swiper .tower-item .swiper-item {
+	width: 100%;
+	height: 100%;
+	border-radius: 6rpx;
+	overflow: hidden;
+}
+
+/* ==================
+          步骤条
+ ==================== */
+
+.cu-steps {
+	display: flex;
+}
+
+scroll-div.cu-steps {
+	display: block;
+	white-space: nowrap;
+}
+
+scroll-div.cu-steps .cu-item {
+	display: inline-block;
+}
+
+.cu-steps .cu-item {
+	flex: 1;
+	text-align: center;
+	position: relative;
+	min-width: 50px;
+}
+
+.cu-steps .cu-item:not([class*="text-"]) {
+	color: var(--grey);
+}
+
+.cu-steps .cu-item [class*="cuIcon-"],
+.cu-steps .cu-item .num {
+	display: block;
+	font-size: 20px;
+	line-height: 40px;
+}
+
+.cu-steps .cu-item::before,
+.cu-steps .cu-item::after,
+.cu-steps.steps-arrow .cu-item::before,
+.cu-steps.steps-arrow .cu-item::after {
+	content: "";
+	display: block;
+	position: absolute;
+	height: 0px;
+	width: calc(100% - 40px);
+	border-bottom: 1px solid #ccc;
+	left: calc(0px - (100% - 40px) / 2);
+	top: 20px;
+	z-index: 0;
+}
+
+.cu-steps.steps-arrow .cu-item::before,
+.cu-steps.steps-arrow .cu-item::after {
+	content: "\e6a3";
+	font-family: "cuIcon";
+	height: 15px;
+	border-bottom-width: 0px;
+	line-height: 15px;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	color: #ccc;
+}
+
+.cu-steps.steps-bottom .cu-item::before,
+.cu-steps.steps-bottom .cu-item::after {
+	bottom: 20px;
+	top: initial;
+}
+
+.cu-steps .cu-item::after {
+	border-bottom: 1px solid currentColor;
+	width: 0px;
+	transition: all 0.3s ease-in-out 0s;
+}
+
+.cu-steps .cu-item[class*="text-"]::after {
+	width: calc(100% - 40px);
+	color: currentColor;
+}
+
+.cu-steps .cu-item:first-child::before,
+.cu-steps .cu-item:first-child::after {
+	display: none;
+}
+
+.cu-steps .cu-item .num {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	line-height: 20px;
+	margin: 10px auto;
+	font-size: 12px;
+	border: 1px solid currentColor;
+	position: relative;
+	overflow: hidden;
+}
+
+.cu-steps .cu-item[class*="text-"] .num {
+	background-color: currentColor;
+}
+
+.cu-steps .cu-item .num::before,
+.cu-steps .cu-item .num::after {
+	content: attr(data-index);
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	transition: all 0.3s ease-in-out 0s;
+	transform: translateY(0rpx);
+}
+
+.cu-steps .cu-item[class*="text-"] .num::before {
+	transform: translateY(-20px);
+	color: var(--white);
+}
+
+.cu-steps .cu-item .num::after {
+	transform: translateY(20px);
+	color: var(--white);
+	transition: all 0.3s ease-in-out 0s;
+}
+
+.cu-steps .cu-item[class*="text-"] .num::after {
+	content: "\e645";
+	font-family: "cuIcon";
+	color: var(--white);
+	transform: translateY(0rpx);
+}
+
+.cu-steps .cu-item[class*="text-"] .num.err::after {
+	content: "\e646";
+}
+
+/* ==================
+          布局
+ ==================== */
+
+/*  -- flex弹性布局 -- */
+
+.flex {
+	display: flex;
+}
+
+.basis-xs {
+	flex-basis: 20%;
+}
+
+.basis-sm {
+	flex-basis: 40%;
+}
+
+.basis-df {
+	flex-basis: 50%;
+}
+
+.basis-lg {
+	flex-basis: 60%;
+}
+
+.basis-xl {
+	flex-basis: 80%;
+}
+
+.flex-sub {
+	flex: 1;
+}
+
+.flex-twice {
+	flex: 2;
+}
+
+.flex-treble {
+	flex: 3;
+}
+
+.flex-direction {
+	flex-direction: column;
+}
+
+.flex-wrap {
+	flex-wrap: wrap;
+}
+
+.align-start {
+	align-items: flex-start;
+}
+
+.align-end {
+	align-items: flex-end;
+}
+
+.align-center {
+	align-items: center;
+}
+
+.align-stretch {
+	align-items: stretch;
+}
+
+.self-start {
+	align-self: flex-start;
+}
+
+.self-center {
+	align-self: flex-center;
+}
+
+.self-end {
+	align-self: flex-end;
+}
+
+.self-stretch {
+	align-self: stretch;
+}
+
+.align-stretch {
+	align-items: stretch;
+}
+
+.justify-start {
+	justify-content: flex-start;
+}
+
+.justify-end {
+	justify-content: flex-end;
+}
+
+.justify-center {
+	justify-content: center;
+}
+
+.justify-between {
+	justify-content: space-between;
+}
+
+.justify-around {
+	justify-content: space-around;
+}
+
+/* grid布局 */
+
+.grid {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.grid.grid-square {
+	overflow: hidden;
+}
+
+.grid.grid-square .cu-tag {
+	position: absolute;
+	right: 0;
+	top: 0;
+	border-bottom-left-radius: 6rpx;
+	padding: 6rpx 12rpx;
+	height: auto;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+.grid.grid-square>div>text[class*="cuIcon-"] {
+	font-size: 52rpx;
+	position: absolute;
+	color: var(--grey);
+	margin: auto;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+.grid.grid-square>div {
+	margin-right: 10px;
+	margin-bottom: 10px;
+	border-radius: 6rpx;
+	position: relative;
+	overflow: hidden;
+}
+
+.grid.grid-square>div.bg-img img {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+}
+
+.grid.col-1.grid-square>div {
+	padding-bottom: 100%;
+	height: 0;
+	margin-right: 0;
+}
+
+.grid.col-2.grid-square>div {
+	padding-bottom: calc((100% - 10px)/2);
+	height: 0;
+	width: calc((100% - 10px)/2);
+}
+
+.grid.col-3.grid-square>div {
+	padding-bottom: calc((100% - 20px)/3);
+	height: 0;
+	width: calc((100% - 20px)/3);
+}
+
+.grid.col-4.grid-square>div {
+	padding-bottom: calc((100% - 30px)/4);
+	height: 0;
+	width: calc((100% - 30px)/4);
+}
+
+.grid.col-5.grid-square>div {
+	padding-bottom: calc((100% - 40px)/5);
+	height: 0;
+	width: calc((100% - 40px)/5);
+}
+
+.grid.col-2.grid-square>div:nth-child(2n),
+.grid.col-3.grid-square>div:nth-child(3n),
+.grid.col-4.grid-square>div:nth-child(4n),
+.grid.col-5.grid-square>div:nth-child(5n){
+	margin-right: 0;
+}
+
+.grid.col-1>div {
+	width: 100%;
+}
+
+.grid.col-2>div {
+	width: 50%;
+}
+
+.grid.col-3>div {
+	width: 33.33%;
+}
+
+.grid.col-4>div {
+	width: 25%;
+}
+
+.grid.col-5>div {
+	width: 20%;
+}
+
+/*  -- 内外边距 -- */
+
+.margin-0 {
+	margin: 0;
+}
+
+.margin-xs {
+	margin: 5px;
+}
+
+.margin-sm {
+	margin: 10px;
+}
+
+.margin {
+	margin: 15px;
+}
+
+.margin-lg {
+	margin: 20px;
+}
+
+.margin-xl {
+	margin: 25px;
+}
+
+.margin-top-xs {
+	margin-top: 5px;
+}
+
+.margin-top-sm {
+	margin-top: 10px;
+}
+
+.margin-top {
+	margin-top: 15px;
+}
+
+.margin-top-lg {
+	margin-top: 20px;
+}
+
+.margin-top-xl {
+	margin-top: 25px;
+}
+
+.margin-right-xs {
+	margin-right: 5px;
+}
+
+.margin-right-sm {
+	margin-right: 10px;
+}
+
+.margin-right {
+	margin-right: 15px;
+}
+
+.margin-right-lg {
+	margin-right: 20px;
+}
+
+.margin-right-xl {
+	margin-right: 25px;
+}
+
+.margin-bottom-xs {
+	margin-bottom: 5px;
+}
+
+.margin-bottom-sm {
+	margin-bottom: 10px;
+}
+
+.margin-bottom {
+	margin-bottom: 15px;
+}
+
+.margin-bottom-lg {
+	margin-bottom: 20px;
+}
+
+.margin-bottom-xl {
+	margin-bottom: 25px;
+}
+
+.margin-left-xs {
+	margin-left: 5px;
+}
+
+.margin-left-sm {
+	margin-left: 10px;
+}
+
+.margin-left {
+	margin-left: 15px;
+}
+
+.margin-left-lg {
+	margin-left: 20px;
+}
+
+.margin-left-xl {
+	margin-left: 25px;
+}
+
+.margin-lr-xs {
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.margin-lr-sm {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.margin-lr {
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
+.margin-lr-lg {
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.margin-lr-xl {
+	margin-left: 25px;
+	margin-right: 25px;
+}
+
+.margin-tb-xs {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.margin-tb-sm {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.margin-tb {
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+
+.margin-tb-lg {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+.margin-tb-xl {
+	margin-top: 25px;
+	margin-bottom: 25px;
+}
+
+.padding-0 {
+	padding: 0;
+}
+
+.padding-xs {
+	padding: 5px;
+}
+
+.padding-sm {
+	padding: 10px;
+}
+
+.padding {
+	padding: 15px;
+}
+
+.padding-lg {
+	padding: 20px;
+}
+
+.padding-xl {
+	padding: 25px;
+}
+
+.padding-top-xs {
+	padding-top: 5px;
+}
+
+.padding-top-sm {
+	padding-top: 10px;
+}
+
+.padding-top {
+	padding-top: 15px;
+}
+
+.padding-top-lg {
+	padding-top: 20px;
+}
+
+.padding-top-xl {
+	padding-top: 25px;
+}
+
+.padding-right-xs {
+	padding-right: 5px;
+}
+
+.padding-right-sm {
+	padding-right: 10px;
+}
+
+.padding-right {
+	padding-right: 15px;
+}
+
+.padding-right-lg {
+	padding-right: 20px;
+}
+
+.padding-right-xl {
+	padding-right: 25px;
+}
+
+.padding-bottom-xs {
+	padding-bottom: 5px;
+}
+
+.padding-bottom-sm {
+	padding-bottom: 10px;
+}
+
+.padding-bottom {
+	padding-bottom: 15px;
+}
+
+.padding-bottom-lg {
+	padding-bottom: 20px;
+}
+
+.padding-bottom-xl {
+	padding-bottom: 25px;
+}
+
+.padding-left-xs {
+	padding-left: 5px;
+}
+
+.padding-left-sm {
+	padding-left: 10px;
+}
+
+.padding-left {
+	padding-left: 15px;
+}
+
+.padding-left-lg {
+	padding-left: 20px;
+}
+
+.padding-left-xl {
+	padding-left: 25px;
+}
+
+.padding-lr-xs {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.padding-lr-sm {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.padding-lr {
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.padding-lr-lg {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+.padding-lr-xl {
+	padding-left: 25px;
+	padding-right: 25px;
+}
+
+.padding-tb-xs {
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.padding-tb-sm {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.padding-tb {
+	padding-top: 15px;
+	padding-bottom: 15px;
+}
+
+.padding-tb-lg {
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+
+.padding-tb-xl {
+	padding-top: 25px;
+	padding-bottom: 25px;
+}
+
+/* -- 浮动 --  */
+
+.cf::after,
+.cf::before {
+	content: " ";
+	display: table;
+}
+
+.cf::after {
+	clear: both;
+}
+
+.fl {
+	float: left;
+}
+
+.fr {
+	float: right;
+}
+
+/* ==================
+          背景
+ ==================== */
+
+.line-red::after,
+.lines-red::after {
+	border-color: var(--red);
+}
+
+.line-orange::after,
+.lines-orange::after {
+	border-color: var(--orange);
+}
+
+.line-yellow::after,
+.lines-yellow::after {
+	border-color: var(--yellow);
+}
+
+.line-olive::after,
+.lines-olive::after {
+	border-color: var(--olive);
+}
+
+.line-green::after,
+.lines-green::after {
+	border-color: var(--green);
+}
+
+.line-cyan::after,
+.lines-cyan::after {
+	border-color: var(--cyan);
+}
+
+.line-blue::after,
+.lines-blue::after {
+	border-color: var(--blue);
+}
+
+.line-purple::after,
+.lines-purple::after {
+	border-color: var(--purple);
+}
+
+.line-mauve::after,
+.lines-mauve::after {
+	border-color: var(--mauve);
+}
+
+.line-pink::after,
+.lines-pink::after {
+	border-color: var(--pink);
+}
+
+.line-brown::after,
+.lines-brown::after {
+	border-color: var(--brown);
+}
+
+.line-grey::after,
+.lines-grey::after {
+	border-color: var(--grey);
+}
+
+.line-gray::after,
+.lines-gray::after {
+	border-color: var(--gray);
+}
+
+.line-black::after,
+.lines-black::after {
+	border-color: var(--black);
+}
+
+.line-white::after,
+.lines-white::after {
+	border-color: var(--white);
+}
+
+.bg-red {
+	background-color: var(--red);
+	color: var(--white);
+}
+
+.bg-orange {
+	background-color: var(--orange);
+	color: var(--white);
+}
+
+.bg-yellow {
+	background-color: var(--yellow);
+	color: var(--black);
+}
+
+.bg-olive {
+	background-color: var(--olive);
+	color: var(--white);
+}
+
+.bg-green {
+	background-color: var(--green);
+	color: var(--white);
+}
+
+.bg-cyan {
+	background-color: var(--cyan);
+	color: var(--white);
+}
+
+.bg-blue {
+	background-color: var(--blue);
+	color: var(--white);
+}
+
+.bg-purple {
+	background-color: var(--purple);
+	color: var(--white);
+}
+
+.bg-mauve {
+	background-color: var(--mauve);
+	color: var(--white);
+}
+
+.bg-pink {
+	background-color: var(--pink);
+	color: var(--white);
+}
+
+.bg-brown {
+	background-color: var(--brown);
+	color: var(--white);
+}
+
+.bg-grey {
+	background-color: var(--grey);
+	color: var(--white);
+}
+
+.bg-gray {
+	background-color: #f0f0f0;
+	color: var(--black);
+}
+
+.bg-black {
+	background-color: var(--black);
+	color: var(--white);
+}
+
+.bg-white {
+	background-color: var(--white);
+	color: var(--darkGray);
+}
+
+.bg-shadeTop {
+	background-image: linear-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.01));
+	color: var(--white);
+}
+
+.bg-shadeBottom {
+	background-image: linear-gradient(rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 1));
+	color: var(--white);
+}
+
+.bg-red.light {
+	color: var(--red);
+	background-color: var(--redLight);
+}
+
+.bg-orange.light {
+	color: var(--orange);
+	background-color: var(--orangeLight);
+}
+
+.bg-yellow.light {
+	color: var(--yellow);
+	background-color: var(--yellowLight);
+}
+
+.bg-olive.light {
+	color: var(--olive);
+	background-color: var(--oliveLight);
+}
+
+.bg-green.light {
+	color: var(--green);
+	background-color: var(--greenLight);
+}
+
+.bg-cyan.light {
+	color: var(--cyan);
+	background-color: var(--cyanLight);
+}
+
+.bg-blue.light {
+	color: var(--blue);
+	background-color: var(--blueLight);
+}
+
+.bg-purple.light {
+	color: var(--purple);
+	background-color: var(--purpleLight);
+}
+
+.bg-mauve.light {
+	color: var(--mauve);
+	background-color: var(--mauveLight);
+}
+
+.bg-pink.light {
+	color: var(--pink);
+	background-color: var(--pinkLight);
+}
+
+.bg-brown.light {
+	color: var(--brown);
+	background-color: var(--brownLight);
+}
+
+.bg-grey.light {
+	color: var(--grey);
+	background-color: var(--greyLight);
+}
+
+.bg-gradual-red {
+	background-image: var(--gradualRed);
+	color: var(--white);
+}
+
+.bg-gradual-orange {
+	background-image: var(--gradualOrange);
+	color: var(--white);
+}
+
+.bg-gradual-green {
+	background-image: var(--gradualGreen);
+	color: var(--white);
+}
+
+.bg-gradual-purple {
+	background-image: var(--gradualPurple);
+	color: var(--white);
+}
+
+.bg-gradual-pink {
+	background-image: var(--gradualPink);
+	color: var(--white);
+}
+
+.bg-gradual-blue {
+	background-image: var(--gradualBlue);
+	color: var(--white);
+}
+
+.shadow[class*="-red"] {
+	box-shadow: var(--ShadowSize) var(--redShadow);
+}
+
+.shadow[class*="-orange"] {
+	box-shadow: var(--ShadowSize) var(--orangeShadow);
+}
+
+.shadow[class*="-yellow"] {
+	box-shadow: var(--ShadowSize) var(--yellowShadow);
+}
+
+.shadow[class*="-olive"] {
+	box-shadow: var(--ShadowSize) var(--oliveShadow);
+}
+
+.shadow[class*="-green"] {
+	box-shadow: var(--ShadowSize) var(--greenShadow);
+}
+
+.shadow[class*="-cyan"] {
+	box-shadow: var(--ShadowSize) var(--cyanShadow);
+}
+
+.shadow[class*="-blue"] {
+	box-shadow: var(--ShadowSize) var(--blueShadow);
+}
+
+.shadow[class*="-purple"] {
+	box-shadow: var(--ShadowSize) var(--purpleShadow);
+}
+
+.shadow[class*="-mauve"] {
+	box-shadow: var(--ShadowSize) var(--mauveShadow);
+}
+
+.shadow[class*="-pink"] {
+	box-shadow: var(--ShadowSize) var(--pinkShadow);
+}
+
+.shadow[class*="-brown"] {
+	box-shadow: var(--ShadowSize) var(--brownShadow);
+}
+
+.shadow[class*="-grey"] {
+	box-shadow: var(--ShadowSize) var(--greyShadow);
+}
+
+.shadow[class*="-gray"] {
+	box-shadow: var(--ShadowSize) var(--grayShadow);
+}
+
+.shadow[class*="-black"] {
+	box-shadow: var(--ShadowSize) var(--blackShadow);
+}
+
+.shadow[class*="-white"] {
+	box-shadow: var(--ShadowSize) var(--blackShadow);
+}
+
+.text-shadow[class*="-red"] {
+	text-shadow: var(--ShadowSize) var(--redShadow);
+}
+
+.text-shadow[class*="-orange"] {
+	text-shadow: var(--ShadowSize) var(--orangeShadow);
+}
+
+.text-shadow[class*="-yellow"] {
+	text-shadow: var(--ShadowSize) var(--yellowShadow);
+}
+
+.text-shadow[class*="-olive"] {
+	text-shadow: var(--ShadowSize) var(--oliveShadow);
+}
+
+.text-shadow[class*="-green"] {
+	text-shadow: var(--ShadowSize) var(--greenShadow);
+}
+
+.text-shadow[class*="-cyan"] {
+	text-shadow: var(--ShadowSize) var(--cyanShadow);
+}
+
+.text-shadow[class*="-blue"] {
+	text-shadow: var(--ShadowSize) var(--blueShadow);
+}
+
+.text-shadow[class*="-purple"] {
+	text-shadow: var(--ShadowSize) var(--purpleShadow);
+}
+
+.text-shadow[class*="-mauve"] {
+	text-shadow: var(--ShadowSize) var(--mauveShadow);
+}
+
+.text-shadow[class*="-pink"] {
+	text-shadow: var(--ShadowSize) var(--pinkShadow);
+}
+
+.text-shadow[class*="-brown"] {
+	text-shadow: var(--ShadowSize) var(--brownShadow);
+}
+
+.text-shadow[class*="-grey"] {
+	text-shadow: var(--ShadowSize) var(--greyShadow);
+}
+
+.text-shadow[class*="-gray"] {
+	text-shadow: var(--ShadowSize) var(--grayShadow);
+}
+
+.text-shadow[class*="-black"] {
+	text-shadow: var(--ShadowSize) var(--blackShadow);
+}
+
+.bg-img {
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+.bg-mask {
+	background-color: var(--black);
+	position: relative;
+}
+
+.bg-mask::after {
+	content: "";
+	border-radius: inherit;
+	width: 100%;
+	height: 100%;
+	display: block;
+	background-color: rgba(0, 0, 0, 0.4);
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	top: 0;
+}
+
+.bg-mask div,
+.bg-mask cover-div {
+	z-index: 5;
+	position: relative;
+}
+
+.bg-video {
+	position: relative;
+}
+
+.bg-video video {
+	display: block;
+	height: 100%;
+	width: 100%;
+	-o-object-fit: cover;
+	object-fit: cover;
+	position: absolute;
+	top: 0;
+	z-index: 0;
+	pointer-events: none;
+}
+
+/* ==================
+          文本
+ ==================== */
+
+.text-xs {
+	font-size: 10px;
+}
+
+.text-sm {
+	font-size: 12px;
+}
+
+.text-df {
+	font-size: 14px;
+}
+
+.text-lg {
+	font-size: 16px;
+}
+
+.text-xl {
+	font-size: 18px;
+}
+
+.text-xxl {
+	font-size: 22px;
+}
+
+.text-sl {
+	font-size: 40px;
+}
+
+.text-xsl {
+	font-size: 60px;
+}
+
+.text-Abc {
+	text-transform: Capitalize;
+}
+
+.text-ABC {
+	text-transform: Uppercase;
+}
+
+.text-abc {
+	text-transform: Lowercase;
+}
+
+.text-price::before {
+	content: "¥";
+	font-size: 80%;
+	margin-right: 2px;
+}
+
+.text-cut {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.text-bold {
+	font-weight: bold;
+}
+
+.text-center {
+	text-align: center;
+}
+
+.text-content {
+	line-height: 1.6;
+}
+
+.text-left {
+	text-align: left;
+}
+
+.text-right {
+	text-align: right;
+}
+
+.text-red,
+.line-red,
+.lines-red {
+	color: var(--red);
+}
+
+.text-orange,
+.line-orange,
+.lines-orange {
+	color: var(--orange);
+}
+
+.text-yellow,
+.line-yellow,
+.lines-yellow {
+	color: var(--yellow);
+}
+
+.text-olive,
+.line-olive,
+.lines-olive {
+	color: var(--olive);
+}
+
+.text-green,
+.line-green,
+.lines-green {
+	color: var(--green);
+}
+
+.text-cyan,
+.line-cyan,
+.lines-cyan {
+	color: var(--cyan);
+}
+
+.text-blue,
+.line-blue,
+.lines-blue {
+	color: var(--blue);
+}
+
+.text-purple,
+.line-purple,
+.lines-purple {
+	color: var(--purple);
+}
+
+.text-mauve,
+.line-mauve,
+.lines-mauve {
+	color: var(--mauve);
+}
+
+.text-pink,
+.line-pink,
+.lines-pink {
+	color: var(--pink);
+}
+
+.text-brown,
+.line-brown,
+.lines-brown {
+	color: var(--brown);
+}
+
+.text-grey,
+.line-grey,
+.lines-grey {
+	color: var(--grey);
+}
+
+.text-gray,
+.line-gray,
+.lines-gray {
+	color: var(--gray);
+}
+
+.text-black,
+.line-black,
+.lines-black {
+	color: var(--black);
+}
+
+.text-white,
+.line-white,
+.lines-white {
+	color: var(--white);
+}

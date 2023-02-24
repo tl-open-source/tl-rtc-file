@@ -1,6 +1,9 @@
 export default defineNuxtConfig({
-    modules: [
-      '@nuxt/ui'
-    ]
-  })
-  
+  css: [
+      'ant-design-vue/dist/antd.css',
+      '@/assets/css/main.css'
+  ],
+  modules: [
+      //'@nuxt/ui'
+  ]
+})
