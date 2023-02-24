@@ -1,1 +1,0 @@
-turnadmin -a -u 用户名 -p 密码 -r 公网ip

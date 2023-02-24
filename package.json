@@ -1,40 +1,21 @@
 {
-  "name": "tl-rtc-file",
-  "version": "1.0.0",
-  "description": "webrtc， p2p，file",
-  "main": "main.js",
-  "scripts": {
-    "dev": "node local",
-    "svr": "node server",
-    "devsocket": "node localsocket",
-    "svrsocket": "node serversocket"
-  },
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
-  "keywords": [
-    "none"
-  ],
-  "author": "iamtsm",
-  "license": "ISC",
-  "dependencies": {
-    "request": "^2.88.2",
-    "cookie-parser": "^1.4.5",
-    "dottie": "^2.0.2",
-    "ejs": "^3.1.3",
-    "express": "^4.17.1",
-    "inflection": "^1.12.0",
-    "moment-timezone": "^0.5.31",
-    "mysql2": "^2.1.0",
-    "retry-as-promised": "^3.2.0",
-    "sequelize": "^6.1.0",
-    "sequelize-pool": "^6.0.0",
-    "socket.io": "^2.3.0",
-    "toposort-class": "^1.0.1",
-    "validator": "^13.1.1",
-    "wkx": "^0.5.0",
-    "openai": "^1.0.0"
-  },
-  "devDependencies": {}
+    "name": "073c",
+    "private": true,
+    "scripts": {
+        "build": "nuxi build",
+        "dev": "nuxi dev",
+        "start": "nuxi preview"
+    },
+    "devDependencies": {
+        "@nuxt/ui": "^0.3.3",
+        "nuxt": "^3.0.0",
+        "ant-design-vue": "^3.2.14",
+        "dom-to-image-more": "^2.11.1",
+        "file-saver": "^2.0.5",
+        "nanoid": "^4.0.0",
+        "qs": "^6.11.0",
+        "tinycolor2": "^1.4.2",
+        "jszip": "^3.7.1",
+        "vue3-keypress": "^4.0.1"
+    }
 }
