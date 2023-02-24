@@ -3,12 +3,28 @@
     "private": true,
     "scripts": {
         "build": "nuxi build",
-        "dev": "nuxi dev",
-        "start": "nuxi preview"
+        "ndev": "nuxi dev",
+        "preview": "nuxi preview",
+        "dev": "node local",
+        "svr": "node server",
+        "devsocket": "node localsocket",
+        "svrsocket": "node serversocket",
+        "devall": "node localall",
+        "svrall": "node serverall",
+        "test": "cross-env NODE_ENV=local mocha ./test/test.js"
     },
     "devDependencies": {
         "@nuxt/ui": "^0.3.3",
         "nuxt": "^3.0.0",
-        "ant-design-vue": "^3.2.14"
+        "ant-design-vue": "^3.2.14",
+        "request": "^2.88.2",
+        "cross-env": "^5.2.0",
+        "express": "^4.17.1",
+        "mysql2": "^2.1.0",
+        "sequelize": "^6.1.0",
+        "sequelize-pool": "^6.0.0",
+        "socket.io": "^2.3.0",
+        "openai": "^1.0.0",
+        "mocha": "^10.2.0"
     }
 }

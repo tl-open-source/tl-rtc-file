@@ -65,7 +65,7 @@ typings/
 .next
 
 # nuxt.js build output
-.nuxt
+.nuxt/
 
 # vuepress build output
 .vuepress/dist
@@ -78,3 +78,7 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+.package-lock.json
+
+.output/
