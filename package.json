@@ -1,5 +1,5 @@
 {
-    "name": "073c",
+    "name": "tl-rtc-file",
     "private": true,
     "scripts": {
         "build": "nuxi build",
@@ -9,13 +9,6 @@
     "devDependencies": {
         "@nuxt/ui": "^0.3.3",
         "nuxt": "^3.0.0",
-        "ant-design-vue": "^3.2.14",
-        "dom-to-image-more": "^2.11.1",
-        "file-saver": "^2.0.5",
-        "nanoid": "^4.0.0",
-        "qs": "^6.11.0",
-        "tinycolor2": "^1.4.2",
-        "jszip": "^3.7.1",
-        "vue3-keypress": "^4.0.1"
+        "ant-design-vue": "^3.2.14"
     }
 }
