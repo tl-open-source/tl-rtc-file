@@ -5,13 +5,12 @@
         "build": "nuxi build",
         "ndev": "nuxi dev",
         "preview": "nuxi preview",
+        "generate": "nuxt generate",
         "dev": "node local",
         "svr": "node server",
         "devsocket": "node localsocket",
         "svrsocket": "node serversocket",
-        "devall": "node localall",
-        "svrall": "node serverall",
-        "test": "cross-env NODE_ENV=local mocha ./test/test.js"
+        "test": "cross-env mocha ./test/test.js"
     },
     "devDependencies": {
         "@nuxt/ui": "^0.3.3",
