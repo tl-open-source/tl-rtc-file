@@ -2,14 +2,12 @@
     "name": "tl-rtc-file",
     "private": true,
     "scripts": {
+        "dev": "nuxi dev",
         "build": "nuxi build",
-        "ndev": "nuxi dev",
         "preview": "nuxi preview",
-        "generate": "nuxt generate",
-        "dev": "node local",
-        "svr": "node server",
-        "devsocket": "node localsocket",
-        "svrsocket": "node serversocket",
+        "generate": "nuxi generate",
+        "tlrtcfile-dev": "node local",
+        "tlrtcfile-svr": "node server",
         "test": "cross-env mocha ./test/test.js"
     },
     "devDependencies": {
@@ -25,5 +23,6 @@
         "socket.io": "^2.3.0",
         "openai": "^1.0.0",
         "mocha": "^10.2.0"
-    }
+    },
+    "dependencies": {}
 }
