@@ -82,3 +82,7 @@ typings/
 .package-lock.json
 
 .output/
+
+dist/
+
+client/dist/

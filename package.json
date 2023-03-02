@@ -2,18 +2,11 @@
     "name": "tl-rtc-file",
     "private": true,
     "scripts": {
-        "dev": "nuxi dev",
-        "build": "nuxi build",
-        "preview": "nuxi preview",
-        "generate": "nuxi generate",
         "tlrtcfile-dev": "node local",
         "tlrtcfile-svr": "node server",
         "test": "cross-env mocha ./test/test.js"
     },
     "devDependencies": {
-        "@nuxt/ui": "^0.3.3",
-        "nuxt": "^3.0.0",
-        "ant-design-vue": "^3.2.14",
         "request": "^2.88.2",
         "cross-env": "^5.2.0",
         "express": "^4.17.1",

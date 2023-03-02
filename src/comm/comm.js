@@ -30,7 +30,7 @@ function initData(req, res) {
      let data = {
           wsHost: wsConf.ws_online ? wsConf.ws_online : "ws://" + ip + ":" + wsConf.port,
           rtcConfig: { iceServers: webrtcConf.iceServers },
-          options: webrtcConf.options
+          rtcOption: webrtcConf.options
      };
 
      res.json(data)

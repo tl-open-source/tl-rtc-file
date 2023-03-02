@@ -9,9 +9,11 @@
     "test:unit": "vitest"
   },
   "dependencies": {
+    "ant-design-vue": "^3.2.14",
+    "axios": "^1.3.4",
+    "socket.io-client": "^2.3.1",
     "vue": "^3.2.47",
-    "vue-router": "^4.1.6",
-    "ant-design-vue": "^3.2.14"
+    "vue-router": "^4.1.6"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",

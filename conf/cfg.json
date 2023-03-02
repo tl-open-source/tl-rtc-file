@@ -53,7 +53,7 @@
                ]
           },
           "res": {
-               "/": ".output/public/",
+               "/": "./client/dist/",
                "/static": "static/"
           },
           "manage": {
