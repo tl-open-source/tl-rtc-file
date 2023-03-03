@@ -107,4 +107,31 @@
 </template>
 <script setup>
 // import { test, obj } from '../rtcGlobal';
+import { ref, onMounted } from 'vue';
+const list = ref([]);
+
+onMounted(()=>{
+    list.value=[
+        {
+            id:'abc',
+            addTimeTick:12435515151,
+            msg:'这是一个消息',
+            userId:'ddd',
+            type:'text',
+            data:{}
+        },
+        {
+            id:'efg',
+            addTimeTick:12435515151,
+            msg:'这是一个消息',
+            userId:'ddd',
+            type:'image',
+            data:{
+                url:'aa.jpg',
+                width:200,
+                height:100
+            }
+        }
+    ]
+})
 </script>
