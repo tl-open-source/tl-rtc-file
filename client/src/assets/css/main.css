@@ -1617,7 +1617,7 @@ img.loading::after {
 
 .cu-chat .cu-item {
 	display: flex;
-	padding: 15px 15px 70rpx;
+	padding: 15px 15px 35px;
 	position: relative;
 }
 
@@ -1627,19 +1627,19 @@ img.loading::after {
 }
 
 .cu-chat .cu-item>.main {
-	max-width: calc(100% - 260rpx);
+	max-width: calc(100% - 130px);
 	margin: 0 20px;
 	display: flex;
 	align-items: center;
 }
 
 .cu-chat .cu-item>img {
-	height: 320rpx;
+	height: 160px;
 }
 
 .cu-chat .cu-item>.main .content {
 	padding: 10px;
-	border-radius: 6rpx;
+	border-radius: 3px;
 	display: inline-flex;
 	max-width: 100%;
 	align-items: center;
@@ -1659,7 +1659,7 @@ img.loading::after {
 	position: absolute;
 	font-size: 12px;
 	color: var(--grey);
-	width: calc(100% - 320rpx);
+	width: calc(100% - 160px);
 	bottom: 10px;
 	left: 160rpx;
 }
@@ -1672,7 +1672,7 @@ img.loading::after {
 
 .cu-chat .cu-item>.main .content::after {
 	content: "";
-	top: 27rpx;
+	top: 13px;
 	transform: rotate(45deg);
 	position: absolute;
 	z-index: 100;
@@ -1680,14 +1680,14 @@ img.loading::after {
 	overflow: hidden;
 	width: 12px;
 	height: 12px;
-	left: -12rpx;
+	left: -6px;
 	right: initial;
 	background-color: inherit;
 }
 
 .cu-chat .cu-item.self>.main .content::after {
 	left: auto;
-	right: -12rpx;
+	right: -6px;
 }
 
 .cu-chat .cu-item>.main .content::before {
@@ -1700,7 +1700,7 @@ img.loading::after {
 	overflow: hidden;
 	width: 12px;
 	height: 12px;
-	left: -12rpx;
+	left: -6px;
 	right: initial;
 	background-color: inherit;
 	filter: blur(5rpx);
@@ -1714,7 +1714,7 @@ img.loading::after {
 
 .cu-chat .cu-item.self>.main .content::before {
 	left: auto;
-	right: -12rpx;
+	right: -6px;
 }
 
 .cu-chat .cu-item.self {
@@ -1726,11 +1726,11 @@ img.loading::after {
 	display: inline-block;
 	margin: 10px auto;
 	font-size: 12px;
-	padding: 8rpx 12rpx;
+	padding: 4px 6px;
 	background-color: rgba(0, 0, 0, 0.2);
-	border-radius: 6rpx;
+	border-radius: 3px;
 	color: var(--white);
-	max-width: 400rpx;
+	max-width: 200px;
 	line-height: 1.4;
 }
 
