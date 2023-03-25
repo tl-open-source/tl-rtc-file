@@ -2137,23 +2137,31 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         let otherSocketId = data['peers'][i].id;
                         let rtcConnect = that.getOrCreateRtcConnect(otherSocketId);
                         if (data.type === 'screen') {
-                            window.Bus.$emit("startScreenShare", otherSocketId, (track, stream) => {
-                                that.initMediaShareChannel(rtcConnect, data.type, track, stream)
+                            await new Promise(resolve => {
+                                window.Bus.$emit("startScreenShare", otherSocketId, (track, stream) => {
+                                    that.initMediaShareChannel(rtcConnect, data.type, track, stream)
+                                    resolve()
+                                });
+                            }).then(()=>{
                                 rtcConnect.createOffer(that.options).then(offer => {
                                     that.offerSuccess(rtcConnect, otherSocketId, offer);
                                 }, error => {
                                     that.offerFailed(rtcConnect, otherSocketId, error);
                                 });
-                            });
+                            })
                         } else if (data.type === 'video') {
-                            window.Bus.$emit("startVideoShare", otherSocketId, (track, stream) => {
-                                that.initMediaShareChannel(rtcConnect, data.type, track, stream)
+                            await new Promise(resolve => {
+                                window.Bus.$emit("startVideoShare", otherSocketId, (track, stream) => {
+                                    that.initMediaShareChannel(rtcConnect, data.type, track, stream)
+                                    resolve()
+                                });
+                            }).then(()=>{
                                 rtcConnect.createOffer(that.options).then(offer => {
                                     that.offerSuccess(rtcConnect, otherSocketId, offer);
                                 }, error => {
                                     that.offerFailed(rtcConnect, otherSocketId, error);
                                 });
-                            });
+                            })
                         } else {
                             rtcConnect.createOffer(that.options).then(offer => {
                                 that.offerSuccess(rtcConnect, otherSocketId, offer);
