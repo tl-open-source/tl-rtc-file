@@ -8,8 +8,6 @@
 
 #### demo ： https://im.iamtsm.cn/file
 
-![image](tl-rtc-file-demo.gif)
-
 ## Table of Contents
 
 - [Prepare](#Prepare)
