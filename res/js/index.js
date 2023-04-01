@@ -240,6 +240,26 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             }
         },
         methods: {
+            setNickName: function(){
+                if(window.tlrtcfile.genNickName){
+                    this.nickName = window.tlrtcfile.genNickName();
+                }
+            },
+            clickNotice: function(){
+                if (window.layer) {
+                    let noticeMsgList = this.switchData.noticeMsgList || [{
+                        msg : "暂无公告"
+                    }]
+                    let content = ""
+                    noticeMsgList.forEach(item=>{
+                        content += `<div> ${item.msg} </div> <br/>`;
+                    })
+                    layer.open({
+                        title: '网站公告',
+                        content: content
+                    });         
+                }
+            },
             openaiChat: function () {
                 if (!this.switchData.openAiChat) {
                     if (window.layer) {
@@ -298,14 +318,14 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                         <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
                                             <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
                                             <div style="margin-left: 15px; margin-top: -5px;width:100%;">
-                                                <div style="word-break: break-all;"> <small> AI博主: </small> - <small>时间: <b>{{info.time}}</b></small> </div>
+                                                <div style="word-break: break-all;"> <small> AI博主: </small> - <small>时间: <b>{{info.timeAgo}}</b></small> </div>
                                                 <div style="margin-top: 5px;word-break: break-all;width: 90%;"> <b style="font-weight: bold; font-size: large;"> <pre> {{info.content}} </pre> </b></div>
                                             </div>
                                         </div>
                                         {{#  }else { }}
                                         <div style="margin-bottom: 30px;display: inline-flex;text-align: right;float: right;width:100%;">
                                             <div style="margin-right: 15px; margin-top: -5px;width:100%;">
-                                                <div style="word-break: break-all;"> <small>我: <b>{{info.socketId}}</b> </small> <small>时间: <b>{{info.time}}</b></small>  </div>
+                                                <div style="word-break: break-all;"> <small>我: <b>{{info.socketId}}</b> </small> <small>时间: <b>{{info.timeAgo}}</b></small>  </div>
                                                 <div style="margin-top: 5px;word-break: break-all;width: 90%; margin-left: 10%;"> <b style="font-weight: bold; font-size: large;"> <pre> {{info.content}} </pre> </b></div>
                                             </div>
                                             <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
@@ -373,6 +393,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         chatDom.style.overflowY = "scroll"
                     } else {
                         chatDom.style.overflowY = "none"
+                    }
+                    if(window.tlrtcfile.scrollToBottom){
+                        window.tlrtcfile.scrollToBottom(chatDom, 1000, 100)
                     }
                 }
             },
@@ -1007,12 +1030,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             }
                             document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
                             document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
+                            document.querySelector(".layui-layer-title").style.color = "white";
                             document.querySelector(".layui-layer").style.borderRadius = "15px"
                             document.querySelector(".chating-content").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                             document.querySelector(".layui-textarea").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                             document.querySelector(".layui-layer-title").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
                             document.querySelector(".layui-layer").style.backgroundColor = active.style.getPropertyValue("--bgColorBody");
-
+                            
                             that.chatingTpl();
                         },
                         content: `
@@ -1024,7 +1048,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                     <div style="margin-bottom: 30px;display: inline-flex;">
                                         <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
                                         <div style="margin-left: 15px; margin-top: -5px;">
-                                            <div style="word-break: break-all;"> <small>房间号: <b>{{info.room}}</b></small> - <small>用户: <b>{{info.socketId}}</b></small> - <small>时间: <b>{{info.time}}</b></small> </div>
+                                            <div style="word-break: break-all;"> <small>房间号: <b>{{info.room}}</b></small> - <small>用户: <b>{{info.socketId}}</b></small> - <small>时间: <b>{{info.timeAgo}}</b></small> </div>
                                             <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{info.msg}} </b></div>
                                         </div>
                                     </div>
@@ -1071,6 +1095,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         chatDom.style.overflowY = "scroll"
                     } else {
                         chatDom.style.overflowY = "none"
+                    }
+
+                    if(window.tlrtcfile.scrollToBottom){
+                        window.tlrtcfile.scrollToBottom(chatDom, 1000, 100)
                     }
                 }
             },
@@ -1525,7 +1553,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         this.addUserLogs("房间号太长啦");
                         return;
                     }
-                    this.socket.emit('createAndJoin', { room: this.roomId });
+                    this.setNickName();
+                    this.socket.emit('createAndJoin', { room: this.roomId, nickName : this.nickName });
                     this.isJoined = true;
                     this.addPopup("你进入了房间" + this.roomId);
                     this.addUserLogs("你进入了房间" + this.roomId);
@@ -1553,7 +1582,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         this.addUserLogs("房间号太长啦");
                         return;
                     }
-                    this.socket.emit('createAndJoin', { room: this.roomId, type: type });
+                    this.setNickName();
+                    this.socket.emit('createAndJoin', { room: this.roomId, type: type, nickName : this.nickName });
                     this.isJoined = true;
                     this.addPopup("你进入了房间" + this.roomId);
                     this.addUserLogs("你进入了房间" + this.roomId);
@@ -1590,7 +1620,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         this.addUserLogs("密码太长啦");
                         return;
                     }
-                    this.socket.emit('createAndJoin', { room: this.roomId, password: password });
+                    this.setNickName();
+                    this.socket.emit('createAndJoin', { room: this.roomId, password: password, nickName : this.nickName });
                     this.isJoined = true;
                     this.addPopup("你进入了房间" + this.roomId);
                     this.addUserLogs("你进入了房间" + this.roomId);
@@ -1880,8 +1911,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             //获取需要进行发送的远程id
             getSendFileNextRemote: function () {
-                this.addSysLogs("选择待发送的用户中...")
-
                 let nextSendingId = "";
 
                 //当前文件是否有正在发送中的
@@ -1922,8 +1951,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.currentChooseFile.fileSendStatus = 2;
                     return "";
                 }
-
-                this.addSysLogs("当前选中用户为: " + nextSendingId)
 
                 return nextSendingId;
             },
@@ -2135,7 +2162,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     for (let i = 0; i < data['peers'].length; i++) {
                         let otherSocketId = data['peers'][i].id;
+                        let otherSocketIdNickName = data['peers'][i].nickName;
                         let rtcConnect = that.getOrCreateRtcConnect(otherSocketId);
+                        // 处理完连接后，更新下昵称
+                        that.setRemoteInfo(otherSocketId, { nickName : otherSocketIdNickName })
+                        // 处理音视频情况
                         if (data.type === 'screen') {
                             await new Promise(resolve => {
                                 window.Bus.$emit("startScreenShare", otherSocketId, (track, stream) => {
@@ -2177,6 +2208,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.addSysLogs("加入房间," + JSON.stringify(data));
                     that.recoderId = data.recoderId;
                     let rtcConnect = that.getOrCreateRtcConnect(data.id);
+                    // 处理完连接后，更新下昵称
+                    that.setRemoteInfo(data.id, { nickName : data.nickName })
+                    // 处理音视频逻辑
                     if (data.type === 'screen') {
                         window.Bus.$emit("getScreenShareTrackAndStream", (track, stream) => {
                             that.initMediaShareChannel(rtcConnect, data.type, track, stream)
@@ -2187,7 +2221,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             that.initMediaShareChannel(rtcConnect, data.type, track, stream)
                         });
                     }
-                    that.addPopup(data.id + "加入了房间。");
+                    that.addPopup(data.nickName + " 加入了房间。");
                     that.touchResize();
                 });
 
@@ -2355,7 +2389,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         layer.msg("AI回复了你，快点聊起来吧～")
                     }
                     that.aiChatList.forEach(item => {
-                        item.time = window.util ? util.timeAgo(item.time) : item.time;
+                        item.timeAgo = window.util ? util.timeAgo(item.time) : item.time;
                     })
                     that.openaiChatTpl()
                 });
@@ -2364,17 +2398,19 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.socket.on('commData', function (data) {
                     that.switchData = data.switchData
                     that.switchDataGet = true;
-                    data.chatingData.forEach(elem => {
-                        try {
-                            elem.msg = decodeURIComponent(elem.msg)
-                        } catch (e) {
-                            that.addSysLogs("decode msg err : " + elem.msg);
-                        }
-                        that.chatingList.push(elem)
-                    })
-                    that.chatingList.forEach(item => {
-                        item.time = window.util ? util.timeAgo(item.time) : item.time;
-                    })
+                    if(data.chatingData){
+                        data.chatingData.forEach(elem => {
+                            try {
+                                elem.msg = decodeURIComponent(elem.msg)
+                            } catch (e) {
+                                that.addSysLogs("decode msg err : " + elem.msg);
+                            }
+                            that.chatingList.push(elem)
+                        })
+                        that.chatingList.forEach(item => {
+                            item.timeAgo = window.util ? util.timeAgo(item.time) : item.time;
+                        })
+                    }
                 });
 
                 //公共聊天频道
@@ -2390,7 +2426,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         that.chatingList.shift();
                     }
                     that.chatingList.forEach(item => {
-                        item.time = window.util ? util.timeAgo(item.time) : item.time;
+                        item.timeAgo = window.util ? util.timeAgo(item.time) : item.time;
                     })
                     that.chatingTpl()
                 });
@@ -2590,8 +2626,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     setInterval(() => {
                         let colors = ["#deb887", "#faebd7", "#6495ed", "#008b8b", "#87ceeb", "#48d1cc"]
                         $("#closeToolIcon").css("color", colors[parseInt(Math.random(1000) * 1000) % 6])
-                    }, 1000);
-                }, 1000)
+                    }, 500);
+                }, 800)
             },
             windowOnBusEvent: function () {
                 window.Bus.$on("changeScreenState", (res) => {

@@ -1,6 +1,6 @@
 html {
     box-sizing: border-box;
-    --bgColorMenu : #1d1d27;
+    --bgColorMenu : #ffffff12;
     --duration: 1s; 
 }
 html *,
@@ -128,6 +128,7 @@ body{
     border-radius: 10px;
     width: 70%;
     margin-left: 15%;
+    font-weight: bold;
     height: 54px;
     padding: 0 10px;
     font-size: 16px;
@@ -218,7 +219,7 @@ body{
     position: relative; 
     top: 2px; 
     display: block; 
-    color: #666; 
+    color: #e4d8d8; 
     text-overflow: ellipsis; 
     overflow: hidden;
     white-space: nowrap; 
@@ -437,10 +438,12 @@ body{
     padding-left: 15px !important;
     width: 80%;
     margin-left: 10% !important;
-    height: 120px;
+    height: 130px;
     display: inline-flex;
 }
 .userBlock{
+    text-align: center;
+    font-weight: bold;
     cursor: pointer !important;
     margin: 0  0 15px !important;
     display: grid !important;
@@ -490,13 +493,12 @@ video{
     transition: all 1s;
 }
 .remoteId{
-    width: 63px;
-    margin-top: -20px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin-top: 0;
     position: relative;
+    top: 0;
     right: 0;
+    word-break: break-all;
+    height: auto;
 }
 
 .sendFilePannel{
@@ -631,7 +633,7 @@ video{
 }
 
 .toolList {
-    transition: all 0.5s ease-in-out;
+    transition: all 0.3s ease-in-out;
     position: relative;
     right: 0;
     width: 40px;
@@ -646,7 +648,7 @@ video{
     color: #d8c9c9;
     background-color: rgb(244 129 80 / 0%);
     cursor: pointer;
-    transition: transform 0.8s ease-in-out;
+    transition: transform 0.5s ease-in-out;
 }
 
 .toolList a:hover {

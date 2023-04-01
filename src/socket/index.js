@@ -141,11 +141,6 @@ function listen(io) {
             handler._count(message, {})
         });
 
-        // 管理员发送网站维护通知
-        socket.on('close', function (message) {
-            handler._close(message, {})
-        });
-
         // 退出
         socket.on('exit', async function (message) {
             try {
@@ -201,7 +196,7 @@ function listen(io) {
             handler._message({
                 emitType: "commData",
                 switchData: switchData,
-                chatingData: chating
+                chatingData: chating,
             })
         })
 
@@ -387,6 +382,19 @@ function listen(io) {
                     msg: "更新成功"
                 }, {})
 
+                //通知下全频道
+                let switchData = message.content
+                if (switchData && switchData.keys) {
+                    delete switchData.keys;
+                }
+                if(switchData){
+                    cacheSwitchData = switchData
+                }
+                handler._message({
+                    emitType: "commData",
+                    switchData: switchData,
+                })
+
             } catch (e) {
                 console.log(e)
                 handler._message({
@@ -407,7 +415,7 @@ function listen(io) {
 
                 if (!message.token || !tokens.includes(message.token)) {
                     sendManageUpdateFailedNotify({
-                        title: "管理后台非法修改配置",
+                        title: "管理后台非法刷新数据",
                         token: message.token,
                         room: message.room,
                         content: message.content,

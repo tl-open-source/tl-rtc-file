@@ -872,9 +872,11 @@ async function getSettingPageHtml(data) {
             openUseTurnIcon: true,
             openCommRoom: true,
             openRefleshRoom: true,
+            openNotice: true,
             allowNumber: true,
             allowChinese: true,
-            allowSymbol: true
+            allowSymbol: true,
+            noticeMsgList:[]
         })
     })
 
@@ -982,6 +984,11 @@ async function getSettingPageHtml(data) {
                             </div>
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
+                                    <input type="checkbox" name="openNotice" title="开启网站公告" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
                                     <input type="checkbox" name="openRefleshRoom" title="开启随机刷新房间号" lay-skin="primary">
                                 </div>
                             </div>
@@ -1003,11 +1010,10 @@ async function getSettingPageHtml(data) {
             <div class="layui-col-sm12">
                 <div class="layui-row layui-col-space15">
                     <div class="layui-col-sm12">
-                        <div class="room-recent-title">数据传输房间信息设置</div>
+                        <div class="room-recent-title">数据传输房间号格式设置</div>
                         <form class="layui-form info-form" lay-filter="info-form">
                             <div class="layui-form-item">
                                 <div class="layui-block">
-                                    <label class="layui-form-label" style="text-align: left;">房间号格式</label>
                                     <div class="layui-input-block">
                                         <input type="checkbox" name="allowNumber" title="允许数字格式" lay-skin="primary">
                                     </div>
@@ -1024,17 +1030,17 @@ async function getSettingPageHtml(data) {
                 </div>
             </div>
     
-            <div class="layui-col-sm12" style="display: none;">
+            <div class="layui-col-sm12">
                 <div class="layui-row layui-col-space15">
                     <div class="layui-col-sm12">
-                        <div class="room-recent-title">数据传输事件通知设置</div>
-                        <form class="layui-form notify-form" lay-filter="notify-form">
+                        <div class="room-recent-title">数据传输公告设置</div>
+                        <form class="layui-form notice-form" lay-filter="notice-form"> 
                             <div class="layui-form-item" style="margin-top: 30px;">
                                 <div class="layui-block">
-                                    <label class="layui-form-label" style="text-align: left;">企微机器人</label>
-                                    <div class="layui-input-block">
-                                        <input type="text" name="" placeholder="机器人key" autocomplete="off"
+                                    <div class="layui-input-block" style="display: flex;margin-left: 0;">
+                                        <input type="text" name="noticeMsg" placeholder="发布公告内容" autocomplete="off"
                                             class="layui-input">
+                                        <button type="button" lay-submit lay-filter="notice" class="layui-btn">发布</button>
                                     </div>
                                 </div>
                             </div>
@@ -1055,11 +1061,29 @@ async function getSettingPageHtml(data) {
     
             form.val("switch-form",switchData)
             form.val("info-form",switchData)
+
+            let noticeMsg = ""
+            if(switchData.noticeMsgList && switchData.noticeMsgList.length > 0){
+                noticeMsg = switchData.noticeMsgList[0].msg
+            }
+            form.val("notice-form",{
+                noticeMsg : noticeMsg
+            })
     
             form.on('checkbox()', function(data){
                 if(switchData[data.elem.name] !== undefined || switchData[data.elem.name] !== null){
                     switchData[data.elem.name] = data.elem.checked
                 }
+                window.manageChange({
+                    id : ${resData.id},
+                    content : switchData
+                })
+            }); 
+
+            form.on('submit()', function(data){
+                switchData.noticeMsgList = [{
+                    msg : data.field.noticeMsg
+                }]
                 window.manageChange({
                     id : ${resData.id},
                     content : switchData

@@ -21,9 +21,11 @@ const defaultSwitchData = {
      openUseTurnIcon: true,
      openCommRoom: true,
      openRefleshRoom: true,
+     openNotice: true,
      allowNumber: true,
      allowChinese: true,
-     allowSymbol: true
+     allowSymbol: true,
+     noticeMsgList : [],
  }
 
 /**

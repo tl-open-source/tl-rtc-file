@@ -35,20 +35,7 @@
            console.log(e)
         }
     }
-
-    /**
-     * 维护通知
-     * @param {*} message 
-     * @param {*} params 
-     */
-    _close( message, params){
-        try{
-            this.sockets.emit("close", message)
-        }catch(e){
-           console.log(e)
-        }
-    }
-
+    
     /**
      * 链接断开
      * @param {*} message 
@@ -71,7 +58,12 @@
     _createAndJoin(message, params){
         let room = message.room;
         let type = message.type;
+        let nickName = message.nickName;
         let password = message.password || '';
+
+        if(nickName && nickName.length > 20){
+            nickName = nickName.substr(0, 20);
+        }
 
         if(password && password.length > 6){
             password = password.toString().substr(0,6);
@@ -85,6 +77,7 @@
             let createdData = {
                 id: this.socket.id,
                 room: room,
+                nickName : nickName,
                 peers: [],
                 type: type
             };
@@ -109,6 +102,7 @@
             if(roomPassword !== password){
                 this.socket.emit("tips", {
                     room : message.room,
+                    nickName : nickName,
                     to : this.socket.id,
                     msg : "密码错误",
                     reload : true
@@ -119,6 +113,7 @@
             let joinedData = {
                 id: this.socket.id,
                 room: room,
+                nickName : nickName,
                 type: type
             };
             Object.assign(joinedData,params['joined'])
@@ -127,8 +122,11 @@
             let peers = new Array();
             let otherSocketIds = Object.keys(clientsInRoom.sockets);
             for (let i = 0; i < otherSocketIds.length; i++) {
+                let otherSocketId = otherSocketIds[i]
+                let peerNickName = this.sockets.connected[otherSocketId].nickName
                 peers.push({
-                    id: otherSocketIds[i]
+                    id: otherSocketId,
+                    nickName: peerNickName
                 });
             }
 
@@ -137,6 +135,7 @@
             let createdData = {
                 id: this.socket.id,
                 room: room,
+                nickName : nickName,
                 peers: peers,
                 type: type
             };
@@ -144,6 +143,8 @@
             this.socket.emit('created', createdData);
         }
         this._count(message, params)
+
+        this.sockets.connected[this.socket.id].nickName = nickName;
     }
 
 
@@ -244,6 +245,10 @@
         }
     }
 
+    /**
+     * 取件码
+     * @param {*} message 
+     */
     _getCodeFile(message){
         let to = this.socket.id;
         let otherSocket = this.sockets.connected[to];
@@ -252,6 +257,10 @@
         }
     }
 
+    /**
+     * ai聊天
+     * @param {*} message 
+     */
     _openaiChat(message){
         let to = this.socket.id;
         let otherSocket = this.sockets.connected[to];
