@@ -41,7 +41,7 @@ var screenShare = new Vue({
                     console.log(error)
                 }
             }
-            
+
             if (this.stream == null) {
                 if (window.layer) {
                     layer.msg("获取设备屏幕录制权限失败")
@@ -53,28 +53,30 @@ var screenShare = new Vue({
                 return;
             }
 
-            $("#mediaShareRoomList").append(`
-                <div class="swiper-slide mediaShareBlock">
-                    <video id="selfMediaShareVideo" autoplay playsinline onclick="tlrtcfile.openFullVideo(this, 'screen')"></video>
+            $("#mediaScreenRoomList").append(`
+                <div class="tl-rtc-file-mask-media-video">
+                    <video style="width:100%;height:30%;" id="selfMediaShareVideo" autoplay playsinline onclick="tlrtcfile.openFullVideo(this, 'screen', 'self')"></video>
                 </div>
             `);
             var video = document.querySelector("#selfMediaShareVideo");
             video.srcObject = this.stream
-            // ios 微信浏览器兼容问题
-            video.play();
-            document.addEventListener('WeixinJSBridgeReady',function(){
+            video.addEventListener('loadedmetadata', function() {
+                // ios 微信浏览器兼容问题
                 video.play();
-            },false);
-            
+                document.addEventListener('WeixinJSBridgeReady', function () {
+                    video.play();
+                }, false);
+            });
+
             //计算时间
             this.interverlId = setInterval(() => {
                 that.times += 1;
                 window.Bus.$emit("changeScreenShareTimes", that.times)
-                $("#screenShare").css("fill","#fb0404")
-                $("#screenShareTimes").css("fill","#fb0404")
+                $("#screenShareIcon").css("color","#fb0404")
+                $("#screenShareTimes").css("color","#fb0404")
                 setTimeout(() => {
-                    $("#screenShare").css("fill","#ffffff")
-                    $("#screenShareTimes").css("fill","#ffffff")
+                    $("#screenShareIcon").css("color","#ffffff")
+                    $("#screenShareTimes").css("color","#ffffff")
                 }, 500)
             }, 1000);
 
@@ -102,6 +104,10 @@ var screenShare = new Vue({
                 layer.msg("屏幕共享结束，本次共享时长 "+this.times+"秒")
             }
 
+            setTimeout(() => {
+                $("#screenShareIcon").css("color", "#000000")
+            }, 1000);
+            
             this.stream = null;
             this.times = 0;
 

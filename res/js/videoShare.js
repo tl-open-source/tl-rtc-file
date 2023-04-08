@@ -20,15 +20,19 @@ var videoShare = new Vue({
                     facingMode: true ? "user" : "environment",
                     // 分辨率
                     width: {
-                        ideal : 1280
+                        ideal : parseInt((document.documentElement.clientWidth - 20) / 2),
+                        max : document.documentElement.clientWidth,
+                        min : 100
                     }, 
                     height: {
-                        ideal : 720
+                        ideal : parseInt((document.documentElement.clientHeight - 20) / 2),
+                        max : document.documentElement.clientHeight,
+                        min : 100
                     },
                     // 码率
                     frameRate: {
-                        ideal: 10,
-                        max: 15 
+                        ideal: 30,
+                        max: 50
                     },
                     // 指定设备
                     // deviceId: "",
@@ -79,28 +83,30 @@ var videoShare = new Vue({
                 return;
             }
 
-            $("#mediaShareRoomList").append(`
-              <div class="swiper-slide mediaShareBlock">
-                  <video id="selfMediaShareVideo" autoplay playsinline onclick="tlrtcfile.openFullVideo(this, 'video')"></video>
-              </div>
+            $("#mediaVideoRoomList").append(`
+                <div class="tl-rtc-file-mask-media-video">
+                    <video id="selfMediaShareVideo" autoplay playsinline onclick="tlrtcfile.openFullVideo(this, 'video', 'self')"></video>
+                </div>
             `);
             var video = document.querySelector("#selfMediaShareVideo");
             video.srcObject = this.stream
-            // ios 微信浏览器兼容问题
-            video.play();
-            document.addEventListener('WeixinJSBridgeReady',function(){
+            video.addEventListener('loadedmetadata', function() {
+                // ios 微信浏览器兼容问题
                 video.play();
-            },false);
+                document.addEventListener('WeixinJSBridgeReady', function () {
+                    video.play();
+                }, false);
+            });
 
             //计算时间
             this.interverlId = setInterval(() => {
                 that.times += 1;
                 window.Bus.$emit("changeVideoShareTimes", that.times)
                 
-                $("#videoShare").css("color", "#fb0404")
+                $("#videoShareIcon").css("color", "#fb0404")
                 $("#videoShareTimes").css("color", "#fb0404")
                 setTimeout(() => {
-                    $("#videoShare").css("color", "#ffffff")
+                    $("#videoShareIcon").css("color", "#ffffff")
                     $("#videoShareTimes").css("color", "#ffffff")
                 }, 500)
             }, 1000);
@@ -123,11 +129,14 @@ var videoShare = new Vue({
 
             clearInterval(this.interverlId);
 
-            window.Bus.$emit("changeVideoShareTimes", 0)
+            window.Bus.$emit("changeVideoShareTimes", 0);
 
             if (window.layer) {
                 layer.msg("音视频通话结束，本次通话时长 " + this.times + "秒")
             }
+            setTimeout(() => {
+                $("#videoShareIcon").css("color", "#000000")
+            }, 1000);
 
             this.stream = null;
             this.times = 0;

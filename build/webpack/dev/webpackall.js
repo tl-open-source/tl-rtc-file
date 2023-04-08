@@ -62,7 +62,18 @@ module.exports = {
     optimization: {
         minimize: true,
         minimizer: [
-            new UglifyJSPlugin()
+            new UglifyJSPlugin({
+                uglifyOptions: {
+                  output: {
+                    comments: true,
+                    beautify: true,
+                  },
+                  compress: {
+                    collapse_vars: false,
+                    reduce_vars: false,
+                  },
+                },
+            })
         ]
     },
 };

@@ -62,11 +62,11 @@ var screen = new Vue({
             this.interverlId = setInterval(() => {
                 that.times += 1;
                 window.Bus.$emit("changeScreenTimes", that.times)
-                $("#screen").css("color","#fb0404")
+                $("#screenIcon").css("color","#fb0404")
                 $("#screenTimes").css("color","#fb0404")
                 setTimeout(() => {
-                    $("#screen").css("color","#ffffff")
-                    $("#screenTimes").css("color","#ffffff")
+                    $("#screenIcon").css("color","#000000")
+                    $("#screenTimes").css("color","#000000")
                 }, 500)
             }, 1000);
 
@@ -113,6 +113,10 @@ var screen = new Vue({
                 layer.msg("录制完成，请在接收文件列表查看")
             }
 
+            setTimeout(() => {
+                $("#screenIcon").css("color","#000000")
+            }, 1000);
+            
             return;
         },
     },

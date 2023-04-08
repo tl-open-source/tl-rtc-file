@@ -48,7 +48,7 @@ let tokens = [];
 // sql操作
 let sql = {};
 // 公共聊天数据
-let chating = []
+let chatingComm = []
 // 开关数据
 let cacheSwitchData = {};
 // 通知事件定义
@@ -89,7 +89,7 @@ async function excute(tabs, sequelize, config) {
         config.ws.beforeInit();
     }
 
-    chating = await getDogChating10Info({
+    chatingComm = await getDogChating10Info({
         tables: tables,
         sql: sql,
     });
@@ -196,7 +196,7 @@ function listen(io) {
             handler._message({
                 emitType: "commData",
                 switchData: switchData,
-                chatingData: chating,
+                chatingCommData: chatingComm,
             })
         })
 
@@ -390,8 +390,7 @@ function listen(io) {
                 if(switchData){
                     cacheSwitchData = switchData
                 }
-                handler._message({
-                    emitType: "commData",
+                handler._commDataChange({
                     switchData: switchData,
                 })
 
@@ -621,7 +620,7 @@ function listen(io) {
         });
 
         // 公共聊天频道
-        socket.on('chating', async function (message) {
+        socket.on('chatingComm', async function (message) {
             try {
                 if(!cacheSwitchData.openCommRoom){
                     handler._message({
@@ -634,14 +633,14 @@ function listen(io) {
                 }
                 message.time = new Date().toLocaleString()
 
-                if (chating.length < 10) {
-                    chating.push(message)
+                if (chatingComm.length < 10) {
+                    chatingComm.push(message)
                 } else {
-                    chating.shift()
-                    chating.push(message)
+                    chatingComm.shift()
+                    chatingComm.push(message)
                 }
 
-                handler._chating(message, {})
+                handler._chatingComm(message, {})
 
                 let handshake = socket.handshake
                 let userAgent = handshake.headers['user-agent'].toString().substr(0, 255);

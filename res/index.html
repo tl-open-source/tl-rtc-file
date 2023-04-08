@@ -9,8 +9,8 @@
 
     <link rel="stylesheet" href="static/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="static/layui/css/admin.css" media="all">
-    <link rel="stylesheet" href="/css/index.min.css" media="all">
     <link rel="stylesheet" href="/css/comm.min.css" media="all">
+    <link rel="stylesheet" href="/css/index.min.css" media="all">
     <link rel="stylesheet" href="static/css/swiper-bundle.min.css" media="all">
     <script type="text/javascript" src="static/js/swiper-bundle.min.js"></script>
     <script type="text/javascript" src="static/js/socket.io.js"></script>
@@ -23,10 +23,6 @@
         window.Bus = new Vue({});
         window.prefix = "";
     </script>
-
-    <style>
-        
-    </style>
 </head>
 
 <body>
@@ -35,17 +31,19 @@
         <iframe frameborder="0" scrolling="no" src="./vertical.html" width="100%" height="30px"></iframe>
     </div>
 
-    <div id="fileApp" v-cloak>
-        <div class="header-tool">
+    <div id="tl-rtc-file-app" v-cloak>
+
+        <!-- 顶部图标 -->
+        <div class="tl-rtc-file-header-tool">
             <a title="中继服务已启用" id="useTurn" v-show="switchData.openUseTurnIcon && useTurn" @click="useTurnMsg">
                 <svg viewBox="0 0 1130 1024" p-id="8399" width="128" height="128"
                     style="width: 20px;height: 20px;margin-right: 10px;">
                     <path
                         d="M297.160348 734.608696C129.317843 726.349913 0 702.09447 0 550.662678c0-121.143652 82.543304-228.525635 206.358261-269.824C225.618365 121.143652 365.946435 0 531.033043 0c121.063513 0 231.121252 63.327722 288.901566 165.197913C996.031443 181.715478 1130.852174 327.644383 1130.852174 501.10553 1130.852174 685.576904 982.274226 734.608696 800.678957 734.608696H297.155896z m236.143304-681.182609c-142.905878 0-263.82247 107.45767-274.814887 247.977183l-2.746991 19.286817-19.233391 5.511791C132.073739 353.756383 57.878261 444.678678 57.878261 549.380452c0 123.993043 107.177183 123.53447 241.833182 131.802157h502.904209c151.146852 0 274.810435-24.344487 274.810435-181.394922 0-148.791652-120.916591-272.775791-274.810435-281.043478h-16.490852l-8.240974-13.775026C733.914157 111.286539 640.476383 53.426087 533.2992 53.426087z"
-                        fill="white" p-id="8400"></path>
+                        fill="#191a1c" p-id="8400"></path>
                     <path
                         d="M667.149357 499.382539h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713s5.743304-14.362713 14.358261-14.362713h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362713 0 8.614957-5.743304 14.362713-14.362713 14.362713z m0 74.680765h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713 0-8.614957 5.743304-14.362713 14.358261-14.362713h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362713s-5.743304 14.362713-14.362713 14.362713z m0 73.247166h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713s5.743304-14.362713 14.358261-14.362714h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362714 0 8.614957-5.743304 14.362713-14.362713 14.362713zM342.817391 353.823165v572.037565c0 52.98087 42.611757 95.592626 95.276522 95.592627h254.664348c52.918539 0 95.276522-42.611757 95.276522-95.592627V353.818713C788.034783 300.837843 745.423026 258.226087 692.758261 258.226087H438.093913C385.175374 258.226087 342.817391 300.775513 342.817391 353.818713z"
-                        fill="white" p-id="8401"></path>
+                        fill="#191a1c" p-id="8401"></path>
                 </svg>
             </a>
             <a :title="network" id="currentNetwork" @click="networkMsg" v-show="switchData.openNetworkIcon">
@@ -53,139 +51,66 @@
                     style="width: 20px;height: 20px;margin-right: 10px;">
                     <path
                         d="M832 256v512H192V256h640m85.333333-85.333333H106.666667v682.666666h810.666666V170.666667zM704 469.333333v-42.666666a42.666667 42.666667 0 0 0-85.333333 0v170.666666a42.666667 42.666667 0 0 0 85.333333 0h-42.666667v-85.333333h128v85.333333a128 128 0 0 1-256 0v-170.666666a128 128 0 0 1 256 0v42.666666z m-247.68 44.373334A128 128 0 1 0 234.666667 426.666667v42.666666h85.333333v-42.666666a42.666667 42.666667 0 0 1 85.333333 0 42.666667 42.666667 0 0 1-10.666666 27.733333L234.666667 640v85.333333h256v-85.333333h-143.36z"
-                        p-id="7122" fill="white"></path>
+                        p-id="7122" fill="#191a1c"></path>
                 </svg>
                 <svg v-show="network === '3g' " viewBox="0 0 1024 1024" p-id="8249" width="128" height="128"
                     style="width: 20px;height: 20px;margin-right: 10px;">
                     <path
                         d="M832 256v512H192V256h640m85.333333-85.333333H106.666667v682.666666h810.666666V170.666667zM704 469.333333v-42.666666a42.666667 42.666667 0 0 0-85.333333 0v170.666666a42.666667 42.666667 0 0 0 85.333333 0h-42.666667v-85.333333h128v85.333333a128 128 0 0 1-256 0v-170.666666a128 128 0 0 1 256 0v42.666666z m-213.333333-42.666666a128 128 0 0 0-256 0h85.333333a42.666667 42.666667 0 1 1 42.666667 42.666666h-42.666667v85.333334h42.666667a42.666667 42.666667 0 1 1-42.666667 42.666666h-85.333333a128 128 0 0 0 256 0 126.506667 126.506667 0 0 0-32.853334-85.333333A126.506667 126.506667 0 0 0 490.666667 426.666667z"
-                        p-id="8250" fill="white"></path>
+                        p-id="8250" fill="#191a1c"></path>
                 </svg>
                 <svg v-show="network === '4g' " viewBox="0 0 1024 1024" p-id="12424" width="128" height="128"
                     style="width: 20px;height: 20px;margin-right: 10px;">
                     <path
                         d="M832 256v512H192V256h640m85.333333-85.333333H106.666667v682.666666h810.666666V170.666667zM704 469.333333v-42.666666a42.666667 42.666667 0 0 0-85.333333 0v170.666666a42.666667 42.666667 0 0 0 85.333333 0h-42.666667v-85.333333h128v85.333333a128 128 0 0 1-256 0v-170.666666a128 128 0 0 1 256 0v42.666666z m-298.666667-170.666666v170.666666h-85.333333v-170.666666h-85.333333v256h170.666666v170.666666h85.333334V298.666667z"
-                        p-id="12425" fill="white"></path>
+                        p-id="12425" fill="#191a1c"></path>
                 </svg>
                 <svg v-show="network === '5g' " viewBox="0 0 1024 1024" p-id="13616" width="128" height="128"
                     style="width: 20px;height: 20px;margin-right: 10px;">
                     <path
                         d="M832 256v512H192V256h640m85.333333-85.333333H106.666667v682.666666h810.666666V170.666667zM704 469.333333v-42.666666a42.666667 42.666667 0 0 0-85.333333 0v170.666666a42.666667 42.666667 0 0 0 85.333333 0h-42.666667v-85.333333h128v85.333333a128 128 0 0 1-256 0v-170.666666a128 128 0 0 1 256 0v42.666666z m-213.333333-85.333333v-85.333333h-205.226667l-33.28 188.16 80.426667 80.426666A42.666667 42.666667 0 0 1 362.666667 554.666667a42.666667 42.666667 0 1 1-42.666667 42.666666h-85.333333a128 128 0 0 0 106.666666 126.08 132.266667 132.266667 0 0 0 21.333334 1.92 128 128 0 0 0 21.333333-254.08 132.266667 132.266667 0 0 0-21.333333-1.92 113.706667 113.706667 0 0 0-21.333334 1.92l15.573334-87.253333z"
-                        p-id="13617" fill="white"></path>
+                        p-id="13617" fill="#191a1c"></path>
                 </svg>
                 <svg v-show="network === 'wifi'" viewBox="0 0 1024 1024" p-id="14693" width="128" height="128"
                     style="width: 20px;height: 20px;margin-right: 10px;">
                     <path
                         d="M512 810.24c-12.074667 0-21.12-2.986667-30.165333-12.074667s-12.074667-18.090667-12.074667-30.165333c0-6.016 0-12.074667 2.986667-15.104s3.029333-9.045333 9.088-15.061333l6.016-6.058667c3.029333-2.986667 3.029333-2.986667 9.045333-2.986667 3.029333-2.986667 3.029333-2.986667 9.088-2.986666 15.061333-3.072 27.136 2.986667 36.181333 12.032 2.986667 2.986667 9.045333 9.045333 9.045334 15.061333 2.986667 3.029333 2.986667 9.088 2.986666 15.104 0 12.074667-2.986667 21.12-12.032 30.165333s-18.090667 12.074667-30.165333 12.074667zM632.661333 689.578667c-12.032 0-21.12-3.029333-30.165333-12.074667-51.285333-51.285333-129.706667-51.285333-180.992 0-18.133333 18.090667-42.24 18.090667-60.373333 0-18.090667-18.133333-18.090667-42.24 0-60.373333 84.48-84.48 217.258667-84.48 301.738666 0 18.090667 18.133333 18.090667 42.24 0 60.373333-9.088 9.045333-18.133333 12.074667-30.208 12.074667z"
-                        p-id="14694" fill="white"></path>
+                        p-id="14694" fill="#191a1c"></path>
                     <path
                         d="M753.365333 568.874667c-12.074667 0-21.12-2.986667-30.165333-12.074667a296.832 296.832 0 0 0-422.4 0c-18.090667 18.133333-42.24 18.133333-60.330667 0s-18.090667-42.24 0-60.330667a382.421333 382.421333 0 0 1 543.061334 0c18.090667 18.090667 18.090667 42.24 0 60.330667-9.045333 9.045333-18.090667 12.074667-30.165334 12.074667z"
-                        p-id="14695" fill="white"></path>
+                        p-id="14695" fill="#191a1c"></path>
                     <path
                         d="M874.026667 448.213333c-12.074667 0-21.12-3.029333-30.165334-12.074666a467.968 467.968 0 0 0-663.722666 0c-18.090667 18.090667-42.24 18.090667-60.330667 0s-18.133333-42.24 0-60.330667a553.557333 553.557333 0 0 1 784.384 0c18.133333 18.090667 18.133333 42.24 0 60.330667-9.045333 9.045333-18.090667 12.074667-30.165333 12.074666z"
-                        p-id="14696" fill="white"></path>
+                        p-id="14696" fill="#191a1c"></path>
                 </svg>
+            </a>
+            <a title="计时器" style="position: relative;top: -5px;">
+                <b style="transition: color 0.8s;" id="screenShareTimes" v-show="isScreenShare">
+                    {{screenShareTimes < 10 ? '0' +screenShareTimes : screenShareTimes}} </b>
+                        <b style="transition: color 0.8s;" id="videoShareTimes" v-show="isVideoShare">
+                            {{videoShareTimes < 10 ? '0' +videoShareTimes : videoShareTimes}} </b>
+                                <b style="transition: color 0.8s;" id="screenTimes" v-show="isScreen">
+                                    {{screenTimes < 10 ? '0' +screenTimes : screenTimes}} </b>
             </a>
         </div>
 
-        <div class="tool">
-            <div class="toolList" title="功能集合">
-                <a title="AI对话" @click="openaiChat" id="openai" :class="switchData.openAiChat ? '':'toolDisabled'">
-                    <span v-show="aiChatList.length > 0 && isAiAnswering"
-                        class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop">{{Math.min(aiChatList.length-1,
-                        99)}}</span>
-                    <span v-show="aiChatList.length > 0 && !isAiAnswering"
-                        class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop">{{Math.min(aiChatList.length,
-                        99)}}</span>
-                    <svg viewBox="0 0 1024 1024" style="width: 24px;height: 24px;" p-id="3845" width="64"
-                        height="64">
-                        <path 
-                            d="M196.1 989.7c-9.1 0-17.6-3.5-24-9.9-6.3-6.3-9.9-15-9.9-24v-236c0-1.9-1.4-3.5-3.3-3.8-39.1-5.1-108.4-19.7-133.7-60.7-12.4-20.1-13.5-44.2-3.1-67.7 27.2-61.2 72.5-105.4 97-126.2 0.7-0.6 1.2-1.5 1.3-2.4 8.9-71.3 71.3-426.8 428.7-426.8 194.6 0 351.9 88.1 420.8 235.5 73.4 157.3 30.3 352.4-118.3 535.4-0.6 0.7-0.8 1.5-0.8 2.4V950c0 18.7-15.2 33.9-33.9 33.9S783 968.7 783 950V791.8c0-8 2.8-15.7 7.9-21.8C929.1 604.9 972 432.1 908.6 296.2c-57.5-123-191.8-196.4-359.4-196.4-336.2 0-361.8 364.6-362.8 380.1-0.7 10.1-5.7 19.4-13.9 25.4-6.3 4.8-60.7 47.3-88.4 109.7-0.4 1-0.4 2.1 0 3 7.1 16.8 65.6 31.1 113.6 33.5 18.1 0.9 32.2 15.7 32.3 33.8V918c0 2.1 1.7 3.8 3.8 3.8h189.3c18.7 0 33.9 15.2 33.9 33.9s-15.2 33.9-33.9 33.9h-227z"
-                            fill="white" p-id="3846"></path>
-                        <path
-                            d="M583.9 687.3c-14.3 0-27.1-9-31.9-22.4l-21.3-62.3c-0.5-1.5-2-2.6-3.6-2.6H415.2c-1.6 0-3.1 1-3.6 2.5L389 665.4c-5.1 12.8-17.5 21.1-31.4 21.1-3.9 0-7.8-0.7-11.5-2-17.2-6.2-26.4-24.7-20.8-42.2l116.3-323.6c4.8-13.4 17.6-22.4 31.9-22.4 14.6 0.1 27.4 9.3 32 22.9l110.7 323.7c5.7 17.4-3.9 36.6-21.3 42.5-3.6 1.3-7.2 1.9-11 1.9z m-111.4-247c-1.6 0-3.1 1-3.6 2.5L438.7 527c-0.4 1.2-0.2 2.5 0.5 3.5s1.9 1.6 3.1 1.6h59c1.2 0 2.4-0.6 3.1-1.6 0.7-1 0.9-2.3 0.5-3.5l-28.8-84.2c-0.5-1.5-1.9-2.5-3.6-2.5z m225 244.5c-18.7 0-33.9-14.7-33.9-32.7V329.3c0-18 15.2-32.7 33.9-32.7s33.9 14.7 33.9 32.7v322.9c-0.1 18-15.3 32.6-33.9 32.6z"
-                            fill="white" p-id="3847"></path>
-                    </svg>
-                </a>
-    
-                <a title="取文件" @click="getCodeFile()" :class="switchData.openGetCodeFile ? '':'toolDisabled'">
-                    <i class="layui-icon layui-icon-key"
-                        style="font-size: 23px; font-weight: bold;cursor: pointer;color:white;"></i>
-                </a>
-    
-                <a title="密码房间" @click="startPassword()" :class="switchData.openPasswordRoom ? '':'toolDisabled'" style="display: inherit;text-align: center;">
-                    <i id="password" class="layui-icon layui-icon-password" :style="isPasswordRoom?'color: red;':''"
-                        style="font-size: 23px; font-weight: bold;cursor: pointer;transition: color 0.8s; color: white;"></i>
-                </a>
-    
-                <a title="网页录屏" @click="startScreen()" :class="switchData.openScreen ? '':'toolDisabled'" style="display: inherit;text-align: center;">
-                    <i id="screen" class="layui-icon layui-icon-radio"
-                        style="font-size: 23px; font-weight: bold;cursor: pointer;transition: color 0.8s;color: white"></i>
-                    <b id="screenTimes" v-show="isScreen" style="position: relative; top: -50px; font-size: 14px;transition: color 0.8s;">{{screenTimes}}</b>
-                </a>
-    
-                <a title="音视频电话" @click="startVideoShare()" :class="switchData.openVideoShare ? '':'toolDisabled'" style="display: inherit;text-align: center;">
-                    <i id="videoShare" class="layui-icon layui-icon-video"
-                        style="font-size: 23px; font-weight: bold;cursor: pointer;transition: color 0.8s;color: white"></i>
-                    <b id="videoShareTimes" v-show="isVideoShare" style="position: relative; top: -50px; font-size: 14px;transition: color 0.8s;">{{videoShareTimes}}</b>
-                </a>
-    
-                <a title="屏幕共享" @click="startScreenShare()" :class="switchData.openScreenShare ? '':'toolDisabled'" style="display: inherit;text-align: center;">
-                    <svg style="width: 24px;height: 24px;"
-                        viewBox="0 0 1024 1024" p-id="2745" width="64" height="64">
-                        <path fill="white" id="screenShare" style="transition: fill 0.8s;"
-                            d="M889.6 127.488H141.696c-38.656 0-70.08 31.488-70.08 70.144v467.392c0 38.656 31.488 70.144 70.08 70.144h342.976v99.456H368.384c-18.688 0-33.792 13.888-33.792 30.976s15.104 30.976 33.792 30.976h294.592c18.688 0 33.792-13.888 33.792-30.976s-15.104-30.976-33.792-30.976H546.688v-99.456H889.6c38.656 0 70.144-31.424 70.144-70.144V197.568c0-38.592-31.424-70.08-70.144-70.08z m4.864 526.592a22.272 22.272 0 0 1-22.272 22.336H159.168a22.272 22.272 0 0 1-22.272-22.336V208.512c0-12.352 10.048-22.272 22.272-22.272h713.024c12.288 0 22.272 9.92 22.272 22.272V654.08zM566.976 313.984c-13.184-10.624-23.936-2.88-23.936 15.872v49.984h-2.176c-77.056 0-208.128 89.024-209.216 168.192 0 6.336 5.12 8.128 10.048 0 24.896-44.416 129.536-67.456 182.848-67.456h18.496v52.736c0 15.744 11.648 26.496 24.896 15.872l121.856-97.792c13.184-10.56 13.184-27.904 0-38.528l-122.816-98.88z"
-                            p-id="2746"></path>
-                    </svg>
-                    <b id="screenShareTimes" v-show="isScreenShare" style="position: relative; top: -50px; font-size: 14px;transition: fill 0.8s;">{{screenShareTimes}}</b>
-                </a>
-    
-                <a title="公共聊天频道" @click="chating()" :class="switchData.openCommRoom ? '':'toolDisabled'">
-                    <span v-show="chatingList.length > 0"
-                        class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop">{{Math.min(chatingList.length,
-                        99)}}</span>
-                    <svg style="width:34px;height: 34px;" viewBox="0 0 1024 1024" p-id="6507">
-                        <path fill="white"
-                            d="M802.4 555c0 0-9.9-31.8-41.7-31.8l-89.8 0c-26.7 31.5-52.4 43.4-93.9 53.8l-26 26 78 0c57.7-1.6 75.5 71.1 78 78l130 0L802.4 555z"
-                            p-id="6508"></path>
-                        <path fill="white"
-                            d="M717.6 382.3c0 41.1-12.6 79.2-34.3 110.9 5.4 0.7 10.8 1.1 16.4 1.1 71.1 0 112-55 111.2-125.2-1.6-151.5-168.8-127.8-182-130C664.1 256.8 717.6 295.8 717.6 382.3z"
-                            p-id="6509"></path>
-                        <path fill="white"
-                            d="M221.6 555c0 0 9.9-31.8 41.7-31.8l89.8 0c26.7 31.5 52.4 43.4 93.9 53.8l26 26-78 0c-57.7-1.6-75.5 71.1-78 78L187 681 221.6 555z"
-                            p-id="6510"></path>
-                        <path fill="white"
-                            d="M306.4 382.3c0 41.1 12.6 79.2 34.3 110.9-5.4 0.7-10.8 1.1-16.4 1.1-71.1 0-112-55-111.2-125.2 1.6-151.5 168.8-127.8 182-130C359.9 256.8 306.4 295.8 306.4 382.3z"
-                            p-id="6511"></path>
-                        <path fill="white"
-                            d="M673.2 392.9c0 87.9-72.1 159.2-161.2 159.2-89.1 0-161.2-71.3-161.2-159.2 0-88 80-153.8 169.1-153.8C600 239.1 673.2 304.9 673.2 392.9z"
-                            p-id="6512"></path>
-                        <path fill="white"
-                            d="M421 629.1l182 0c39.9 0 52 26 52 26l52 130L317 785.1l52-130C369 655.1 381.1 629.1 421 629.1z"
-                            p-id="6513"></path>
-                    </svg>
-                </a>
-    
-                <a id="closeTool" title="功能集合" >
-                    <i id="closeToolIcon" class="layui-icon layui-icon-component" style="font-size: 24px;transition: all 0.2s;"></i>
-                </a>
-            </div>    
+        <!-- 侧边图标 -->
+        <div class="tl-rtc-file-side-tool">
 
             <a title="公告" @click="clickNotice" v-show="switchData.openNotice">
-                <span v-show="switchData.noticeMsgList && switchData.noticeMsgList.length > 0"
-                    class="layui-badge new-dot" style="width: 7px; height: 7px; right: 10px;"></span>
-                <i class="layui-icon layui-icon-notice"
-                    style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;color: white;"></i>
+                <i class="layui-icon layui-icon-notice">
+                    <span v-show="switchData.noticeMsgList && switchData.noticeMsgList.length > 0"
+                        class="layui-badge tl-rtc-file-msg-dot"
+                        style="right: 7px;top: 20px; width: 7px; height: 7px;"></span>
+                </i>
             </a>
 
             <a title="官网主页" href="/home.html">
-                <i class="layui-icon layui-icon-home"
-                    style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;color: white;"></i>
+                <i class="layui-icon layui-icon-home"></i>
             </a>
 
             <a title="分享房间链接" @click="shareUrl" id="shareUrl" v-show="switchData.openShareRoom">
-                <i class="layui-icon layui-icon-share"
-                    style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;color: white;"></i>
+                <i class="layui-icon layui-icon-share"></i>
             </a>
 
             <a title="赞赏一杯咖啡" @click="coffee">
@@ -229,255 +154,531 @@
             </a>
 
             <a title="执行日志" @click="clickLogs">
-                <i class="layui-icon layui-icon-about"
-                    style="font-size: 23px; font-weight: bold;margin-right: 10px;cursor: pointer;color: white;"></i>
+                <i class="layui-icon layui-icon-about"></i>
             </a>
 
             <a title="设置" @click="setting()" v-show="switchDataGet">
-                <i id="setting" class="layui-icon layui-icon-set"
-                    style="font-size: 21px; font-weight: bold;margin-right: 10px;cursor: pointer;transition: color 0.8s;color: white;"></i>
+                <i id="setting" class="layui-icon layui-icon-set"></i>
             </a>
 
         </div>
 
-        <div style="text-align: center;font-size: 20px;color: beige;">注 : 仅用于学习用途, 请勿他用</div>
-        <div style="text-align: center;font-size: 15px;color: beige;margin-bottom: 5px;margin-top: 8px;">qq交流群 : <a
-                target="_blank" style="color: white;" href="https://jq.qq.com/?_wv=1027&k=TKCwMBjN">624214498</a> </div>
-        <div class="onlineCount">
-            <svg style="width: 13px;height: 8px;" viewBox="0 0 1024 1024" p-id="4241" width="128" height="128">
-                <path
-                    d="M512 277.333333a234.666667 234.666667 0 1 0 0 469.333334 234.666667 234.666667 0 0 0 0-469.333334z"
-                    p-id="4242" fill="#1afa29"></path>
-            </svg>
-            当前在线人数 : {{allManCount}}
-        </div>
-        <div class="roomClass">
-            <input :disabled="createDisabled" :class="[{'layui-btn-disabled':createDisabled}]" type="text" name="title"
-                maxlength="15" autocomplete="off" class="layui-input cusInput" v-model="roomId" placeholder="输入房间编号">
-            <i title="随机刷新房间号" v-show="!createDisabled && switchData.openRefleshRoom" @click="refleshRoom()"
-                id="refresh" class="layui-icon layui-icon-refresh"></i>
-            <div class="layui-btn-container center">
-                <button type="button" :class="[{'layui-btn-disabled':createDisabled}]" @click="createFileRoom()"
-                    :disabled="createDisabled"> 创建/加入房间 </button>
-                <button type="button" class="exitBtn" :class="[{'layui-btn-disabled':exsitDisabled}]"
-                    @click="exitRoom()" :disabled="exsitDisabled"> 退出房间 </button>
+        <!-- 顶部标题 -->
+        <div class="tl-rtc-file-header-intro">
+            <div class="tl-rtc-file-header-intro-txt" @click="clickLogs">注 : 仅用于学习用途, 请勿他用</div>
+            <div class="tl-rtc-file-header-intro-qq">qq交流群 : <a target="_blank"
+                    href="https://jq.qq.com/?_wv=1027&k=TKCwMBjN">624214498</a> </div>
+            <div class="tl-rtc-file-header-user-online">
+                <svg viewBox="0 0 1024 1024" p-id="4241">
+                    <path
+                        d="M512 277.333333a234.666667 234.666667 0 1 0 0 469.333334 234.666667 234.666667 0 0 0 0-469.333334z"
+                        p-id="4242" fill="#1afa29"></path>
+                </svg>
+                当前在线人数 : {{allManCount}}
             </div>
         </div>
 
-        <div style="text-align: center; margin-top: 15px;margin-bottom: 15px;">
-            <i class="layui-icon layui-icon-find-fill layui-anim" id="changeMode" @click="changeFileOrTxt()"
-                style="font-size: 20px; font-weight: bold;cursor: pointer;"></i>
-        </div>
-
-        <div id="self" v-show="!isTxtMode">
-            <div class="layui-upload-drag layui-btn-disabled" style="width: 100%;user-select: none;border-radius: 20px;box-shadow: 0 0px 20px rgb(255 255 255 / 40%);"
-                id="chooseFileListDisable" v-show="(uploadDisabled && !createDisabled) || noOthersInRoom" disabled>
-                <i class="layui-icon"></i>
-                <p style="color: antiquewhite;">(当前禁选)，请确保双方先加入房间，才可选择文件发送，支持多文件拖拽发送</p>
-            </div>
-            <div class="layui-upload-drag layui-btn-disabled" style="width: 100%;user-select: none;"
-                v-show="createDisabled && !noOthersInRoom && isSending" disabled>
-                <i class="layui-icon" id="isSendingIcon" style="transition: all 0.8s;"></i>
-                <p style="color: antiquewhite;">正在发送中...</p>
-                <p style="color: antiquewhite; margin-top: 10px;">当前已发送 <b>{{getFileSizeStr(currentSendAllSize)}}</b>
-                </p>
-                <div class="fileRoomDisabled swiper-container" style="margin-top: 20px;">
-                    <div class="swiper-wrapper">
-                        <div class="swiper-slide fileBlock" v-for="file in chooseFileList">
-                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 0"
-                                class="layui-icon layui-icon-play"></i>
-                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 1"
-                                class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
-                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 2"
-                                class="layui-icon layui-icon-ok-circle"></i>
-                            <i style="font-size: 40px;" class="layui-icon layui-toolList"></i>
-                            <b style="font-size: 12px;word-break: break-all;">{{file.name}}</b>
+        <!-- 发文件/文字 -->
+        <div class="layui-row swiper-container tl-rtc-file-send-file-txt-tool">
+            <div class="swiper-wrapper">
+                <div class="layui-col-xs6 swiper-slide" style="text-align: center;">
+                    <div class="tl-rtc-file-send-file-tool" :class="!hasManInRoom ? 'layui-disabled' : ''">
+                        <div>
+                            <i class="layui-icon layui-icon-release tl-rtc-file-send-file-tool-i-one"></i>
+                            <i class="layui-icon layui-icon-release tl-rtc-file-send-file-tool-i-two"></i>
+                            <i class="layui-icon layui-icon-release tl-rtc-file-send-file-tool-i-three" :style="{
+                                left: sendFileList.length > 0 ? '10px' :'0'
+                            }"></i>
+                            <span v-show="sendFileList.length > 0" style="position: relative;right: -9px;"
+                                class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
+                                {{Math.min(sendFileList.length, 99)}}
+                        </div>
+                        <div>
+                            <button v-show="hasManInRoom" @click="clickSendFile" type="button"
+                                class="layui-btn tl-rtc-file-send-file-tool-send">发送文件</button>
+                            <button v-show="!hasManInRoom" @click="clickSendFile" type="button"
+                                class="layui-btn tl-rtc-file-send-file-tool-send layui-disabled">发送文件</button>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="layui-upload-drag" style="width: 100%;border-radius: 20px;box-shadow: 0 0px 20px rgb(255 255 255 / 40%);" id="chooseFileList"
-                v-show="createDisabled && !noOthersInRoom && !isSending">
-                <i class="layui-icon"></i>
-                <p style="color: antiquewhite;">点击选取文件，或将文件拖拽到此处，支持多文件拖拽发送</p>
-                <div class="fileRoom swiper-container" style="margin-top: 20px;">
-                    <div class="swiper-wrapper">
-                        <div class="swiper-slide fileBlock" v-for="file in chooseFileList">
-                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 0"
-                                class="layui-icon layui-icon-play"></i>
-                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 1"
-                                class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
-                            <i style="font-size: 15px;position: relative;" v-show="file.fileSendStatus === 2"
-                                class="layui-icon layui-icon-ok-circle"></i>
-                            <i style="font-size: 40px;" class="layui-icon layui-toolList"></i>
-                            <b style="font-size: 12px;word-break: break-all;">{{file.name}}</b>
+                <div class="layui-col-xs6 swiper-slide" style="text-align: center;">
+                    <div class="tl-rtc-file-send-txt-tool">
+                        <div>
+                            <i class="layui-icon layui-icon-reply-fill tl-rtc-file-send-txt-tool-i-one"></i>
+                            <i class="layui-icon layui-icon-reply-fill tl-rtc-file-send-txt-tool-i-two"></i>
+                            <i class="layui-icon layui-icon-reply-fill tl-rtc-file-send-txt-tool-i-three":style="{
+                                left: receiveTxtList.length > 0 ? '10px' :'0'
+                            }"></i>
+                            <span v-show="receiveTxtList.length > 0" style="position: relative;right: -7px;"
+                                class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
+                                {{Math.min(receiveTxtList.length, 99)}}
+                            </span>
+                        </div>
+                        <div>
+                            <button @click="openChatingRoom" type="button"
+                                class="layui-btn tl-rtc-file-send-txt-tool-send">发送文字</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="layui-col-sm6 layui-col-md3" id="txtSelf" v-show="isTxtMode"
-            style="width: 70%; margin-left: 15%;display: grid;">
-            <textarea name="txt" id="txt"></textarea>
-            <button type="button" class="layui-btn sendTxt" @click="sendTxt(false)">发送文本</button>
-            <button type="button" style="margin-left:50%;" class="layui-btn sendTxt"
-                @click="sendTxt(true)">发送富文本</button>
+        <!-- 工具功能 -->
+        <div class="layui-row swiper-container tl-rtc-file-tool-list" style="margin-top: 30px; padding-bottom: 20px;">
+            <div class="swiper-wrapper">
+                <div class="layui-col-xs3 swiper-slide" @click="openChatingComm"
+                    :class="switchData.openCommRoom ? '':'tl-rtc-file-tool-disabled'">
+                    <div class="tl-rtc-file-tool">
+                        <i :style="(clientWidth < 450) ? 'padding:5px;font-size: 18px' : '' "
+                            class="layui-icon layui-icon-reply-fill"></i>
+                        <b v-show="clientWidth >= 450">公共聊天</b>
+                        <span v-show="chatingCommList.length > 0" class="layui-badge tl-rtc-file-msg-dot"
+                            style="right: 5px; top: 4px; width: 7px; height: 7px;position: relative;"></span>
+                    </div>
+                </div>
+                <div class="layui-col-xs3 swiper-slide" @click="startScreenShare"
+                    :class="switchData.openScreenShare ? '':'tl-rtc-file-tool-disabled'">
+                    <div class="tl-rtc-file-tool">
+                        <i :style="(clientWidth < 450) ? 'padding:5px;font-size: 18px' : '' "
+                            class="layui-icon layui-icon-chart-screen" id="screenShareIcon"></i>
+                        <b v-show="clientWidth >= 450">屏幕共享</b>
+                    </div>
+                </div>
+                <div class="layui-col-xs3 swiper-slide" @click="startVideoShare"
+                    :class="switchData.openVideoShare ? '':'tl-rtc-file-tool-disabled'">
+                    <div class="tl-rtc-file-tool">
+                        <i :style="(clientWidth < 450) ? 'padding:5px;font-size: 18px' : '' "
+                            class="layui-icon layui-icon-video" id="videoShareIcon"></i>
+                        <b v-show="clientWidth >= 450">视频通话</b>
+                    </div>
+                </div>
+                <div class="layui-col-xs3 swiper-slide" @click="startScreen"
+                    :class="switchData.openScreen ? '':'tl-rtc-file-tool-disabled'">
+                    <div class="tl-rtc-file-tool">
+                        <i :style="(clientWidth < 450) ? 'padding:5px;font-size: 18px' : '' "
+                            class="layui-icon layui-icon-radio" id="screenIcon"></i>
+                        <b v-show="clientWidth >= 450">屏幕录制</b>
+                    </div>
+                </div>
+                <div class="layui-col-xs3 swiper-slide" @click="openaiChat"
+                    :class="switchData.openAiChat ? '':'tl-rtc-file-tool-disabled'">
+                    <div class="tl-rtc-file-tool">
+                        <i :style="(clientWidth < 450) ? 'padding:5px;font-size: 18px' : '' "
+                            class="layui-icon layui-icon-fire"></i>
+                        <b v-show="clientWidth >= 450">AI 聊天</b>
+                    </div>
+                </div>
+                <div class="layui-col-xs3 swiper-slide" @click="startPassword"
+                    :class="switchData.openPasswordRoom ? '':'tl-rtc-file-tool-disabled'">
+                    <div class="tl-rtc-file-tool">
+                        <i :style="(clientWidth < 450) ? 'padding:5px;font-size: 18px' : '' "
+                            class="layui-icon layui-icon-key"></i>
+                        <b v-show="clientWidth >= 450">密码房间</b>
+                    </div>
+                </div>
+                <div class="layui-col-xs3 swiper-slide" @click="getCodeFile"
+                    :class="switchData.openGetCodeFile ? '':'tl-rtc-file-tool-disabled'">
+                    <div class="tl-rtc-file-tool">
+                        <i :style="(clientWidth < 450) ? 'padding:5px;font-size: 18px' : '' "
+                            class="layui-icon layui-icon-email"></i>
+                        <b v-show="clientWidth >= 450">取件码</b>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="maskBottom" :style="{top: numSendFile + '%'}">
-            <div class="layui-col-sm2" style="width: 100%;">
-                <div class="layui-card">
-                    <div class="layui-card-header">发送的文件/文本
-                        <i @click="clickSendFile" class="layui-icon layui-icon-close"
-                            style="cursor: pointer; right: 10px;position: absolute;"></i>
+        <!-- 自己 -->
+        <div class="layui-row" style="margin-top: 30px;" v-show="socketId !== 0">
+            <div class="layui-col-xs12 tl-rtc-file-user-list">
+                <div class="tl-rtc-file-user">
+                    <div class="tl-rtc-file-user-body">
+                        <svg viewBox="0 0 1024 1024" width="32" height="32" >
+                            <path
+                                d="M310.956564 662.25202zM307.071733 652.841638zM303.914275 643.972652c0.219038 0.669513 0.471139 1.326628 0.69431 1.992009-0.231437-0.661248-0.471139-1.322495-0.69431-1.992009zM539.239951 781.611372a3.0872 3.0872 0 0 0 0.962942-0.181843c-0.698443 0.086789-1.401019 0.136382-2.103594 0.219038l1.140652-0.037195zM315.841531 672.418704zM292.044878 564.370822a1501.734968 1501.734968 0 0 0-0.169445-17.436277c-0.02893 5.926433 0.02893 11.737148 0.169445 17.436277zM729.39414 534.32951c-0.169445 10.910588-0.376085 22.056745-0.376085 33.368215 0 21.507083-2.49621 41.373445-7.021624 59.661078 7.401842-28.264209 9.476507-58.218732 7.397709-93.029293z"
+                                fill="#002738" p-id="2725"></path>
+                            <path
+                                d="M507.843081 8.435042c-280.451702 0-507.838272 227.266719-507.838272 507.722553 0 187.54226 101.608982 351.250672 252.745422 439.200756 0.421545-1.169582 0.818294-2.359828 1.25637-3.52941 16.915544-45.564103 44.76234-81.97819 79.184418-109.176136 22.445228-17.886752 48.200828-32.198633 76.609685-42.39838-58.995698-51.403747-60.739739-65.430465-40.489026-63.53351a193.757989 193.757989 0 0 1-47.122168-53.015538c0.396749 0.648849 0.739771 1.310097 1.144785 1.963079-193.113273-186.203234-50.234165-534.188995 184.508786-411.072929l0.23557 0.115718c161.344451-84.825688 283.667019 58.342716 280.381444 212.863916-0.938145 70.860962-28.115428 143.685003-89.785046 196.799729 0.442209-0.789365 0.830692-1.582862 1.268769-2.368093-13.46879 22.879172-31.000121 41.844584-51.180576 56.966493 10.183215 3.32277 5.996691 19.816769-28.22288 61.500174h-0.264499c27.788937 10.046833 53.019671 24.02809 75.084682 41.456101 34.029462 26.623488 61.73161 62.17382 78.911653 106.630332 144.858718-89.433758 241.413288-249.592096 241.413288-432.406435-0.004133-280.451702-227.38657-507.718421-507.842405-507.71842z"
+                                fill="#191a1c" p-id="2726"></path>
+                            <path
+                                d="M538.103431 781.648567c0.702576-0.082656 1.405151-0.13225 2.103595-0.219038 10.551034-3.149192 88.218715-49.08938 108.560349-42.452106 20.180455-15.121909 37.711786-34.087322 51.180576-56.966494 9.943513-18.072728 17.167645-36.000807 22.052612-54.652126 4.529547-18.287633 7.021625-38.149862 7.021625-59.661078 0-11.311469 0.20664-22.46176 0.376085-33.368215-0.793497-13.369603-2.18625-27.445914-4.1204-42.423176-95.711479 5.856175-163.658818-27.883991-217.426526-82.002987-75.208666 51.312825-146.904453 80.949123-214.029366 82.002987-1.074528 19.498543-1.843228 37.761379-1.938282 55.028211 0.086789 5.740457 0.152914 11.555304 0.169445 17.436277 0.739771 29.082503 3.979885 55.276179 11.865264 79.605963 0.227304 0.669513 0.462873 1.326628 0.69431 1.992009 0.776966 2.310234 1.603526 4.595672 2.467281 6.872844 1.103457 2.851631 2.248242 5.661934 3.459152 8.422643 0.144648 0.326491 0.276897 0.661248 0.425678 0.987739 1.330761 2.98388 2.73178 5.901636 4.186525 8.773931 0.23557 0.462873 0.462873 0.934012 0.698443 1.392753 1.186113 2.297836 2.434218 4.53368 3.694722 6.757126 0.867888 1.512604 1.731643 3.029341 2.653256 4.533679a193.757989 193.757989 0 0 0 47.122168 53.015539c31.421667 2.93842 115.805145 44.21681 121.429884 43.716742 19.167919 2.52514 28.243545 1.789502 47.353604 1.206777zM695.356412 841.933698c35.033732 27.66082 62.062234 63.967454 78.804201 106.692324l0.10332-0.066125c-17.17591-44.45238-44.873925-80.002712-78.907521-106.626199zM333.191019 842.656937c-34.422078 27.197947-62.264741 63.612034-79.184418 109.176137 16.485733-43.753937 43.708476-80.907795 79.184418-109.176137z"
+                                fill="#FCE9EA" p-id="2727"></path>
+                            <path
+                                d="M695.356412 841.933698c-22.065011-17.428011-47.295745-31.413401-75.084682-41.456101l-210.363573-0.119852-0.107453-0.095054c-28.408856 10.199747-54.164456 24.511628-76.609685 42.398379-35.471809 28.272474-62.698685 65.422199-79.184418 109.176136-0.438077 1.165449-0.834825 2.355695-1.25637 3.52941 74.964831 43.629953 162.104886 68.633384 255.09285 68.633384 97.670425 0 188.88542-27.590562 266.317532-75.365712-16.741966-42.737269-43.770468-79.03977-78.804201-106.70059z"
+                                fill="#B0C11D" p-id="2728"></path>
+                            <path
+                                d="M620.27173 800.473464h0.264499c34.219571-41.683405 38.406096-58.177404 28.222881-61.500174-20.341634-6.633141-98.009315 39.307046-108.56035 42.452106a3.124396 3.124396 0 0 1-0.962942 0.181843l-1.136519 0.037195c-19.11006 0.586857-28.181553 1.318363-47.36187-1.206777-5.624739 0.500069-90.008217-40.778322-121.429884-43.716742-20.250712-1.896954-18.510804 12.133896 40.489026 63.53351l0.107453 0.095055 210.367706 0.123984z"
+                                fill="#FF5947" p-id="2729"></path>
+                            <path
+                                d="M315.841531 672.418704c-0.239702-0.458741-0.462873-0.92988-0.698442-1.392753a180.789268 180.789268 0 0 1-4.186525-8.773931l-0.425679-0.987739a184.876605 184.876605 0 0 1-5.926432-15.295487c-0.223171-0.665381-0.475272-1.322495-0.694311-1.992009-7.885379-24.329784-11.125493-50.523461-11.865264-79.605963a563.192974 563.192974 0 0 1-0.169445-17.436277c0.095054-17.266832 0.859622-35.529668 1.938283-55.028211 67.124912-1.053864 138.8207-30.694294 214.029365-82.002987v-135.30782c-234.742951-123.116065-377.622059 224.869696-184.508786 411.072929-0.409147-0.648849-0.748037-1.310097-1.144785-1.963079-0.921614-1.500206-1.785369-3.016943-2.653257-4.53368-1.281168-2.235844-2.521007-4.488219-3.694722-6.752993zM698.675049 684.379023c61.669618-53.118858 88.846901-125.938767 89.785046-196.799729-1.49194 69.976543-28.727082 142.279852-89.785046 196.799729z"
+                                fill="#FECF77" p-id="2730"></path>
+                            <path
+                                d="M507.843081 409.903347c53.77184 54.123128 121.715047 87.863295 217.426526 82.002987 1.93415 14.977262 3.326903 29.053573 4.1204 42.423176 2.078798 34.810561 0.004133 64.765084-7.397709 93.029293-4.884968 18.651319-12.109099 36.579399-22.052613 54.652126-0.433944 0.785232-0.822427 1.578729-1.268769 2.368094 61.053831-54.515744 88.293106-126.823186 89.785046-196.799729 3.285575-154.525334-119.036993-297.689604-280.381444-212.863916l-0.23557-0.115719v135.303688z"
+                                fill="#FF9F31" p-id="2731"></path>
+                        </svg>
+                        
+                        <div class="tl-rtc-file-user-body-left">
+                            <b class="tl-rtc-file-user-body-left-nick"> {{nickName}} - 自己 </b>
+                            <b class="tl-rtc-file-user-body-left-id"> {{socketId}} </b>
+                        </div>
                     </div>
-                    <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
-                        <table class="layui-table">
-                            <thead>
-                                <tr>
-                                    <th>名称</th>
-                                    <th>格式</th>
-                                    <th>大小</th>
-                                    <th>进度</th>
-                                    <th>耗时</th>
-                                    <th v-show="uploadCodeFileProcess === 0">暂存状态</th>
-                                    <th v-show="uploadCodeFileProcess > 0">暂存进度{{uploadCodeFileProcess}}%</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="file in sendFileList">
-                                    <td><span><pre>{{file.name}}</pre></span></td>
-                                    <td><span>{{file.type}}</span></td>
-                                    <td><span>{{getFileSizeStr(file.size)}}</span></td>
-                                    <td><span>{{file.process}}%</span></td>
-                                    <td><span>{{file.cost}}秒</span></td>
-                                    <td style="cursor: pointer;"><span @click="uploadCodeFile(file)"><a>暂存</a></span>
-                                    </td>
-                                </tr>
-                                <div style="display: flex;padding:5px;">
-                                    <span style="word-break: keep-all;font-size: 12px;">进度：</span>
-                                    <progress id="sendProgress" :value="currentSendSize" max="0"
-                                        style="width: 100%;margin: auto;"></progress>
+                    <div class="tl-rtc-file-user-body-right">
+                        <i v-show="receiveFileList.length > 0" title="接收文件" class="layui-icon layui-icon-print"
+                            @click="clickReceiveFile"></i>
+                        <i v-show="receiveFileList.length === 0" title="接收文件"
+                            class="layui-icon layui-icon-print layui-disabled" @click="clickReceiveFile"></i>
+                        <span v-show="receiveFileList.length > 0"
+                            class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
+                            {{Math.min(receiveFileList.length, 99)}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 远端连接 -->
+        <div class="layui-row" style="position: relative;">
+            <div class="layui-col-xs12 tl-rtc-file-user-list" v-for="remote in remoteMap">
+                <div class="tl-rtc-file-user">
+                    <div class="tl-rtc-file-user-body">
+                        <svg viewBox="0 0 1024 1024" width="32" height="32">
+                            <path
+                                d="M310.956564 662.25202zM307.071733 652.841638zM303.914275 643.972652c0.219038 0.669513 0.471139 1.326628 0.69431 1.992009-0.231437-0.661248-0.471139-1.322495-0.69431-1.992009zM539.239951 781.611372a3.0872 3.0872 0 0 0 0.962942-0.181843c-0.698443 0.086789-1.401019 0.136382-2.103594 0.219038l1.140652-0.037195zM315.841531 672.418704zM292.044878 564.370822a1501.734968 1501.734968 0 0 0-0.169445-17.436277c-0.02893 5.926433 0.02893 11.737148 0.169445 17.436277zM729.39414 534.32951c-0.169445 10.910588-0.376085 22.056745-0.376085 33.368215 0 21.507083-2.49621 41.373445-7.021624 59.661078 7.401842-28.264209 9.476507-58.218732 7.397709-93.029293z"
+                                fill="#002738" p-id="2725"></path>
+                            <path
+                                d="M507.843081 8.435042c-280.451702 0-507.838272 227.266719-507.838272 507.722553 0 187.54226 101.608982 351.250672 252.745422 439.200756 0.421545-1.169582 0.818294-2.359828 1.25637-3.52941 16.915544-45.564103 44.76234-81.97819 79.184418-109.176136 22.445228-17.886752 48.200828-32.198633 76.609685-42.39838-58.995698-51.403747-60.739739-65.430465-40.489026-63.53351a193.757989 193.757989 0 0 1-47.122168-53.015538c0.396749 0.648849 0.739771 1.310097 1.144785 1.963079-193.113273-186.203234-50.234165-534.188995 184.508786-411.072929l0.23557 0.115718c161.344451-84.825688 283.667019 58.342716 280.381444 212.863916-0.938145 70.860962-28.115428 143.685003-89.785046 196.799729 0.442209-0.789365 0.830692-1.582862 1.268769-2.368093-13.46879 22.879172-31.000121 41.844584-51.180576 56.966493 10.183215 3.32277 5.996691 19.816769-28.22288 61.500174h-0.264499c27.788937 10.046833 53.019671 24.02809 75.084682 41.456101 34.029462 26.623488 61.73161 62.17382 78.911653 106.630332 144.858718-89.433758 241.413288-249.592096 241.413288-432.406435-0.004133-280.451702-227.38657-507.718421-507.842405-507.71842z"
+                                fill="#191a1c" p-id="2726"></path>
+                            <path
+                                d="M538.103431 781.648567c0.702576-0.082656 1.405151-0.13225 2.103595-0.219038 10.551034-3.149192 88.218715-49.08938 108.560349-42.452106 20.180455-15.121909 37.711786-34.087322 51.180576-56.966494 9.943513-18.072728 17.167645-36.000807 22.052612-54.652126 4.529547-18.287633 7.021625-38.149862 7.021625-59.661078 0-11.311469 0.20664-22.46176 0.376085-33.368215-0.793497-13.369603-2.18625-27.445914-4.1204-42.423176-95.711479 5.856175-163.658818-27.883991-217.426526-82.002987-75.208666 51.312825-146.904453 80.949123-214.029366 82.002987-1.074528 19.498543-1.843228 37.761379-1.938282 55.028211 0.086789 5.740457 0.152914 11.555304 0.169445 17.436277 0.739771 29.082503 3.979885 55.276179 11.865264 79.605963 0.227304 0.669513 0.462873 1.326628 0.69431 1.992009 0.776966 2.310234 1.603526 4.595672 2.467281 6.872844 1.103457 2.851631 2.248242 5.661934 3.459152 8.422643 0.144648 0.326491 0.276897 0.661248 0.425678 0.987739 1.330761 2.98388 2.73178 5.901636 4.186525 8.773931 0.23557 0.462873 0.462873 0.934012 0.698443 1.392753 1.186113 2.297836 2.434218 4.53368 3.694722 6.757126 0.867888 1.512604 1.731643 3.029341 2.653256 4.533679a193.757989 193.757989 0 0 0 47.122168 53.015539c31.421667 2.93842 115.805145 44.21681 121.429884 43.716742 19.167919 2.52514 28.243545 1.789502 47.353604 1.206777zM695.356412 841.933698c35.033732 27.66082 62.062234 63.967454 78.804201 106.692324l0.10332-0.066125c-17.17591-44.45238-44.873925-80.002712-78.907521-106.626199zM333.191019 842.656937c-34.422078 27.197947-62.264741 63.612034-79.184418 109.176137 16.485733-43.753937 43.708476-80.907795 79.184418-109.176137z"
+                                fill="#FCE9EA" p-id="2727"></path>
+                            <path
+                                d="M695.356412 841.933698c-22.065011-17.428011-47.295745-31.413401-75.084682-41.456101l-210.363573-0.119852-0.107453-0.095054c-28.408856 10.199747-54.164456 24.511628-76.609685 42.398379-35.471809 28.272474-62.698685 65.422199-79.184418 109.176136-0.438077 1.165449-0.834825 2.355695-1.25637 3.52941 74.964831 43.629953 162.104886 68.633384 255.09285 68.633384 97.670425 0 188.88542-27.590562 266.317532-75.365712-16.741966-42.737269-43.770468-79.03977-78.804201-106.70059z"
+                                fill="#B0C11D" p-id="2728"></path>
+                            <path
+                                d="M620.27173 800.473464h0.264499c34.219571-41.683405 38.406096-58.177404 28.222881-61.500174-20.341634-6.633141-98.009315 39.307046-108.56035 42.452106a3.124396 3.124396 0 0 1-0.962942 0.181843l-1.136519 0.037195c-19.11006 0.586857-28.181553 1.318363-47.36187-1.206777-5.624739 0.500069-90.008217-40.778322-121.429884-43.716742-20.250712-1.896954-18.510804 12.133896 40.489026 63.53351l0.107453 0.095055 210.367706 0.123984z"
+                                fill="#FF5947" p-id="2729"></path>
+                            <path
+                                d="M315.841531 672.418704c-0.239702-0.458741-0.462873-0.92988-0.698442-1.392753a180.789268 180.789268 0 0 1-4.186525-8.773931l-0.425679-0.987739a184.876605 184.876605 0 0 1-5.926432-15.295487c-0.223171-0.665381-0.475272-1.322495-0.694311-1.992009-7.885379-24.329784-11.125493-50.523461-11.865264-79.605963a563.192974 563.192974 0 0 1-0.169445-17.436277c0.095054-17.266832 0.859622-35.529668 1.938283-55.028211 67.124912-1.053864 138.8207-30.694294 214.029365-82.002987v-135.30782c-234.742951-123.116065-377.622059 224.869696-184.508786 411.072929-0.409147-0.648849-0.748037-1.310097-1.144785-1.963079-0.921614-1.500206-1.785369-3.016943-2.653257-4.53368-1.281168-2.235844-2.521007-4.488219-3.694722-6.752993zM698.675049 684.379023c61.669618-53.118858 88.846901-125.938767 89.785046-196.799729-1.49194 69.976543-28.727082 142.279852-89.785046 196.799729z"
+                                fill="#FECF77" p-id="2730"></path>
+                            <path
+                                d="M507.843081 409.903347c53.77184 54.123128 121.715047 87.863295 217.426526 82.002987 1.93415 14.977262 3.326903 29.053573 4.1204 42.423176 2.078798 34.810561 0.004133 64.765084-7.397709 93.029293-4.884968 18.651319-12.109099 36.579399-22.052613 54.652126-0.433944 0.785232-0.822427 1.578729-1.268769 2.368094 61.053831-54.515744 88.293106-126.823186 89.785046-196.799729 3.285575-154.525334-119.036993-297.689604-280.381444-212.863916l-0.23557-0.115719v135.303688z"
+                                fill="#FF9F31" p-id="2731"></path>
+                        </svg>
+                        <div class="tl-rtc-file-user-body-left">
+                            <b class="tl-rtc-file-user-body-left-nick"> {{remote.nickName}} </b>
+                            <b class="tl-rtc-file-user-body-left-id"> {{remote.id}} </b>
+                        </div>
+                    </div>
+                    <div class="tl-rtc-file-user-body-right">
+                        <i title="发送文件" @click="sendFileToSingle" class="layui-icon layui-icon-release"></i>
+                        <i title="发送文本" @click="sendChatToSingle" class="layui-icon layui-icon-reply-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 进入房间 -->
+        <div class="tl-rtc-file-bottom">
+            <div v-show="socketId === 0">
+                <input :style="{
+                        width: openRoomInput ? '96%' : '0',
+                        paddingLeft: openRoomInput ? (clientWidth < 450 ? '100px' : '155px') : '15px',
+                        height: clientWidth < 450 ? '40px' : '48px',
+                        left: clientWidth < 450 ? '4%' : '2%',
+                    }" type="text" maxlength="15" class="layui-input tl-rtc-file-create-room-input" v-model="roomId"
+                    placeholder="输入房间编号">
+                <button :style="(clientWidth < 450) ? 'height:40px;' : '' " class="tl-rtc-file-create-room-btn"
+                    @click="createFileRoom">
+                    <i v-show="clientWidth > 450" class="layui-icon layui-icon-search"></i>
+                    <b :style="(clientWidth < 450) ? 'font-size:12px;' : '' ">创建/加入房间</b>
+                </button>
+            </div>
+            <div v-show="socketId !== 0">
+                <button :style="(clientWidth < 450) ? 'height:40px;' : '' " class="tl-rtc-file-exit-room-btn"
+                    @click="exitRoom">
+                    <i v-show="clientWidth >= 450" class="layui-icon layui-icon-logout"></i>
+                    <b :style="(clientWidth < 450) ? 'font-size:12px;' : '' ">退出房间 {{roomId}}</b>
+                </button>
+            </div>
+
+            <div v-show="socketId === 0" class="tl-rtc-file-receive-list-icon">
+                <i v-show="receiveFileList.length > 0" title="文件箱"
+                    class="layui-icon layui-icon-print tl-rtc-file-receive-list-icon" @click="clickReceiveFile"></i>
+                <i v-show="receiveFileList.length === 0" title="文件箱"
+                    class="layui-icon layui-icon-print tl-rtc-file-receive-list-icon layui-disabled"
+                    @click="clickReceiveFile"></i>
+                <span v-show="receiveFileList.length > 0" style="top: -40px; right: 0px;"
+                    class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
+                    {{Math.min(receiveFileList.length, 99)}}
+                </span>
+            </div>
+        </div>
+
+        <!-- 选择文件列表 -->
+        <div id="send-file-list" class="tl-rtc-file-mask-send-file-list" 
+            :style="{top: sendFileMaskHeightNum + '%'}">
+            <div class="layui-card" style="border-radius: 15px;">
+                <div class="layui-card-header">
+                    待发送({{chooseFileList.length}})- 共{{Object.keys(remoteMap).length}}人 - 共需发送{{sendFileList.length}}次
+                    <i @click="clickSendFile" class="layui-icon layui-icon-close"
+                        style="cursor: pointer; right: 10px;position: absolute;"></i>
+                </div>
+                <div class="layui-upload-drag tl-rtc-file-choose-file-list" id="chooseFileList">
+                    <i class="layui-icon" style="color:black;"></i>
+                    <p style="color: #00000087; font-weight: bold;">点击选取文件，或将文件拖拽到此处，支持多文件拖拽发送</p>
+                </div>
+
+                <div class="layui-row tl-rtc-file-send-list-all"
+                    :style="{height: sendFileListHeight+'px',overflowY: (sendFileList.length > 1 ? 'scroll' : 'none') }">
+                    <div class="layui-col-xs12 tl-rtc-file-send-list" v-for="file, index in sendFileList">
+                        <div class="tl-rtc-file-send" :style="{'--progress': file.process + '%'}">
+                            <div class="tl-rtc-file-send-body">
+                                <svg v-if="typeInArr(['image','png','jpg','webp','gif','jpeg','svg'], file.type)"
+                                    viewBox="0 0 1426 1024" p-id="20575" width="28" height="28">
+                                    <path
+                                        d="M241.01111082 62h960.00000028c65.99999971 0 119.99999971 54 119.99999972 119.99999971v660.00000058c0 65.99999971-54 119.99999971-119.99999972 119.99999971h-960.00000028c-65.99999971 0-119.99999971-54-119.99999972-119.99999971V181.99999971c0-65.99999971 54-119.99999971 119.99999972-119.99999971z"
+                                        fill="#2F77F1" p-id="20576"></path>
+                                    <path d="M331.01111082 271.99999971m-90 0a90 90 0 1 0 180 0 90 90 0 1 0-180 0Z"
+                                        fill="#AFFCFE" p-id="20577"></path>
+                                    <path
+                                        d="M1321.01111082 748.99999971v-74.99999971L1052.5111111 446.00000029c-11.99999971-9-29.99999971-9-38.99999971 1.49999942L736.01111082 723.5 503.5111111 566c-7.49999971-7.49999971-18-10.50000029-28.50000028-7.49999971L131.51111139 737c-4.5 1.50000029-7.49999971 2.99999971-10.50000029 4.5v49.5c6.00000029 4.5 15.00000029 7.49999971 24.00000029 4.5l325.49999943-173.99999971 243 166.5c6.00000029 6.00000029 13.5 9 21.00000057 9s15.00000029-2.99999971 20.99999971-9l279-279 277.49999972 235.49999942c2.99999971 2.99999971 6.00000029 4.5 9 4.5z"
+                                        fill="#AFFCFE" p-id="20578"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['text','json'], file.type)" viewBox="0 0 1024 1024"
+                                    p-id="17341" width="28" height="28">
+                                    <path
+                                        d="M967.111111 281.6V910.222222c0 62.862222-50.915556 113.777778-113.777778 113.777778H170.666667c-62.862222 0-113.777778-50.915556-113.777778-113.777778V113.777778c0-62.862222 50.915556-113.777778 113.777778-113.777778h514.844444L967.111111 281.6z"
+                                        fill="#406bd3" p-id="17342"></path>
+                                    <path
+                                        d="M685.511111 167.822222V0L967.111111 281.6H799.288889c-62.862222 0-113.777778-50.915556-113.777778-113.777778"
+                                        fill="#4B80CB" p-id="17343"></path>
+                                    <path
+                                        d="M344.177778 485.575111h312.888889V426.666667h-312.888889zM471.153778 770.019556h58.908444v-284.444445h-58.908444z"
+                                        fill="#FFFFFF" p-id="17344"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['video','mp4','mpeg','audio','wav','quicktime'], file.type)"
+                                    viewBox="0 0 1241 1024" p-id="2500" width="28" height="28">
+                                    <path
+                                        d="M193.84646453 62h872.72727276c60.00000029 0 109.09090898 49.09090869 109.09090899 109.09090898v681.81818204c0 60.00000029-49.09090869 109.09090898-109.09090899 109.09090898H193.84646453c-60.00000029 0-109.09090898-49.09090869-109.09090898-109.09090898V171.09090898c0-60.00000029 49.09090869-109.09090898 109.09090898-109.09090898z"
+                                        fill="#406bd3" p-id="2501"></path>
+                                    <path
+                                        d="M84.75555555 225.63636348h1090.90909072v54.54545449H84.75555555v-54.5454545z m673.63636377 340.90909101c9.5454545 5.4545458 15.00000029 16.36363653 15.0000003 27.27272725s-5.4545458 21.81818145-15.0000003 27.27272724L589.30101004 726.09090928c-9.5454545 5.4545458-21.81818145 5.4545458-31.36363594-1e-8-9.5454545-5.4545458-16.36363653-16.36363653-15.00000029-27.27272724V490.18181855c0-10.90909073 5.4545458-21.81818145 15.00000029-27.27272724 9.5454545-5.4545458 21.81818145-5.4545458 31.36363594 0L758.39191932 566.54545449z"
+                                        fill="#AFFCFE" p-id="2502"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['zip','7z','rar','compressed'], file.type)"
+                                    viewBox="0 0 1024 1024" p-id="6130" width="28" height="28">
+                                    <path
+                                        d="M590.222222 73.955556L859.022222 342.254933V876.088889c0 37.700267-30.5664 68.266667-68.266666 68.266667H233.244444c-37.700267 0-68.266667-30.5664-68.266666-68.266667V142.222222c0-37.700267 30.5664-68.266667 68.266666-68.266666h356.977778z m-11.764622 28.444444H233.244444a39.822222 39.822222 0 0 0-39.799466 38.456889L193.422222 142.222222v733.866667a39.822222 39.822222 0 0 0 38.456889 39.799467L233.244444 915.911111h557.511112a39.822222 39.822222 0 0 0 39.799466-38.456889L830.577778 876.088889V354.053689L578.4576 102.4z"
+                                        fill="#406bd3" p-id="6131"></path>
+                                    <path
+                                        d="M854.755556 370.648178h-215.1424c-45.528178 0-82.551467-36.431644-83.5072-81.737956l-0.017067-1.792V73.955556h28.444444v213.162666c0 29.895111 23.819378 54.232178 53.515378 55.062756l1.564445 0.022755h215.1424v28.444445z"
+                                        fill="#9254DE" p-id="6132"></path>
+                                    <path
+                                        d="M56.888889 489.244444m28.444444 0l853.333334 0q28.444444 0 28.444444 28.444445l0 284.444444q0 28.444444-28.444444 28.444445l-853.333334 0q-28.444444 0-28.444444-28.444445l0-284.444444q0-28.444444 28.444444-28.444445Z"
+                                        fill="#9254DE" p-id="6133"></path>
+                                    <path
+                                        d="M452.124444 756.622222v-38.4h-82.944l82.176-124.672v-27.648H320.796444v38.144h74.24l-82.176 124.928V756.622222h139.264z m77.056 0V565.902222h-45.824V756.622222h45.824z m89.6 0v-63.232h22.272c40.448 0 75.264-19.968 75.264-65.28 0-47.104-34.56-62.208-76.288-62.208h-67.072V756.622222h45.824z m19.968-99.328h-19.968v-55.04h18.688c22.016 0 34.304 6.656 34.304 25.856 0 18.688-10.752 29.184-33.024 29.184z"
+                                        fill="#FFFFFF" p-id="6134"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['pdf'], file.type)" viewBox="0 0 1024 1024" p-id="15904"
+                                    width="28" height="28">
+                                    <path
+                                        d="M581.290667 0a42.666667 42.666667 0 0 1 28.117333 10.538667l314.709333 275.370666a42.666667 42.666667 0 0 1 14.549334 32.128V469.333333a85.333333 85.333333 0 0 1 85.333333 85.333334v213.333333a85.333333 85.333333 0 0 1-85.333333 85.333333v42.666667a128 128 0 0 1-120.490667 127.786667L810.666667 1024H213.333333a128 128 0 0 1-127.786666-120.490667L85.333333 896v-42.666667a85.333333 85.333333 0 0 1-85.333333-85.333333v-213.333333a85.333333 85.333333 0 0 1 85.333333-85.333334V128A128 128 0 0 1 205.824 0.213333L213.333333 0h367.957334zM853.333333 853.333333H170.666667v42.666667a42.666667 42.666667 0 0 0 37.674666 42.368L213.333333 938.666667h597.333334a42.666667 42.666667 0 0 0 42.368-37.674667L853.333333 896v-42.666667z m-338.432-316.842666h-100.266666V810.666667h100.266666c44.501333 0 77.952-12.288 100.992-36.864 21.845333-23.424 33.024-56.832 33.024-100.224 0-43.776-11.136-77.184-33.024-100.224-23.04-24.576-56.490667-36.864-100.992-36.864z m338.432 0h-162.218666V810.666667h44.928v-121.344H853.333333v-38.4h-117.248v-76.032H853.333333v-38.4z m-576.512 0H170.666667V810.666667h37.418666v-105.216H276.053333c66.816 0 100.224-28.416 100.224-84.864 0-56.064-33.450667-84.096-99.498666-84.096z m229.589334 38.4c34.218667 0 59.136 7.68 74.88 23.424 15.36 15.36 23.04 40.704 23.04 75.264 0 33.792-7.68 58.752-23.04 74.88-15.744 15.744-40.704 23.808-74.88 23.808h-46.848v-197.376h46.848z m-233.045334 0c19.541333 0 34.133333 3.456 43.349334 10.752 9.216 6.912 14.208 18.432 14.208 34.944 0 16.512-4.565333 28.416-13.824 35.712-9.216 6.912-23.808 10.752-43.776 10.752h-65.28v-92.16h65.28zM512 85.333333H213.333333a42.666667 42.666667 0 0 0-42.368 37.674667L170.666667 128v341.333333h682.666666V384h-213.333333a128 128 0 0 1-127.146667-113.066667l-0.64-7.424L512 256V85.333333z m85.333333 18.474667V256a42.666667 42.666667 0 0 0 37.674667 42.368L640 298.666667h167.338667L597.333333 103.808z"
+                                        fill="#008df0" p-id="15905"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['excel','word','powerpoint','sheet'], file.type)"
+                                    viewBox="0 0 1024 1024" p-id="7241" width="28" height="28">
+                                    <path
+                                        d="M145.6 0C100.8 0 64 35.2 64 80v862.4C64 987.2 100.8 1024 145.6 1024h732.8c44.8 0 81.6-36.8 81.6-81.6V324.8L657.6 0h-512z"
+                                        fill="#406bd3" p-id="7242"></path>
+                                    <path d="M960 326.4v16H755.2s-100.8-20.8-99.2-108.8c0 0 4.8 92.8 97.6 92.8H960z"
+                                        fill="#0F93D0" p-id="7243"></path>
+                                    <path d="M657.6 0v233.6c0 25.6 17.6 92.8 97.6 92.8H960L657.6 0z" fill="#FFFFFF"
+                                        opacity=".5" p-id="7244"></path>
+                                    <path
+                                        d="M291.2 862.4h-48c-9.6 0-17.6-8-17.6-17.6v-158.4c0-9.6 8-16 17.6-16h48c60.8 0 99.2 41.6 99.2 96s-38.4 96-99.2 96z m0-171.2h-41.6v148.8h41.6c48 0 75.2-33.6 75.2-73.6 0-41.6-27.2-75.2-75.2-75.2z m232 174.4c-57.6 0-96-43.2-96-99.2s38.4-99.2 96-99.2c56 0 94.4 41.6 94.4 99.2 0 56-38.4 99.2-94.4 99.2z m0-177.6c-43.2 0-70.4 33.6-70.4 78.4 0 44.8 27.2 76.8 70.4 76.8 41.6 0 70.4-32 70.4-76.8S564.8 688 523.2 688z m294.4 6.4c1.6 1.6 3.2 4.8 3.2 8 0 6.4-4.8 11.2-11.2 11.2-3.2 0-6.4-1.6-8-3.2-11.2-14.4-30.4-22.4-48-22.4-41.6 0-73.6 32-73.6 78.4 0 44.8 32 76.8 73.6 76.8 17.6 0 35.2-6.4 48-20.8 1.6-3.2 4.8-4.8 8-4.8 6.4 0 11.2 6.4 11.2 12.8 0 3.2-1.6 4.8-3.2 8-14.4 16-35.2 27.2-64 27.2-56 0-99.2-40-99.2-99.2s43.2-99.2 99.2-99.2c28.8 0 49.6 11.2 64 27.2z"
+                                        fill="#FFFFFF" p-id="7245"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['javascript','css','java','php','c++','python','html'], file.type)"
+                                    viewBox="0 0 1024 1024" p-id="8268" width="28" height="28">
+                                    <path
+                                        d="M921.6 0H102.4a102.4 102.4 0 0 0-102.4 102.4v819.2a102.4 102.4 0 0 0 102.4 102.4h819.2a102.4 102.4 0 0 0 102.4-102.4V102.4a102.4 102.4 0 0 0-102.4-102.4zM341.504 636.416a22.016 22.016 0 1 1-31.232 31.232l-140.8-140.8a22.016 22.016 0 0 1 0-31.232l140.8-140.8a22.016 22.016 0 0 1 31.232 0 22.528 22.528 0 0 1 0 31.744L216.576 512z m329.728-390.656L392.704 801.28a23.04 23.04 0 0 1-31.744 8.704 23.04 23.04 0 0 1-8.192-31.744l278.016-556.032a23.552 23.552 0 0 1 40.448 23.552z m183.296 281.088L713.728 665.6a22.528 22.528 0 0 1-31.744 0 22.016 22.016 0 0 1 0-31.232L807.424 512l-125.44-125.44a22.528 22.528 0 1 1 31.744-31.744l140.8 140.8a22.016 22.016 0 0 1 0 31.232z"
+                                        fill="#406bd3" p-id="8269"></path>
+                                </svg>
+                                <svg v-else viewBox="0 0 1031 1024" p-id="3200" width="28" height="28">
+                                    <path
+                                        d="M323.166237 0a156.541149 156.541149 0 0 0-156.541149 156.541149v648.253224a156.541149 156.541149 0 0 0 156.541149 156.541149h488.110668a156.541149 156.541149 0 0 0 156.541149-156.541149v-482.588511A59.303165 59.303165 0 0 0 950.531301 279.709261L687.868699 17.526846a59.543259 59.543259 0 0 0-42.016413-17.526846z"
+                                        fill="#406bd3" p-id="3201"></path>
+                                    <path
+                                        d="M950.531301 279.709261L687.868699 17.526846a58.102696 58.102696 0 0 0-30.491911-16.086283 5.762251 5.762251 0 0 0-6.722626 6.002344V135.652989a182.951465 182.951465 0 0 0 182.951465 182.951466H960.375147a6.002345 6.002345 0 0 0 5.76225-6.96272A56.902227 56.902227 0 0 0 950.531301 279.709261z"
+                                        fill="#2A58D8" p-id="3202"></path>
+                                    <path
+                                        d="M840.328253 288.112544h116.925674a51.860258 51.860258 0 0 0-6.722626-8.403283L687.868699 17.526846a66.746073 66.746073 0 0 0-7.923095-6.482532v116.68558A160.382649 160.382649 0 0 0 840.328253 288.112544z"
+                                        fill="#C6E1FF" p-id="3203"></path>
+                                    <path
+                                        d="M412.481125 459.779601A160.142556 160.142556 0 0 1 456.178195 341.893552a155.820868 155.820868 0 0 1 116.205392-43.216881 152.939742 152.939742 0 0 1 105.161079 35.773974 120.046893 120.046893 0 0 1 40.095662 93.636577q0 58.822978-78.750762 123.408206a111.163423 111.163423 0 0 0-48.018757 87.634232v12.244783H535.409144v-6.482532a195.676436 195.676436 0 0 1 9.123564-69.867292 164.944431 164.944431 0 0 1 42.016413-50.899883l22.328722-19.68769A112.363892 112.363892 0 0 0 654.255569 423.765533a70.347479 70.347479 0 0 0-24.009379-55.461664 88.594607 88.594607 0 0 0-61.464009-21.608441q-96.037515 0-97.237984 112.363892z m196.876905 283.070575a41.296131 41.296131 0 0 1-40.095662 42.736694h-12.965064a41.296131 41.296131 0 0 1-39.855569-42.736694 41.056038 41.056038 0 0 1 39.855569-42.4966h12.965064a41.296131 41.296131 0 0 1 40.095662 42.4966z"
+                                        fill="#F5F6FA" p-id="3204"></path>
+                                </svg>
+
+                                <div class="tl-rtc-file-send-body-left">
+                                    <b class="tl-rtc-file-send-body-left-nick">
+                                        名称: {{file.name}}, 类型: {{file.type === '' ? '未知类型' : file.type}}, 大小: {{getFileSizeStr(file.size)}}
+                                    </b>
+                                    <b class="tl-rtc-file-send-body-left-id">
+                                        发送给: {{file.id}} - {{file.nickName}} - {{file.process}}% - {{file.cost}}s
+                                    </b>
+                                    <b class="tl-rtc-file-send-body-left-icon">
+                                        <i v-show="file.done" title="已发送"
+                                            class="layui-icon layui-icon-release layui-disabled"></i>
+                                        <i v-show="!file.done" title="单独发送" @click="initSendFileToSingle"
+                                            class="layui-icon layui-icon-release"></i>
+                                    </b>
                                 </div>
-                            </tbody>
-                        </table>
+                            </div>
+                            <div class="tl-rtc-file-send-body-right">
+                                <i v-show="file.process === 0 || file.process === 100"
+                                    class="layui-icon layui-icon-close" @click="deleteSendFile(index)"
+                                    style="top: -26px;"></i>
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </div>
+            <!-- 一键发送 -->
+            <div>
+                <div v-show="canSendFile">
+                    <button class="tl-rtc-file-send-file-list-btn" @click="initSendFile">
+                        <i class="layui-icon layui-icon-release"></i>
+                        <div>一键发送</div>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="maskBottom" :style="{top: numReceiveFile + '%'}">
-            <div class="layui-col-sm2" style="width: 100%;">
-                <div class="layui-card">
-                    <div class="layui-card-header"> 接收的文件
-                        <i @click="clickReceiveFile" class="layui-icon layui-icon-close"
-                            style="cursor: pointer; right: 10px;position: absolute;"></i>
-                    </div>
-                    <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
-                        <table class="layui-table">
-                            <thead>
-                                <tr>
-                                    <th>用户</th>
-                                    <th>名称</th>
-                                    <th>格式</th>
-                                    <th>大小</th>
-                                    <th>进度</th>
-                                    <th>耗时</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="file in receiveFileList">
-                                    <td><span>{{file.id}}</span></td>
-                                    <td v-if="file.href === ''"><span :style="file.style"> <pre>{{file.name}}</pre> </span></td>
-                                    <td v-else><a :href="file.href" :download="file.name"
-                                            :style="file.style"><pre>{{file.name}}</pre></a></td>
-                                    <td><span>{{file.type}}</span></td>
-                                    <td><span>{{getFileSizeStr(file.size)}}</span></td>
-                                    <td><span>{{file.process}}%</span></td>
-                                    <td><span>{{file.cost}}秒</span></td>
-                                </tr>
-                                <div style="display: flex;padding:5px;">
-                                    <span style="word-break: keep-all;font-size: 12px;">进度：</span>
-                                    <progress id="receiveProgress" :value="currentReceiveSize" max="0"
-                                        style="width: 100%;margin: auto;"></progress>
+        <!-- 接收文件列表 -->
+        <div id="receive-file-list" class="tl-rtc-file-mask-send-file-list"
+            :style="{top: receiveFileMaskHeightNum + '%'}">
+            <div class="layui-card" style="border-radius: 15px;">
+                <div class="layui-card-header">
+                    共接收{{receiveFileList.length}}个文件
+                    <i @click="clickReceiveFile" class="layui-icon layui-icon-close"
+                        style="cursor: pointer; right: 10px;position: absolute;"></i>
+                </div>
+                <div class="layui-row tl-rtc-file-send-list-all"
+                    :style="{height: receiveFileListHeight+'px',overflowY: (receiveFileList.length > 1 ? 'scroll' : 'none')}">
+                    <div class="layui-col-xs12 tl-rtc-file-send-list" v-for="file in receiveFileList">
+                        <div class="tl-rtc-file-send" :style="{'--progress': file.process + '%'}">
+                            <div class="tl-rtc-file-send-body">
+                                <svg v-if="typeInArr(['image','png','jpg','webp','gif','jpeg','svg'], file.type)"
+                                    viewBox="0 0 1426 1024" p-id="20575" width="28" height="28">
+                                    <path
+                                        d="M241.01111082 62h960.00000028c65.99999971 0 119.99999971 54 119.99999972 119.99999971v660.00000058c0 65.99999971-54 119.99999971-119.99999972 119.99999971h-960.00000028c-65.99999971 0-119.99999971-54-119.99999972-119.99999971V181.99999971c0-65.99999971 54-119.99999971 119.99999972-119.99999971z"
+                                        fill="#2F77F1" p-id="20576"></path>
+                                    <path d="M331.01111082 271.99999971m-90 0a90 90 0 1 0 180 0 90 90 0 1 0-180 0Z"
+                                        fill="#AFFCFE" p-id="20577"></path>
+                                    <path
+                                        d="M1321.01111082 748.99999971v-74.99999971L1052.5111111 446.00000029c-11.99999971-9-29.99999971-9-38.99999971 1.49999942L736.01111082 723.5 503.5111111 566c-7.49999971-7.49999971-18-10.50000029-28.50000028-7.49999971L131.51111139 737c-4.5 1.50000029-7.49999971 2.99999971-10.50000029 4.5v49.5c6.00000029 4.5 15.00000029 7.49999971 24.00000029 4.5l325.49999943-173.99999971 243 166.5c6.00000029 6.00000029 13.5 9 21.00000057 9s15.00000029-2.99999971 20.99999971-9l279-279 277.49999972 235.49999942c2.99999971 2.99999971 6.00000029 4.5 9 4.5z"
+                                        fill="#AFFCFE" p-id="20578"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['text','json'], file.type)" viewBox="0 0 1024 1024"
+                                    p-id="17341" width="28" height="28">
+                                    <path
+                                        d="M967.111111 281.6V910.222222c0 62.862222-50.915556 113.777778-113.777778 113.777778H170.666667c-62.862222 0-113.777778-50.915556-113.777778-113.777778V113.777778c0-62.862222 50.915556-113.777778 113.777778-113.777778h514.844444L967.111111 281.6z"
+                                        fill="#406bd3" p-id="17342"></path>
+                                    <path
+                                        d="M685.511111 167.822222V0L967.111111 281.6H799.288889c-62.862222 0-113.777778-50.915556-113.777778-113.777778"
+                                        fill="#4B80CB" p-id="17343"></path>
+                                    <path
+                                        d="M344.177778 485.575111h312.888889V426.666667h-312.888889zM471.153778 770.019556h58.908444v-284.444445h-58.908444z"
+                                        fill="#FFFFFF" p-id="17344"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['video','mp4','mpeg','audio','wav','quicktime'], file.type)"
+                                    viewBox="0 0 1241 1024" p-id="2500" width="28" height="28">
+                                    <path
+                                        d="M193.84646453 62h872.72727276c60.00000029 0 109.09090898 49.09090869 109.09090899 109.09090898v681.81818204c0 60.00000029-49.09090869 109.09090898-109.09090899 109.09090898H193.84646453c-60.00000029 0-109.09090898-49.09090869-109.09090898-109.09090898V171.09090898c0-60.00000029 49.09090869-109.09090898 109.09090898-109.09090898z"
+                                        fill="#406bd3" p-id="2501"></path>
+                                    <path
+                                        d="M84.75555555 225.63636348h1090.90909072v54.54545449H84.75555555v-54.5454545z m673.63636377 340.90909101c9.5454545 5.4545458 15.00000029 16.36363653 15.0000003 27.27272725s-5.4545458 21.81818145-15.0000003 27.27272724L589.30101004 726.09090928c-9.5454545 5.4545458-21.81818145 5.4545458-31.36363594-1e-8-9.5454545-5.4545458-16.36363653-16.36363653-15.00000029-27.27272724V490.18181855c0-10.90909073 5.4545458-21.81818145 15.00000029-27.27272724 9.5454545-5.4545458 21.81818145-5.4545458 31.36363594 0L758.39191932 566.54545449z"
+                                        fill="#AFFCFE" p-id="2502"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['zip','7z','rar','compressed'], file.type)"
+                                    viewBox="0 0 1024 1024" p-id="6130" width="28" height="28">
+                                    <path
+                                        d="M590.222222 73.955556L859.022222 342.254933V876.088889c0 37.700267-30.5664 68.266667-68.266666 68.266667H233.244444c-37.700267 0-68.266667-30.5664-68.266666-68.266667V142.222222c0-37.700267 30.5664-68.266667 68.266666-68.266666h356.977778z m-11.764622 28.444444H233.244444a39.822222 39.822222 0 0 0-39.799466 38.456889L193.422222 142.222222v733.866667a39.822222 39.822222 0 0 0 38.456889 39.799467L233.244444 915.911111h557.511112a39.822222 39.822222 0 0 0 39.799466-38.456889L830.577778 876.088889V354.053689L578.4576 102.4z"
+                                        fill="#406bd3" p-id="6131"></path>
+                                    <path
+                                        d="M854.755556 370.648178h-215.1424c-45.528178 0-82.551467-36.431644-83.5072-81.737956l-0.017067-1.792V73.955556h28.444444v213.162666c0 29.895111 23.819378 54.232178 53.515378 55.062756l1.564445 0.022755h215.1424v28.444445z"
+                                        fill="#9254DE" p-id="6132"></path>
+                                    <path
+                                        d="M56.888889 489.244444m28.444444 0l853.333334 0q28.444444 0 28.444444 28.444445l0 284.444444q0 28.444444-28.444444 28.444445l-853.333334 0q-28.444444 0-28.444444-28.444445l0-284.444444q0-28.444444 28.444444-28.444445Z"
+                                        fill="#9254DE" p-id="6133"></path>
+                                    <path
+                                        d="M452.124444 756.622222v-38.4h-82.944l82.176-124.672v-27.648H320.796444v38.144h74.24l-82.176 124.928V756.622222h139.264z m77.056 0V565.902222h-45.824V756.622222h45.824z m89.6 0v-63.232h22.272c40.448 0 75.264-19.968 75.264-65.28 0-47.104-34.56-62.208-76.288-62.208h-67.072V756.622222h45.824z m19.968-99.328h-19.968v-55.04h18.688c22.016 0 34.304 6.656 34.304 25.856 0 18.688-10.752 29.184-33.024 29.184z"
+                                        fill="#FFFFFF" p-id="6134"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['pdf'], file.type)" viewBox="0 0 1024 1024" p-id="15904"
+                                    width="28" height="28">
+                                    <path
+                                        d="M581.290667 0a42.666667 42.666667 0 0 1 28.117333 10.538667l314.709333 275.370666a42.666667 42.666667 0 0 1 14.549334 32.128V469.333333a85.333333 85.333333 0 0 1 85.333333 85.333334v213.333333a85.333333 85.333333 0 0 1-85.333333 85.333333v42.666667a128 128 0 0 1-120.490667 127.786667L810.666667 1024H213.333333a128 128 0 0 1-127.786666-120.490667L85.333333 896v-42.666667a85.333333 85.333333 0 0 1-85.333333-85.333333v-213.333333a85.333333 85.333333 0 0 1 85.333333-85.333334V128A128 128 0 0 1 205.824 0.213333L213.333333 0h367.957334zM853.333333 853.333333H170.666667v42.666667a42.666667 42.666667 0 0 0 37.674666 42.368L213.333333 938.666667h597.333334a42.666667 42.666667 0 0 0 42.368-37.674667L853.333333 896v-42.666667z m-338.432-316.842666h-100.266666V810.666667h100.266666c44.501333 0 77.952-12.288 100.992-36.864 21.845333-23.424 33.024-56.832 33.024-100.224 0-43.776-11.136-77.184-33.024-100.224-23.04-24.576-56.490667-36.864-100.992-36.864z m338.432 0h-162.218666V810.666667h44.928v-121.344H853.333333v-38.4h-117.248v-76.032H853.333333v-38.4z m-576.512 0H170.666667V810.666667h37.418666v-105.216H276.053333c66.816 0 100.224-28.416 100.224-84.864 0-56.064-33.450667-84.096-99.498666-84.096z m229.589334 38.4c34.218667 0 59.136 7.68 74.88 23.424 15.36 15.36 23.04 40.704 23.04 75.264 0 33.792-7.68 58.752-23.04 74.88-15.744 15.744-40.704 23.808-74.88 23.808h-46.848v-197.376h46.848z m-233.045334 0c19.541333 0 34.133333 3.456 43.349334 10.752 9.216 6.912 14.208 18.432 14.208 34.944 0 16.512-4.565333 28.416-13.824 35.712-9.216 6.912-23.808 10.752-43.776 10.752h-65.28v-92.16h65.28zM512 85.333333H213.333333a42.666667 42.666667 0 0 0-42.368 37.674667L170.666667 128v341.333333h682.666666V384h-213.333333a128 128 0 0 1-127.146667-113.066667l-0.64-7.424L512 256V85.333333z m85.333333 18.474667V256a42.666667 42.666667 0 0 0 37.674667 42.368L640 298.666667h167.338667L597.333333 103.808z"
+                                        fill="#008df0" p-id="15905"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['excel','word','powerpoint','sheet'], file.type)"
+                                    viewBox="0 0 1024 1024" p-id="7241" width="28" height="28">
+                                    <path
+                                        d="M145.6 0C100.8 0 64 35.2 64 80v862.4C64 987.2 100.8 1024 145.6 1024h732.8c44.8 0 81.6-36.8 81.6-81.6V324.8L657.6 0h-512z"
+                                        fill="#406bd3" p-id="7242"></path>
+                                    <path d="M960 326.4v16H755.2s-100.8-20.8-99.2-108.8c0 0 4.8 92.8 97.6 92.8H960z"
+                                        fill="#0F93D0" p-id="7243"></path>
+                                    <path d="M657.6 0v233.6c0 25.6 17.6 92.8 97.6 92.8H960L657.6 0z" fill="#FFFFFF"
+                                        opacity=".5" p-id="7244"></path>
+                                    <path
+                                        d="M291.2 862.4h-48c-9.6 0-17.6-8-17.6-17.6v-158.4c0-9.6 8-16 17.6-16h48c60.8 0 99.2 41.6 99.2 96s-38.4 96-99.2 96z m0-171.2h-41.6v148.8h41.6c48 0 75.2-33.6 75.2-73.6 0-41.6-27.2-75.2-75.2-75.2z m232 174.4c-57.6 0-96-43.2-96-99.2s38.4-99.2 96-99.2c56 0 94.4 41.6 94.4 99.2 0 56-38.4 99.2-94.4 99.2z m0-177.6c-43.2 0-70.4 33.6-70.4 78.4 0 44.8 27.2 76.8 70.4 76.8 41.6 0 70.4-32 70.4-76.8S564.8 688 523.2 688z m294.4 6.4c1.6 1.6 3.2 4.8 3.2 8 0 6.4-4.8 11.2-11.2 11.2-3.2 0-6.4-1.6-8-3.2-11.2-14.4-30.4-22.4-48-22.4-41.6 0-73.6 32-73.6 78.4 0 44.8 32 76.8 73.6 76.8 17.6 0 35.2-6.4 48-20.8 1.6-3.2 4.8-4.8 8-4.8 6.4 0 11.2 6.4 11.2 12.8 0 3.2-1.6 4.8-3.2 8-14.4 16-35.2 27.2-64 27.2-56 0-99.2-40-99.2-99.2s43.2-99.2 99.2-99.2c28.8 0 49.6 11.2 64 27.2z"
+                                        fill="#FFFFFF" p-id="7245"></path>
+                                </svg>
+                                <svg v-else-if="typeInArr(['javascript','css','java','php','c++','python','html'], file.type)"
+                                    viewBox="0 0 1024 1024" p-id="8268" width="28" height="28">
+                                    <path
+                                        d="M921.6 0H102.4a102.4 102.4 0 0 0-102.4 102.4v819.2a102.4 102.4 0 0 0 102.4 102.4h819.2a102.4 102.4 0 0 0 102.4-102.4V102.4a102.4 102.4 0 0 0-102.4-102.4zM341.504 636.416a22.016 22.016 0 1 1-31.232 31.232l-140.8-140.8a22.016 22.016 0 0 1 0-31.232l140.8-140.8a22.016 22.016 0 0 1 31.232 0 22.528 22.528 0 0 1 0 31.744L216.576 512z m329.728-390.656L392.704 801.28a23.04 23.04 0 0 1-31.744 8.704 23.04 23.04 0 0 1-8.192-31.744l278.016-556.032a23.552 23.552 0 0 1 40.448 23.552z m183.296 281.088L713.728 665.6a22.528 22.528 0 0 1-31.744 0 22.016 22.016 0 0 1 0-31.232L807.424 512l-125.44-125.44a22.528 22.528 0 1 1 31.744-31.744l140.8 140.8a22.016 22.016 0 0 1 0 31.232z"
+                                        fill="#406bd3" p-id="8269"></path>
+                                </svg>
+                                <svg v-else viewBox="0 0 1031 1024" p-id="3200" width="28" height="28">
+                                    <path
+                                        d="M323.166237 0a156.541149 156.541149 0 0 0-156.541149 156.541149v648.253224a156.541149 156.541149 0 0 0 156.541149 156.541149h488.110668a156.541149 156.541149 0 0 0 156.541149-156.541149v-482.588511A59.303165 59.303165 0 0 0 950.531301 279.709261L687.868699 17.526846a59.543259 59.543259 0 0 0-42.016413-17.526846z"
+                                        fill="#406bd3" p-id="3201"></path>
+                                    <path
+                                        d="M950.531301 279.709261L687.868699 17.526846a58.102696 58.102696 0 0 0-30.491911-16.086283 5.762251 5.762251 0 0 0-6.722626 6.002344V135.652989a182.951465 182.951465 0 0 0 182.951465 182.951466H960.375147a6.002345 6.002345 0 0 0 5.76225-6.96272A56.902227 56.902227 0 0 0 950.531301 279.709261z"
+                                        fill="#2A58D8" p-id="3202"></path>
+                                    <path
+                                        d="M840.328253 288.112544h116.925674a51.860258 51.860258 0 0 0-6.722626-8.403283L687.868699 17.526846a66.746073 66.746073 0 0 0-7.923095-6.482532v116.68558A160.382649 160.382649 0 0 0 840.328253 288.112544z"
+                                        fill="#C6E1FF" p-id="3203"></path>
+                                    <path
+                                        d="M412.481125 459.779601A160.142556 160.142556 0 0 1 456.178195 341.893552a155.820868 155.820868 0 0 1 116.205392-43.216881 152.939742 152.939742 0 0 1 105.161079 35.773974 120.046893 120.046893 0 0 1 40.095662 93.636577q0 58.822978-78.750762 123.408206a111.163423 111.163423 0 0 0-48.018757 87.634232v12.244783H535.409144v-6.482532a195.676436 195.676436 0 0 1 9.123564-69.867292 164.944431 164.944431 0 0 1 42.016413-50.899883l22.328722-19.68769A112.363892 112.363892 0 0 0 654.255569 423.765533a70.347479 70.347479 0 0 0-24.009379-55.461664 88.594607 88.594607 0 0 0-61.464009-21.608441q-96.037515 0-97.237984 112.363892z m196.876905 283.070575a41.296131 41.296131 0 0 1-40.095662 42.736694h-12.965064a41.296131 41.296131 0 0 1-39.855569-42.736694 41.056038 41.056038 0 0 1 39.855569-42.4966h12.965064a41.296131 41.296131 0 0 1 40.095662 42.4966z"
+                                        fill="#F5F6FA" p-id="3204"></path>
+                                </svg>
+                                <div class="tl-rtc-file-send-body-left">
+                                    <b class="tl-rtc-file-send-body-left-nick">
+                                        名称: {{file.name}}, 类型: {{file.type === '' ? '未知类型' : file.type}}, 大小: {{getFileSizeStr(file.size)}}
+                                    </b>
+                                    <b class="tl-rtc-file-send-body-left-id">
+                                        文件来自: {{file.id}} - {{file.nickName}} - {{file.process}}% - {{file.cost}}s
+                                    </b>
+                                    <b class="tl-rtc-file-send-body-left-icon">
+                                        <a :href="file.href" :download="file.name">
+                                            <i class="layui-icon layui-icon-download-circle"></i>
+                                        </a>
+                                    </b>
                                 </div>
-                            </tbody>
-                        </table>
+                            </div>
+                            <div class="tl-rtc-file-send-body-right">
+                                <i class="layui-icon layui-icon-close" style="top: -26px;"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="maskBottom" :style="{top: numReceiveTxt + '%'}">
-            <div class="layui-col-sm2" style="width: 100%;">
-                <div class="layui-card">
-                    <div class="layui-card-header">
-                        接收的文本内容
-                        <i @click="clickReceiveTxt()" class="layui-icon layui-icon-close"
-                            style="cursor: pointer; right: 10px;position: absolute;"></i>
-                    </div>
-                    <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
-                        <table class="layui-table">
-                            <thead>
-                                <tr>
-                                    <th>发送方ID</th>
-                                    <th>接收内容</th>
-                                    <th>接收时间</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for=" (txt , index) in receiveTxtList">
-                                    <td><span>{{txt.id}}</span></td>
-                                    <td>
-                                        <span v-if="txt.real" style="cursor: pointer;" :id="txt.c_id"
-                                            @click="copyTxt(txt.c_id, txt.content)" v-html="txt.content"></span>
-                                        <span v-if="!txt.real" style="cursor: pointer;" :id="txt.c_id"
-                                            @click="copyTxt(txt.c_id, txt.content)">
-                                            <pre>{{txt.content}}</pre>
-                                        </span>
-                                    </td>
-                                    <td><span>{{txt.time}}</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="maskBottom" :style="{top: numCodeFile + '%'}">
-            <div class="layui-col-sm2" style="width: 100%;">
-                <div class="layui-card">
-                    <div class="layui-card-header">
-                        取件码接收的文件
-                        <i @click="clickCodeFile" class="layui-icon layui-icon-close"
-                            style="cursor: pointer; right: 10px;position: absolute;"></i>
-                    </div>
-                    <div class="layui-card-body" style="overflow-y: scroll;height: 330px;">
-                        <table class="layui-table">
-                            <thead>
-                                <tr>
-                                    <th>取件码</th>
-                                    <th>文件名称</th>
-                                    <th>文件大小</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for=" (code , index) in codeFileList">
-                                    <td><span>{{code.codeId}}</span></td>
-                                    <td><span><pre>{{code.name}}</pre></span></td>
-                                    <td><span>{{code.size}}</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="maskRight" :style="{left: numLogs + '%'}">
+        <!-- 执行日志 -->
+        <div class="tl-rtc-file-mask-log-list" :style="{left: logMaskHeightNum + '%'}">
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
                     <div class="layui-card-header">
@@ -485,14 +686,14 @@
                         <i @click="clickLogs" class="layui-icon layui-icon-close"
                             style="cursor: pointer; right: 10px;position: absolute;"></i>
                     </div>
-                    <div class="layui-card-body logs">
-                        <input type="text" v-model="logsFilter" class="layui-input" style="border-radius: 4px;padding-right: 10px;" placeholder="关键字查询日志">
+                    <div class="layui-card-body tl-rtc-file-mask-log">
+                        <input type="text" v-model="logsFilter" class="layui-input" placeholder="关键字查询日志">
                     </div>
                 </div>
                 <div class="layui-card">
-                    <div :style="{height: logsHeight+'px',overflow: 'scroll'}">
-                        <div class="layui-card-body logs" v-for="log in filterLogs">
-                            <div class="logs-time">
+                    <div :style="{height: logsHeight+'px',overflowY: 'scroll'}">
+                        <div class="layui-card-body tl-rtc-file-mask-log" v-for="log in filterLogs">
+                            <div class="tl-rtc-file-mask-log-time">
                                 <div>{{log.time}}</div>
                                 <svg viewBox="0 0 1024 1024" p-id="2761" width="64" height="64">
                                     <path d="M0 0h1024v1024H0V0z" fill="#202425" opacity=".01" p-id="2762"></path>
@@ -507,14 +708,15 @@
                                         fill="#FFFFFF" p-id="2765"></path>
                                 </svg>
                             </div>
-                            <div v-show="log.msg.length >= 500"  class="logs-msg" style="max-height: 300px; overflow-y: scroll;" >
-                                <b v-show="log.type === '【系统日志】: '" style="color: #b54343;">{{log.type}}</b> 
-                                <b v-show="log.type === '【操作日志】: '" style="color: cadetblue;">{{log.type}}</b> 
+                            <div v-show="log.msg.length >= 500" class="tl-rtc-file-mask-log-msg"
+                                style="max-height: 300px; overflow-y: scroll;">
+                                <b v-show="log.type === '【系统日志】: '" style="color: #b54343;">{{log.type}}</b>
+                                <b v-show="log.type === '【操作日志】: '" style="color: cadetblue;">{{log.type}}</b>
                                 {{log.msg}}
                             </div>
-                            <div v-show="log.msg.length < 500"  class="logs-msg" >
-                                <b v-show="log.type === '【系统日志】: '" style="color: #b54343;">{{log.type}}</b> 
-                                <b v-show="log.type === '【操作日志】: '" style="color: cadetblue;">{{log.type}}</b> 
+                            <div v-show="log.msg.length < 500" class="tl-rtc-file-mask-log-msg">
+                                <b v-show="log.type === '【系统日志】: '" style="color: #b54343;">{{log.type}}</b>
+                                <b v-show="log.type === '【操作日志】: '" style="color: cadetblue;">{{log.type}}</b>
                                 {{log.msg}}
                             </div>
                         </div>
@@ -523,161 +725,46 @@
             </div>
         </div>
 
-        <div class="mediaShareRoom swiper-container">
-            <div class="swiper-wrapper" id="mediaShareRoomList"> </div>
-            <div class="side-shadown-left"> </div>
-            <div class="side-shadown-rigth"> </div>
-        </div>
-
-        <div class="userRoom swiper-container" v-show="Object.keys(remoteMap).length > 0 || socketId !== 0">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide userBlock">
-                    <div>
-                        <div class="layui-badge layui-bg-blue" style="position: absolute; left: 30px; top: 5px;">
-                            <div>自己</div>
-                        </div>
-                        <svg style="margin-left: 5px;" viewBox="0 0 1024 1024" width="64" height="64">
-                            <path
-                                d="M310.956564 662.25202zM307.071733 652.841638zM303.914275 643.972652c0.219038 0.669513 0.471139 1.326628 0.69431 1.992009-0.231437-0.661248-0.471139-1.322495-0.69431-1.992009zM539.239951 781.611372a3.0872 3.0872 0 0 0 0.962942-0.181843c-0.698443 0.086789-1.401019 0.136382-2.103594 0.219038l1.140652-0.037195zM315.841531 672.418704zM292.044878 564.370822a1501.734968 1501.734968 0 0 0-0.169445-17.436277c-0.02893 5.926433 0.02893 11.737148 0.169445 17.436277zM729.39414 534.32951c-0.169445 10.910588-0.376085 22.056745-0.376085 33.368215 0 21.507083-2.49621 41.373445-7.021624 59.661078 7.401842-28.264209 9.476507-58.218732 7.397709-93.029293z"
-                                fill="#002738" p-id="2725"></path>
-                            <path
-                                d="M507.843081 8.435042c-280.451702 0-507.838272 227.266719-507.838272 507.722553 0 187.54226 101.608982 351.250672 252.745422 439.200756 0.421545-1.169582 0.818294-2.359828 1.25637-3.52941 16.915544-45.564103 44.76234-81.97819 79.184418-109.176136 22.445228-17.886752 48.200828-32.198633 76.609685-42.39838-58.995698-51.403747-60.739739-65.430465-40.489026-63.53351a193.757989 193.757989 0 0 1-47.122168-53.015538c0.396749 0.648849 0.739771 1.310097 1.144785 1.963079-193.113273-186.203234-50.234165-534.188995 184.508786-411.072929l0.23557 0.115718c161.344451-84.825688 283.667019 58.342716 280.381444 212.863916-0.938145 70.860962-28.115428 143.685003-89.785046 196.799729 0.442209-0.789365 0.830692-1.582862 1.268769-2.368093-13.46879 22.879172-31.000121 41.844584-51.180576 56.966493 10.183215 3.32277 5.996691 19.816769-28.22288 61.500174h-0.264499c27.788937 10.046833 53.019671 24.02809 75.084682 41.456101 34.029462 26.623488 61.73161 62.17382 78.911653 106.630332 144.858718-89.433758 241.413288-249.592096 241.413288-432.406435-0.004133-280.451702-227.38657-507.718421-507.842405-507.71842z"
-                                fill="white" p-id="2726"></path>
-                            <path
-                                d="M538.103431 781.648567c0.702576-0.082656 1.405151-0.13225 2.103595-0.219038 10.551034-3.149192 88.218715-49.08938 108.560349-42.452106 20.180455-15.121909 37.711786-34.087322 51.180576-56.966494 9.943513-18.072728 17.167645-36.000807 22.052612-54.652126 4.529547-18.287633 7.021625-38.149862 7.021625-59.661078 0-11.311469 0.20664-22.46176 0.376085-33.368215-0.793497-13.369603-2.18625-27.445914-4.1204-42.423176-95.711479 5.856175-163.658818-27.883991-217.426526-82.002987-75.208666 51.312825-146.904453 80.949123-214.029366 82.002987-1.074528 19.498543-1.843228 37.761379-1.938282 55.028211 0.086789 5.740457 0.152914 11.555304 0.169445 17.436277 0.739771 29.082503 3.979885 55.276179 11.865264 79.605963 0.227304 0.669513 0.462873 1.326628 0.69431 1.992009 0.776966 2.310234 1.603526 4.595672 2.467281 6.872844 1.103457 2.851631 2.248242 5.661934 3.459152 8.422643 0.144648 0.326491 0.276897 0.661248 0.425678 0.987739 1.330761 2.98388 2.73178 5.901636 4.186525 8.773931 0.23557 0.462873 0.462873 0.934012 0.698443 1.392753 1.186113 2.297836 2.434218 4.53368 3.694722 6.757126 0.867888 1.512604 1.731643 3.029341 2.653256 4.533679a193.757989 193.757989 0 0 0 47.122168 53.015539c31.421667 2.93842 115.805145 44.21681 121.429884 43.716742 19.167919 2.52514 28.243545 1.789502 47.353604 1.206777zM695.356412 841.933698c35.033732 27.66082 62.062234 63.967454 78.804201 106.692324l0.10332-0.066125c-17.17591-44.45238-44.873925-80.002712-78.907521-106.626199zM333.191019 842.656937c-34.422078 27.197947-62.264741 63.612034-79.184418 109.176137 16.485733-43.753937 43.708476-80.907795 79.184418-109.176137z"
-                                fill="#FCE9EA" p-id="2727"></path>
-                            <path
-                                d="M695.356412 841.933698c-22.065011-17.428011-47.295745-31.413401-75.084682-41.456101l-210.363573-0.119852-0.107453-0.095054c-28.408856 10.199747-54.164456 24.511628-76.609685 42.398379-35.471809 28.272474-62.698685 65.422199-79.184418 109.176136-0.438077 1.165449-0.834825 2.355695-1.25637 3.52941 74.964831 43.629953 162.104886 68.633384 255.09285 68.633384 97.670425 0 188.88542-27.590562 266.317532-75.365712-16.741966-42.737269-43.770468-79.03977-78.804201-106.70059z"
-                                fill="#B0C11D" p-id="2728"></path>
-                            <path
-                                d="M620.27173 800.473464h0.264499c34.219571-41.683405 38.406096-58.177404 28.222881-61.500174-20.341634-6.633141-98.009315 39.307046-108.56035 42.452106a3.124396 3.124396 0 0 1-0.962942 0.181843l-1.136519 0.037195c-19.11006 0.586857-28.181553 1.318363-47.36187-1.206777-5.624739 0.500069-90.008217-40.778322-121.429884-43.716742-20.250712-1.896954-18.510804 12.133896 40.489026 63.53351l0.107453 0.095055 210.367706 0.123984z"
-                                fill="#FF5947" p-id="2729"></path>
-                            <path
-                                d="M315.841531 672.418704c-0.239702-0.458741-0.462873-0.92988-0.698442-1.392753a180.789268 180.789268 0 0 1-4.186525-8.773931l-0.425679-0.987739a184.876605 184.876605 0 0 1-5.926432-15.295487c-0.223171-0.665381-0.475272-1.322495-0.694311-1.992009-7.885379-24.329784-11.125493-50.523461-11.865264-79.605963a563.192974 563.192974 0 0 1-0.169445-17.436277c0.095054-17.266832 0.859622-35.529668 1.938283-55.028211 67.124912-1.053864 138.8207-30.694294 214.029365-82.002987v-135.30782c-234.742951-123.116065-377.622059 224.869696-184.508786 411.072929-0.409147-0.648849-0.748037-1.310097-1.144785-1.963079-0.921614-1.500206-1.785369-3.016943-2.653257-4.53368-1.281168-2.235844-2.521007-4.488219-3.694722-6.752993zM698.675049 684.379023c61.669618-53.118858 88.846901-125.938767 89.785046-196.799729-1.49194 69.976543-28.727082 142.279852-89.785046 196.799729z"
-                                fill="#FECF77" p-id="2730"></path>
-                            <path
-                                d="M507.843081 409.903347c53.77184 54.123128 121.715047 87.863295 217.426526 82.002987 1.93415 14.977262 3.326903 29.053573 4.1204 42.423176 2.078798 34.810561 0.004133 64.765084-7.397709 93.029293-4.884968 18.651319-12.109099 36.579399-22.052613 54.652126-0.433944 0.785232-0.822427 1.578729-1.268769 2.368094 61.053831-54.515744 88.293106-126.823186 89.785046-196.799729 3.285575-154.525334-119.036993-297.689604-280.381444-212.863916l-0.23557-0.115719v135.303688z"
-                                fill="#FF9F31" p-id="2731"></path>
-                        </svg>
-                    </div>
-                    <div :title="socketId" style="background: none !important;" class="layui-badge layui-bg-blue layuiadmin-badge remoteId">
-                        <div>{{nickName}}</div>
+        <!-- 音视频 -->
+        <div class="tl-rtc-file-mask-media-list" :style="{left: mediaVideoMaskHeightNum + '%'}">
+            <div class="layui-col-sm2" style="width: 100%;">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        音视频通话
+                        <i @click="startVideoShare" class="layui-icon layui-icon-close"
+                            style="cursor: pointer; right: 10px;position: absolute;"></i>
                     </div>
                 </div>
-                <div class="swiper-slide userBlock" v-for="remote in remoteMap">
-                    <div>
-                        <svg style="margin-left: 5px;" viewBox="0 0 1024 1024" width="64" height="64">
-                            <path
-                                d="M310.956564 662.25202zM307.071733 652.841638zM303.914275 643.972652c0.219038 0.669513 0.471139 1.326628 0.69431 1.992009-0.231437-0.661248-0.471139-1.322495-0.69431-1.992009zM539.239951 781.611372a3.0872 3.0872 0 0 0 0.962942-0.181843c-0.698443 0.086789-1.401019 0.136382-2.103594 0.219038l1.140652-0.037195zM315.841531 672.418704zM292.044878 564.370822a1501.734968 1501.734968 0 0 0-0.169445-17.436277c-0.02893 5.926433 0.02893 11.737148 0.169445 17.436277zM729.39414 534.32951c-0.169445 10.910588-0.376085 22.056745-0.376085 33.368215 0 21.507083-2.49621 41.373445-7.021624 59.661078 7.401842-28.264209 9.476507-58.218732 7.397709-93.029293z"
-                                fill="#002738" p-id="2725"></path>
-                            <path
-                                d="M507.843081 8.435042c-280.451702 0-507.838272 227.266719-507.838272 507.722553 0 187.54226 101.608982 351.250672 252.745422 439.200756 0.421545-1.169582 0.818294-2.359828 1.25637-3.52941 16.915544-45.564103 44.76234-81.97819 79.184418-109.176136 22.445228-17.886752 48.200828-32.198633 76.609685-42.39838-58.995698-51.403747-60.739739-65.430465-40.489026-63.53351a193.757989 193.757989 0 0 1-47.122168-53.015538c0.396749 0.648849 0.739771 1.310097 1.144785 1.963079-193.113273-186.203234-50.234165-534.188995 184.508786-411.072929l0.23557 0.115718c161.344451-84.825688 283.667019 58.342716 280.381444 212.863916-0.938145 70.860962-28.115428 143.685003-89.785046 196.799729 0.442209-0.789365 0.830692-1.582862 1.268769-2.368093-13.46879 22.879172-31.000121 41.844584-51.180576 56.966493 10.183215 3.32277 5.996691 19.816769-28.22288 61.500174h-0.264499c27.788937 10.046833 53.019671 24.02809 75.084682 41.456101 34.029462 26.623488 61.73161 62.17382 78.911653 106.630332 144.858718-89.433758 241.413288-249.592096 241.413288-432.406435-0.004133-280.451702-227.38657-507.718421-507.842405-507.71842z"
-                                fill="#002738" p-id="2726"></path>
-                            <path
-                                d="M538.103431 781.648567c0.702576-0.082656 1.405151-0.13225 2.103595-0.219038 10.551034-3.149192 88.218715-49.08938 108.560349-42.452106 20.180455-15.121909 37.711786-34.087322 51.180576-56.966494 9.943513-18.072728 17.167645-36.000807 22.052612-54.652126 4.529547-18.287633 7.021625-38.149862 7.021625-59.661078 0-11.311469 0.20664-22.46176 0.376085-33.368215-0.793497-13.369603-2.18625-27.445914-4.1204-42.423176-95.711479 5.856175-163.658818-27.883991-217.426526-82.002987-75.208666 51.312825-146.904453 80.949123-214.029366 82.002987-1.074528 19.498543-1.843228 37.761379-1.938282 55.028211 0.086789 5.740457 0.152914 11.555304 0.169445 17.436277 0.739771 29.082503 3.979885 55.276179 11.865264 79.605963 0.227304 0.669513 0.462873 1.326628 0.69431 1.992009 0.776966 2.310234 1.603526 4.595672 2.467281 6.872844 1.103457 2.851631 2.248242 5.661934 3.459152 8.422643 0.144648 0.326491 0.276897 0.661248 0.425678 0.987739 1.330761 2.98388 2.73178 5.901636 4.186525 8.773931 0.23557 0.462873 0.462873 0.934012 0.698443 1.392753 1.186113 2.297836 2.434218 4.53368 3.694722 6.757126 0.867888 1.512604 1.731643 3.029341 2.653256 4.533679a193.757989 193.757989 0 0 0 47.122168 53.015539c31.421667 2.93842 115.805145 44.21681 121.429884 43.716742 19.167919 2.52514 28.243545 1.789502 47.353604 1.206777zM695.356412 841.933698c35.033732 27.66082 62.062234 63.967454 78.804201 106.692324l0.10332-0.066125c-17.17591-44.45238-44.873925-80.002712-78.907521-106.626199zM333.191019 842.656937c-34.422078 27.197947-62.264741 63.612034-79.184418 109.176137 16.485733-43.753937 43.708476-80.907795 79.184418-109.176137z"
-                                fill="#FCE9EA" p-id="2727"></path>
-                            <path
-                                d="M695.356412 841.933698c-22.065011-17.428011-47.295745-31.413401-75.084682-41.456101l-210.363573-0.119852-0.107453-0.095054c-28.408856 10.199747-54.164456 24.511628-76.609685 42.398379-35.471809 28.272474-62.698685 65.422199-79.184418 109.176136-0.438077 1.165449-0.834825 2.355695-1.25637 3.52941 74.964831 43.629953 162.104886 68.633384 255.09285 68.633384 97.670425 0 188.88542-27.590562 266.317532-75.365712-16.741966-42.737269-43.770468-79.03977-78.804201-106.70059z"
-                                fill="#B0C11D" p-id="2728"></path>
-                            <path
-                                d="M620.27173 800.473464h0.264499c34.219571-41.683405 38.406096-58.177404 28.222881-61.500174-20.341634-6.633141-98.009315 39.307046-108.56035 42.452106a3.124396 3.124396 0 0 1-0.962942 0.181843l-1.136519 0.037195c-19.11006 0.586857-28.181553 1.318363-47.36187-1.206777-5.624739 0.500069-90.008217-40.778322-121.429884-43.716742-20.250712-1.896954-18.510804 12.133896 40.489026 63.53351l0.107453 0.095055 210.367706 0.123984z"
-                                fill="#FF5947" p-id="2729"></path>
-                            <path
-                                d="M315.841531 672.418704c-0.239702-0.458741-0.462873-0.92988-0.698442-1.392753a180.789268 180.789268 0 0 1-4.186525-8.773931l-0.425679-0.987739a184.876605 184.876605 0 0 1-5.926432-15.295487c-0.223171-0.665381-0.475272-1.322495-0.694311-1.992009-7.885379-24.329784-11.125493-50.523461-11.865264-79.605963a563.192974 563.192974 0 0 1-0.169445-17.436277c0.095054-17.266832 0.859622-35.529668 1.938283-55.028211 67.124912-1.053864 138.8207-30.694294 214.029365-82.002987v-135.30782c-234.742951-123.116065-377.622059 224.869696-184.508786 411.072929-0.409147-0.648849-0.748037-1.310097-1.144785-1.963079-0.921614-1.500206-1.785369-3.016943-2.653257-4.53368-1.281168-2.235844-2.521007-4.488219-3.694722-6.752993zM698.675049 684.379023c61.669618-53.118858 88.846901-125.938767 89.785046-196.799729-1.49194 69.976543-28.727082 142.279852-89.785046 196.799729z"
-                                fill="#FECF77" p-id="2730"></path>
-                            <path
-                                d="M507.843081 409.903347c53.77184 54.123128 121.715047 87.863295 217.426526 82.002987 1.93415 14.977262 3.326903 29.053573 4.1204 42.423176 2.078798 34.810561 0.004133 64.765084-7.397709 93.029293-4.884968 18.651319-12.109099 36.579399-22.052613 54.652126-0.433944 0.785232-0.822427 1.578729-1.268769 2.368094 61.053831-54.515744 88.293106-126.823186 89.785046-196.799729 3.285575-154.525334-119.036993-297.689604-280.381444-212.863916l-0.23557-0.115719v135.303688z"
-                                fill="#FF9F31" p-id="2731"></path>
-                        </svg>
+                <div class="layui-card">
+                    <div :style="{height: logsHeight+'px',overflowY: 'scroll'}">
+                        <div class="layui-card-body">
+                            <div class="tl-rtc-file-mask-media-container " id="mediaVideoRoomList"> </div>
+                        </div>
                     </div>
-                    <div :title="remote.id" style="background: none !important;" class="layui-badge layui-bg-blue layuiadmin-badge remoteId">{{remote.nickName}}</div>
                 </div>
             </div>
-            <div class="swiper-scrollbar"></div>
         </div>
 
-        <button class="sendFileBtn" style="background-color: #79b0e8;" @click="initSendFile()"
-            v-show="!uploadDisabled && !isSending">
-            <svg viewBox="0 0 1024 1024" style="width: 30px;height: 25px;margin-left: -8px;margin-right: 10px;">
-                <path
-                    d="M341.333333 277.333333l115.2-115.2c8.533333-8.533333 17.066667-12.8 29.866667-17.066666v473.6c0 17.066667 12.8 29.866667 25.6 29.866666s25.6-12.8 25.6-29.866666V140.8c8.533333 4.266667 21.333333 8.533333 29.866667 17.066667L682.666667 277.333333c4.266667 4.266667 12.8 8.533333 21.333333 8.533334s12.8-4.266667 21.333333-8.533334c12.8-12.8 12.8-29.866667 0-38.4l-115.2-115.2C554.666667 68.266667 469.333333 68.266667 418.133333 119.466667L302.933333 234.666667c-12.8 12.8-12.8 29.866667 0 38.4s25.6 12.8 38.4 4.266666z"
-                    fill="#191A1A" p-id="2860"></path>
-                <path
-                    d="M738.133333 435.2h-72.533333c-17.066667 0-29.866667 12.8-29.866667 25.6s12.8 25.6 29.866667 25.6h72.533333c42.666667 0 76.8 34.133333 76.8 76.8V810.666667c0 42.666667-34.133333 76.8-76.8 76.8H285.866667c-42.666667 0-76.8-34.133333-76.8-76.8v-243.2c0-42.666667 34.133333-76.8 76.8-76.8h72.533333c17.066667 0 25.6-12.8 25.6-25.6s-12.8-25.6-25.6-25.6H285.866667c-72.533333 0-132.266667 59.733333-132.266667 132.266666V810.666667c0 72.533333 59.733333 132.266667 132.266667 132.266666h456.533333c72.533333 0 132.266667-59.733333 132.266667-132.266666v-243.2c0-72.533333-59.733333-132.266667-136.533334-132.266667z"
-                    fill="#191A1A" p-id="2861"></path>
-            </svg>
-            <div style="font-size: 14px;word-break: keep-all;">发送文件</div>
-        </button>
-
-        <menu class="menu" style="z-index: 10000;" :class="menuNeedLowBackground ? 'menuLowBackground': ''">
-            <button id="btnHome" @click="clickHome" class="menuItem" :class="currentMenu === 1 ? 'active' : ''"
-                style="--bgColorBody: #4f4f41; --bgColorItem: #4f4f41;">
-                <span v-show="sendFileList.length > 0 && sendFileList.length < 10"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim layui-anim-loop"
-                    style="padding: 0;position: relative; top: -20px;margin-left: -18px;">{{Math.min(sendFileList.length, 99)}}</span>
-                <span v-show="sendFileList.length >= 10"
-                    class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop"
-                    style="position: relative; top: -20px;">{{Math.min(sendFileList.length, 99)}}</span>
-                <svg class="icon" viewBox="0 0 24 24">
-                    <path d="M3.8,6.6h16.4"></path>
-                    <path d="M20.2,12.1H3.8"></path>
-                    <path d="M3.8,17.5h16.4"></path>
-                </svg>
-            </button>
-            <button id="btnTxt" @click="clickTxt" class="menuItem" :class="currentMenu === 3 ? 'active' : ''"
-                style="--bgColorBody: #4f4f41; --bgColorItem: #4f4f41">
-                <span v-show="receiveTxtList.length > 0 && receiveTxtList.length < 10"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop layui-anim"
-                    style="padding: 0; position: relative; top: -20px;margin-left: -18px;">{{Math.min(receiveTxtList.length, 99)}}</span>
-                <span v-show="receiveTxtList.length >= 10"
-                    class="layui-badge new-dot layui-anim layui-anim-rotate layui-anim-loop"
-                    style="position: relative; top: -20px;">{{Math.min(receiveTxtList.length, 99)}}</span>
-                <svg class="icon" viewBox="0 0 1024 1024" p-id="21754" width="128" height="128">
-                    <path
-                        d="M192.8 868.7c-3.8 0-7.7-0.7-11.4-2.3-10.7-4.4-17.6-14.4-17.6-25.6V724.6h-46.4C52.7 724.6 0.1 676.4 0.1 617.1V236.3c0-59.3 52.6-107.5 117.3-107.5h622.1c64.7 0 117.3 48.2 117.3 107.5v380.8c0 59.3-52.6 107.5-117.3 107.5H346.8L213.7 860c-5.6 5.7-13.2 8.7-20.9 8.7z m-75.4-704.1c-45 0-81.5 32.2-81.5 71.7v380.8c0 39.5 36.6 71.7 81.5 71.7h64.3c9.9 0 17.9 8 17.9 17.9v116.5l126.9-129.1c3.4-3.4 8-5.3 12.8-5.3h400.2c45 0 81.5-32.2 81.5-71.7V236.3c0-39.5-36.6-71.7-81.5-71.7H117.4z"
-                        fill="#ffffff" p-id="21755"></path>
-                    <path
-                        d="M884 938.7c-7 0-13.7-2.8-18.7-8.1L774 833.3H502.3c-13.5 0-26.5-2.9-38.6-8.7-8.9-4.2-12.7-14.9-8.5-23.9 4.3-9 15-12.7 23.9-8.5 7.3 3.5 15.1 5.2 23.3 5.2h279.5c4.9 0 9.7 2.1 13.1 5.6l79.1 84.2v-72c0-9.9 8-17.9 17.9-17.9h44.9c28.4 0 51.5-21.4 51.5-47.6V471.6c0-14.9-7.8-29.2-20.9-38.2-8.1-5.6-10.2-16.8-4.6-24.9 5.6-8.2 16.8-10.2 24.9-4.6 22.8 15.7 36.4 41 36.4 67.7V750c0 46-39.2 83.4-87.4 83.4h-27v80.2c0 10.3-6.3 19.4-16 23.3-3.3 1.2-6.5 1.8-9.8 1.8zM202.7 402c-9.8 0-17.8-7.9-17.9-17.7-0.1-9.9 7.9-18 17.7-18.1l441.7-4h0.2c9.8 0 17.8 7.9 17.9 17.7 0.1 9.9-7.9 18-17.7 18.1l-441.7 4h-0.2zM473.3 522.8H202.7c-9.9 0-17.9-8-17.9-17.9s8-17.9 17.9-17.9h270.6c9.9 0 17.9 8 17.9 17.9s-8 17.9-17.9 17.9z"
-                        fill="#ffffff" p-id="21756"></path>
-                </svg>
-            </button>
-            <button id="btnReceive" @click="clickReceive" class="menuItem" :class="currentMenu === 2 ? 'active' : ''"
-                style="--bgColorBody: #4f4f41; --bgColorItem: #4f4f41">
-                <span v-show="receiveFileList.length > 0 && receiveFileList.length < 10"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop layui-anim"
-                    style="padding: 0; position: relative; top: -20px;margin-left: -18px;">{{Math.min(receiveFileList.length, 99)}}</span>
-                <span v-show="receiveFileList.length >= 10"
-                    class="layui-badge new-dot layui-anim-rotate layui-anim-loop layui-anim"
-                    style="position: relative; top: -20px;margin-left: -18px;">{{Math.min(receiveFileList.length, 99)}}</span>
-                <svg class="icon" viewBox="0 0 24 24">
-                    <path d="M6.7,4.8h10.7c0.3,0,0.6,0.2,0.7,0.5l2.8,7.3c0,0.1,0,0.2,0,0.3v5.6c0,0.4-0.4,0.8-0.8,0.8H3.8
-                    C3.4,19.3,3,19,3,18.5v-5.6c0-0.1,0-0.2,0.1-0.3L6,5.3C6.1,5,6.4,4.8,6.7,4.8z"></path>
-                    <path d="M3.4,12.9H8l1.6,2.8h4.9l1.5-2.8h4.6"></path>
-                </svg>
-            </button>
-
-            <button id="btnCodeFile" @click="clickCodeFile" class="menuItem" :class="currentMenu === 4 ? 'active' : ''"
-                style="--bgColorBody: #4f4f41; --bgColorItem: #4f4f41">
-                <svg class="icon" viewBox="0 0 1024 1024" p-id="2708" width="64" height="64">
-                    <path
-                        d="M768.73106 703.537712c-35.606921 0-67.945574 14.793214-91.167479 38.359147l-309.109357-171.670082c9.116748-17.545439 14.621199-37.155048 14.621199-58.312783 0-12.55703-2.408198-24.426004-5.676466-35.950949l304.63699-189.215522c22.705863 20.469679 52.464304 33.198723 85.146985 33.198723 70.525785 0 127.978498-57.452713 127.978498-127.978498S837.708718 63.989249 767.182933 63.989249s-127.978498 57.452713-127.978498 127.978498c0 14.621199 2.92424 28.382328 7.396607 41.455401L344.716278 420.746514c-23.049891-22.705863-54.700487-36.983034-89.791366-36.983034-70.525785 0-127.978498 57.452713-127.978498 127.978498s57.452713 127.978498 127.978498 127.978498c25.630102 0 49.540064-7.740635 69.493701-20.813707l321.150344 178.378633c-3.096254 11.008903-5.160423 22.18982-5.160423 34.058794 0 70.525785 57.452713 127.978498 127.978498 127.978498s127.978498-57.452713 127.978498-127.978498S839.256845 703.537712 768.73106 703.537712zM767.182933 127.978498c35.262893 0 63.989249 28.726356 63.989249 63.989249s-28.726356 63.989249-63.989249 63.989249-63.989249-28.726356-63.989249-63.989249S731.92004 127.978498 767.182933 127.978498zM191.107677 511.913993c0-35.262893 28.726356-63.989249 63.989249-63.989249s63.989249 28.726356 63.989249 63.989249-28.726356 63.989249-63.989249 63.989249S191.107677 547.176886 191.107677 511.913993zM768.73106 895.505459c-35.262893 0-63.989249-28.726356-63.989249-63.989249s28.726356-63.989249 63.989249-63.989249 63.989249 28.726356 63.989249 63.989249C832.720309 866.951117 803.993953 895.505459 768.73106 895.505459z"
-                        fill="#ffffff" p-id="2709"></path>
-                </svg>
-            </button>
-
-            <div :class="menuNeedLowBackground ? 'menuLowBackground': ''" class="menuBorder" style="transform: translate3d(108px, 0px, 0px);"></div>
-        </menu>
-
-        <div class="svg-container">
-            <svg viewBox="0 0 202.9 45.5">
-                <clippath id="menu" clipPathUnits="objectBoundingBox"
-                    transform="scale(0.0049285362247413 0.021978021978022)">
-                    <path d="M6.7,45.5c5.7,0.1,14.1-0.4,23.3-4c5.7-2.3,9.9-5,18.1-10.5c10.7-7.1,11.8-9.2,20.6-14.3c5-2.9,9.2-5.2,15.2-7
-                        c7.1-2.1,13.3-2.3,17.6-2.1c4.2-0.2,10.5,0.1,17.6,2.1c6.1,1.8,10.2,4.1,15.2,7c8.8,5,9.9,7.1,20.6,14.3c8.3,5.5,12.4,8.2,18.1,10.5
-                        c9.2,3.6,17.6,4.2,23.3,4H6.7z"></path>
-                </clippath>
-            </svg>
+        <!-- 屏幕共享 -->
+        <div class="tl-rtc-file-mask-media-list" :style="{left: mediaScreenMaskHeightNum + '%'}">
+            <div class="layui-col-sm2" style="width: 100%;">
+                <div class="layui-card">
+                    <div class="layui-card-header" style="text-align: left;">
+                        屏幕共享
+                        <i @click="startScreenShare" class="layui-icon layui-icon-close"
+                            style="cursor: pointer; right: 10px;position: absolute;"></i>
+                    </div>
+                </div>
+                <div class="layui-card">
+                    <div :style="{height: logsHeight+'px',overflowY: 'scroll'}">
+                        <div class="layui-card-body">
+                            <div class="tl-rtc-file-mask-media-container " id="mediaScreenRoomList"> </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
     </div>
 
     <script type="text/javascript" src="/js/comm.min.js"></script>
@@ -687,55 +774,6 @@
     <script type="text/javascript" src="/js/index.min.js"></script>
     <script src="static/layui/layui.js"></script>
     <script>
-        setTimeout(() => {
-            let clientWidth = document.body.clientWidth;
-            let slidesPerView = parseInt((clientWidth / 100)) - 1;
-            let userRoomSwiper = new Swiper('.userRoom', {
-                direction: 'horizontal', // 垂直切换选项
-                loop: false, // 循环模式选项
-                slidesPerView: slidesPerView,
-                // effect : "coverflow", //切换样式
-                observer: true,
-                scrollbar: {
-                    el: '.swiper-scrollbar',
-                }
-            })
-            userRoomSwiper.scrollbar?.$dragEl.css('background', '#ff6600');
-            userRoomSwiper.scrollbar?.$el.css('height', '4px');
-            window.userRoomSwiper = userRoomSwiper;
-
-            let slidesPerViewFile = parseInt((clientWidth / 100)) - 1;
-            let fileRoomSwiper = new Swiper('.fileRoom', {
-                direction: 'horizontal',
-                loop: false,
-                slidesPerView: slidesPerViewFile,
-                observer: true,
-            })
-            window.fileRoomSwiper = fileRoomSwiper;
-
-            let fileRoomDisabledSwiper = new Swiper('.fileRoomDisabled', {
-                direction: 'horizontal',
-                loop: false,
-                slidesPerView: slidesPerViewFile,
-                observer: true,
-            })
-            window.fileRoomDisabledSwiper = fileRoomDisabledSwiper;
-
-            let slidesPerViewScreenShare = parseInt((clientWidth / 100)) - 1;
-            let mediaShareRoomSwiper = new Swiper('.mediaShareRoom', {
-                direction: 'horizontal',
-                loop: false,
-                slidesPerView: slidesPerViewScreenShare,
-                observer: true,
-                scrollbar: {
-                    el: '.swiper-scrollbar',
-                }
-            })
-            mediaShareRoomSwiper.scrollbar?.$dragEl.css('background', '#ff6600');
-            mediaShareRoomSwiper.scrollbar?.$el.css('height', '4px');
-            window.mediaShareRoomSwiper = mediaShareRoomSwiper;
-        }, 1000)
-
         layui.use(['layedit', 'form', 'layer', 'laytpl', 'upload', 'dropdown', 'carousel', 'util'], function () {
             window.layer = layui.layer;
             window.form = layui.form;
@@ -760,7 +798,7 @@
                     , btnAlign: 'c'
                     , moveType: 1
                     , content: `
-                        <div style="padding: 30px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;">
+                        <div style="padding: 30px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;border-radius:8px;">
                             <div style="text-align: center;line-height: 20px;font-size:12px;word-break: keep-all;">当前项目代码已完整开源，推荐自行搭建
                                 <a style="color: #e87171;font-size:15px;font-weight: 800; text-decoration: underline;" 
                                 href="https://github.com/iamtsm/tl-rtc-file" target="_blank"> 去github点个赞支持下 </a>    
@@ -768,8 +806,6 @@
                             <div style="text-align: center;line-height: 40px;">1. 双方输入相同房间号加入</div>
                             <div style="text-align: center;line-height: 40px;"><b>* 双方先加入房间再选文件! *</b></div>
                             <div style="text-align: center;line-height: 40px;">2. 双方选择需要的文件发送</div>
-                            <div style="text-align: center;line-height: 40px;">3. 右下角是你接收到的文件</div>
-                            <div style="text-align: center;line-height: 40px;">4. 左下角是你发送过的文件</div>
                             <div style="text-align: center;line-height: 26px;word-break: keep-all;color: #e87171;">5. 中继服务器配置带宽不高，大约500kb/s ~ 600kb/s，（有需要可 <a style="color: wheat;" target="_blank" href="https://blog.iamtsm.cn">联系我</a> 提高带宽）</div>
                         </div>
                     `

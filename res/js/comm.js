@@ -137,51 +137,60 @@ window.tlrtcfile = {
             /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
         );
     },
-    closeFullVideo: function (node, type) {
+    closeFullVideo: function (node, type, from) {
         let stream = node.srcObject;
         let nodeId = node.id.substr(0, node.id.length - 5);
         if (window.layer) {
             layer.closeAll()
         }
-        $("#mediaShareRoomList").append(`
-            <div class="swiper-slide mediaShareBlock">
-                <video id="${nodeId}" autoplay playsinline onclick="tlrtcfile.openFullVideo(this,'${type}')"></video>
+        $(`${type === 'screen' ? '#mediaScreenRoomList': '#mediaVideoRoomList'}`).append(`
+            <div class="tl-rtc-file-mask-media-video">
+                <video id="${nodeId}" autoplay playsinline onclick="tlrtcfile.openFullVideo(this,'${type}', '${from}')"></video>
             </div>
         `);
         var video = document.querySelector("#" + nodeId);
         video.srcObject = stream
-        // ios 微信浏览器兼容问题
-        video.play();
-        document.addEventListener('WeixinJSBridgeReady', function () {
+
+        video.addEventListener('loadedmetadata', function() {
+            // ios 微信浏览器兼容问题
             video.play();
-        }, false);
+            document.addEventListener('WeixinJSBridgeReady', function () {
+                video.play();
+            }, false);
+        });
+        
     },
-    openFullVideo: function (node, type) {
+    openFullVideo: function (node, type, from) {
         let stream = node.srcObject;
         let nodeId = node.id + "_full";
         if (window.layer) {
             layer.open({
                 type: 1,
                 title: false,
-                area: [`80%`],
+                area: ["95%", "auto"],
                 shade: 0.3,
-                content: `<video id="${nodeId}" autoplay playsinline onclick="tlrtcfile.closeFullVideo(this, '${type}')"></video>`,
+                content: `
+                    ${from === 'self' ? '<b style="position: absolute;left: 5px; top: 8px;">自己</b>' : ''}
+                    <video style="width:100%;height:100%;border-radius:8px;" id="${nodeId}" autoplay playsinline onclick="tlrtcfile.closeFullVideo(this, '${type}', '${from}')"></video>
+                `,
                 success: function (layero) {
                     document.querySelector("#" + nodeId).parentElement.style.height = "auto"
 
                     let video = document.querySelector("#" + nodeId);
                     video.srcObject = stream;
-                    // ios 微信浏览器兼容问题
-                    video.play();
-                    document.addEventListener('WeixinJSBridgeReady', function () {
+                    video.addEventListener('loadedmetadata', function() {
+                        // ios 微信浏览器兼容问题
                         video.play();
-                    }, false);
+                        document.addEventListener('WeixinJSBridgeReady', function () {
+                            video.play();
+                        }, false);
+                    });
 
                     //并且需要移除父节点
                     document.querySelector("#" + node.id).parentElement.remove();
                 },
                 cancel: function () {
-                    tlrtcfile.closeFullVideo(document.querySelector("#" + nodeId), type);
+                    tlrtcfile.closeFullVideo(document.querySelector("#" + nodeId), type, from);
                 }
             });
         }
@@ -223,6 +232,58 @@ window.tlrtcfile = {
         setTimeout(() => {
             animateScroll()
         }, timeout);
+    },
+    leakBucketQueue : function(){
+        let max, pretime, queueThreshold, queueRate, queue, queueId;
+        
+        function init(options = {
+            max : 500, // 最多处理任务数量
+            pretime : Date.now(), // 上次处理任务时间
+            queueThreshold : 20, // 最多并发任务数量，超过进入队列
+            queueRate : 1000, // 队列处理单个任务时间间隔, 单位ms
+        }){
+            this.max = options.max;
+            this.pretime = options.pretime;
+            this.queueThreshold = options.queueThreshold;
+            this.queueRate = options.queueRate;
+            return this;
+        }
+
+        async function doFunc(func, callback){
+            await new Promise(resolve=>{ resolve(func()) })
+            callback();
+        }
+
+        async function addQueue(func, callback){
+            // 1s 超过queueThreshold个任务 ，进入队列
+            if((Date.now() - this.preTime) < 1000 && this.queue > this.queueThreshold){
+                // 队列超过max，丢弃
+                if(this.queue.length > this.max){
+                    return
+                }
+                this.queue.push({
+                    func : func, 
+                    callback : callback
+                })
+                return
+            }
+            this.preTime = Date.now();
+            await doFunc();
+            return this;
+        }
+
+        function delQueue(){
+            let that = this;
+            // 定时任务
+            this.queueId = setInterval(async () => {
+                if(that.queue.length > 0){
+                    let {func, callback} = that.queue.shift();
+                    await doFunc(func, callback);
+                    console.log("queue : ",that.queue.length)
+                }
+            }, that.queueRate);
+            return this;
+        }
     },
     genNickName: function () {
         let {adjectives, nouns} = this.nameDatabase()

@@ -8,13 +8,26 @@
     }
 
     /**
+     * 后台修改配置广播
+     * @param {*} message 
+     * @param {*} params 
+     */
+    _commDataChange( message, params){
+        try{            
+            this.sockets.emit("commData", message)
+        }catch(e){
+            console.log(e)
+        }
+    }
+
+    /**
      * 公共聊天频道
      * @param {*} message 
      * @param {*} params 
      */
-     _chating( message, params){
+    _chatingComm( message, params){
         try{            
-            this.sockets.emit("chating", message)
+            this.sockets.emit("chatingComm", message)
         }catch(e){
             console.log(e)
         }
@@ -225,7 +238,7 @@
         if(emitType === 'commData'){
             this.socket.emit('commData',{
                 switchData : message.switchData,
-                chatingData : message.chatingData
+                chatingCommData : message.chatingCommData
             });
             return
         }
@@ -238,7 +251,7 @@
                     otherSocket.emit(emitType, message);
                     return;
                 }
-                if(from != otherSocket.id ){
+                if(from != otherSocket.id){
                     otherSocket.emit(emitType, message);
                 }
             }
