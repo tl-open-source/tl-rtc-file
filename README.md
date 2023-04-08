@@ -21,7 +21,7 @@
 
 **qq交流群 : 624214498**
 
-![EN-DOC](doc/README_EN.md)
+[EN-DOC](doc/README_EN.md)
 
 ## 准备
 
