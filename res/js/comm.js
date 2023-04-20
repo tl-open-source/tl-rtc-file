@@ -143,7 +143,7 @@ window.tlrtcfile = {
         if (window.layer) {
             layer.closeAll()
         }
-        $(`${type === 'screen' ? '#mediaScreenRoomList': '#mediaVideoRoomList'}`).append(`
+        $(`${type === 'screen' ? '#mediaScreenRoomList' : '#mediaVideoRoomList'}`).append(`
             <div class="tl-rtc-file-mask-media-video">
                 <video id="${nodeId}" autoplay playsinline onclick="tlrtcfile.openFullVideo(this,'${type}', '${from}')"></video>
             </div>
@@ -151,14 +151,14 @@ window.tlrtcfile = {
         var video = document.querySelector("#" + nodeId);
         video.srcObject = stream
 
-        video.addEventListener('loadedmetadata', function() {
+        video.addEventListener('loadedmetadata', function () {
             // ios 微信浏览器兼容问题
             video.play();
             document.addEventListener('WeixinJSBridgeReady', function () {
                 video.play();
             }, false);
         });
-        
+
     },
     openFullVideo: function (node, type, from) {
         let stream = node.srcObject;
@@ -178,7 +178,7 @@ window.tlrtcfile = {
 
                     let video = document.querySelector("#" + nodeId);
                     video.srcObject = stream;
-                    video.addEventListener('loadedmetadata', function() {
+                    video.addEventListener('loadedmetadata', function () {
                         // ios 微信浏览器兼容问题
                         video.play();
                         document.addEventListener('WeixinJSBridgeReady', function () {
@@ -233,60 +233,33 @@ window.tlrtcfile = {
             animateScroll()
         }, timeout);
     },
-    leakBucketQueue : function(){
-        let max, pretime, queueThreshold, queueRate, queue, queueId;
-        
-        function init(options = {
-            max : 500, // 最多处理任务数量
-            pretime : Date.now(), // 上次处理任务时间
-            queueThreshold : 20, // 最多并发任务数量，超过进入队列
-            queueRate : 1000, // 队列处理单个任务时间间隔, 单位ms
-        }){
-            this.max = options.max;
-            this.pretime = options.pretime;
-            this.queueThreshold = options.queueThreshold;
-            this.queueRate = options.queueRate;
-            return this;
+    marginToHidden: function (dom, duration, timeout, callback) {
+        let change = 100;
+        let currentTime = 0;
+        let increment = 20;
+
+        function easeOutCubic(t) {
+            return (t = t / 1 - 1) * t * t + 1;
         }
 
-        async function doFunc(func, callback){
-            await new Promise(resolve=>{ resolve(func()) })
-            callback();
-        }
-
-        async function addQueue(func, callback){
-            // 1s 超过queueThreshold个任务 ，进入队列
-            if((Date.now() - this.preTime) < 1000 && this.queue > this.queueThreshold){
-                // 队列超过max，丢弃
-                if(this.queue.length > this.max){
-                    return
-                }
-                this.queue.push({
-                    func : func, 
-                    callback : callback
-                })
-                return
+        function animateMargin() {            
+            currentTime += increment;
+            let val = easeOutCubic(currentTime / duration) * change;
+            dom.style.marginLeft = val+"%";
+            if(val === 100){
+                callback()
             }
-            this.preTime = Date.now();
-            await doFunc();
-            return this;
+            if (currentTime < duration) {
+                requestAnimationFrame(animateMargin);
+            }
         }
 
-        function delQueue(){
-            let that = this;
-            // 定时任务
-            this.queueId = setInterval(async () => {
-                if(that.queue.length > 0){
-                    let {func, callback} = that.queue.shift();
-                    await doFunc(func, callback);
-                    console.log("queue : ",that.queue.length)
-                }
-            }, that.queueRate);
-            return this;
-        }
+        setTimeout(() => {
+            animateMargin()
+        }, timeout);
     },
     genNickName: function () {
-        let {adjectives, nouns} = this.nameDatabase()
+        let { adjectives, nouns } = this.nameDatabase()
         let adjectiveIndex = Math.floor(Math.random() * adjectives.length);
         let nounIndex = Math.floor(Math.random() * nouns.length);
         let adjective = adjectives[adjectiveIndex];
@@ -296,40 +269,40 @@ window.tlrtcfile = {
     },
     nameDatabase: function () {
         const adjectives = [
-            "幽默的", "搞笑的", "疯狂的", "奇怪的", "古怪的", "无聊的", "神秘的", "魔幻的", "风趣的", "调皮的", 
-            "聪明的", "美丽的", "可爱的", "迷人的", "酷的", "萌萌的", "潇洒的", "霸气的", "猛烈的", "光芒的", 
-            "伶俐的", "俏皮的", "小巧的", "细腻的", "娇嫩的", "柔软的", "亲切的", "朴实的", "拘谨的", "高傲的", 
-            "自恋的", "浪漫的", "单纯的", "深情的", "执着的", "冷酷的", "刁蛮的", "天真的", "多情的", "成熟的", 
-            "忧郁的", "神经质的", "孤独的", "怀旧的", "清新的", "淡雅的", "冷艳的", "高冷的", "玩世不恭的", "逆天的", 
-            "暴躁的", "暴力的", "妩媚的", "狡猾的", "自信的", "自卑的", "悲观的", "乐观的", "勇敢的", "胆小的", "快乐的", 
-            "痛苦的", "善良的", "邪恶的", "深邃的", "神圣的", "丰满的", "单薄的", "肥胖的", "瘦弱的", "英俊的", "丑陋的", 
-            "芳香的", "臭气熏天的", "热情的", "冷漠的", "朝气蓬勃的", "干净的", "脏兮兮的", "无忧无虑的", "喜怒无常的", 
-            "平凡的", "非凡的", "害羞的", "热心的", "机智的", "敏捷的", "迟钝的", "聪慧的", "无知的", "真诚的", "虚伪的", 
-            "直率的", "谨慎的", "大胆的", "谦虚的", "傲慢的", "严肃的", "轻松的", "紧张的", "勤劳的", "懒惰的", "守时的", 
-            "迟到的", "坚强的", "软弱的", "聪慧的", "愚笨的", "机灵的", "迟钝的", "淘气的", "乖巧的", "活泼的", "沉默的", 
-            "健康的", "不健康的", "高大的", "矮小的", "长的", "短的", "胖的", "瘦的", "美满的", "不幸的", "富有的", "贫穷的", 
-            "快乐的", "不开心的", "甜美的", "苦涩的", "精明的", "愚蠢的", "聪明的", "智商高的", "心灵手巧的", "笨手笨脚的", 
-            "冷静的", "冲动的", "踏实的", "轻浮的", "温柔的", "粗暴的", "好学的", "讨厌学习的", "好吃的", "不好吃的", "耐心的", 
-            "急躁的", "友善的", "冷漠的", "豁达的", "固执的", "谨慎的", "善良的", "狠毒的", "平和的", "狂躁的", "机会主义的", 
-            "悲观的", "乐观的", "心胸开阔的", "偏狭的", "讲义气的", "不守信用的", "有魅力的", "无趣的", "有思想的", "无聊的", 
-            "谋略深的", "目光短浅的", "善解人意的", "自私的", "坦率的", "虚伪的", "好奇的", "不解风情的", "喜欢交友的", 
-            "独来独往的", "健谈的", "静默的", "喜欢思考的", "机智幽默的", "情感丰富的", "心地善良的", "充满自信的", "天真烂漫的", 
-            "追求完美的", "充满活力的", "喜欢冒险的", "充满创造力的", "沉着冷静的", "目标明确的", "性格温和的", "乐于助人的", 
-            "聪明伶俐的", "重情重义的", "思维敏捷的", "慷慨大方的", "婉约多姿的", "时尚前卫的", "豁达开朗的", "气质高雅的", 
-            "优雅大方的", "沉静深沉的", "坚韧不拔的", "独立自主的", "外向开朗的", "内向沉默的", "深情专注的", "精力旺盛的", 
-            "富于幽默的", "心思细腻的", "喜怒形于色的", "忠心耿耿的", "玩世不恭的", "活力四射的", "脚踏实地的", "注重细节的", 
-            "保守谨慎的", "世故圆滑的", "梦想家的", "勇往直前的", "干练果敢的", "待人友善的", "思想开放的", "敢于挑战的", 
-            "感性洒脱的", "洒脱不羁的", "自我牺牲的", "处事果断的", "好奇心强的", "待人热情的", "热情洋溢的", "孤独悲伤的", 
-            "浪漫多情的", "爱笑的", "不羁的", "傻气的", "不拘小节的", "懒散的", "无聊的", "低调的", "敏感的", "冷酷的", "专注的", 
-            "不屑的", "激情的", "忠诚的", "神秘的", "高傲的", "自由的", "文艺的", "时尚的", "落落大方的", "有才华的", "有气质的", 
-            "阳光的", "风趣的", "天真浪漫的", "爽朗开朗的", "内敛沉静的", "刻苦努力的", "性格迥异的", "个性张扬的", "脾气火爆的", 
-            "傲娇的", "爱撒娇的", "心思缜密的", "理智果断的", "懒惰的", "喜欢拖延的", "有责任感的", "追求自由的", "感性的", "理性的", 
-            "缺乏安全感的", "追求安全感的", "情绪化的", "乐观的", "悲观的", "现实主义的", "理想主义的", "平易近人的", "目中无人的", 
-            "重视亲情的", "重视友情的", "重视爱情的", "有爱心的", "有正义感的", "有同情心的", "有童心的", "有自信的", "胆小怕事的", 
-            "爱唠叨的", "话多的", "话少的", "勇于冒险的", "爱挑战的", "善于发现美的", "自我意识强的", "不喜欢被约束的", "慢热型的", 
-            "热情洋溢的", "容易受伤的", "重视感情的", "善于沟通的", "不善于表达的", "有幽默感的", "平易近人的", "有亲和力的", "脸皮厚的", 
-            "喜欢交际的", "宅男/宅女的", "喜欢独处的", "有自知之明的", "喜欢音乐的", "喜欢阅读的", "喜欢旅行的", "喜欢美食的", "喜欢运动的", 
-            "喜欢摄影的", "喜欢收藏的", "喜欢购物的", "不喜欢出门的", "喜欢挑剔的", "喜欢自省的", "不喜欢评价他人的", "喜欢评价他人的", 
+            "幽默的", "搞笑的", "疯狂的", "奇怪的", "古怪的", "无聊的", "神秘的", "魔幻的", "风趣的", "调皮的",
+            "聪明的", "美丽的", "可爱的", "迷人的", "酷的", "萌萌的", "潇洒的", "霸气的", "猛烈的", "光芒的",
+            "伶俐的", "俏皮的", "小巧的", "细腻的", "娇嫩的", "柔软的", "亲切的", "朴实的", "拘谨的", "高傲的",
+            "自恋的", "浪漫的", "单纯的", "深情的", "执着的", "冷酷的", "刁蛮的", "天真的", "多情的", "成熟的",
+            "忧郁的", "神经质的", "孤独的", "怀旧的", "清新的", "淡雅的", "冷艳的", "高冷的", "玩世不恭的", "逆天的",
+            "暴躁的", "暴力的", "妩媚的", "狡猾的", "自信的", "自卑的", "悲观的", "乐观的", "勇敢的", "胆小的", "快乐的",
+            "痛苦的", "善良的", "邪恶的", "深邃的", "神圣的", "丰满的", "单薄的", "肥胖的", "瘦弱的", "英俊的", "丑陋的",
+            "芳香的", "臭气熏天的", "热情的", "冷漠的", "朝气蓬勃的", "干净的", "脏兮兮的", "无忧无虑的", "喜怒无常的",
+            "平凡的", "非凡的", "害羞的", "热心的", "机智的", "敏捷的", "迟钝的", "聪慧的", "无知的", "真诚的", "虚伪的",
+            "直率的", "谨慎的", "大胆的", "谦虚的", "傲慢的", "严肃的", "轻松的", "紧张的", "勤劳的", "懒惰的", "守时的",
+            "迟到的", "坚强的", "软弱的", "聪慧的", "愚笨的", "机灵的", "迟钝的", "淘气的", "乖巧的", "活泼的", "沉默的",
+            "健康的", "不健康的", "高大的", "矮小的", "长的", "短的", "胖的", "瘦的", "美满的", "不幸的", "富有的", "贫穷的",
+            "快乐的", "不开心的", "甜美的", "苦涩的", "精明的", "愚蠢的", "聪明的", "智商高的", "心灵手巧的", "笨手笨脚的",
+            "冷静的", "冲动的", "踏实的", "轻浮的", "温柔的", "粗暴的", "好学的", "讨厌学习的", "好吃的", "不好吃的", "耐心的",
+            "急躁的", "友善的", "冷漠的", "豁达的", "固执的", "谨慎的", "善良的", "狠毒的", "平和的", "狂躁的", "机会主义的",
+            "悲观的", "乐观的", "心胸开阔的", "偏狭的", "讲义气的", "不守信用的", "有魅力的", "无趣的", "有思想的", "无聊的",
+            "谋略深的", "目光短浅的", "善解人意的", "自私的", "坦率的", "虚伪的", "好奇的", "不解风情的", "喜欢交友的",
+            "独来独往的", "健谈的", "静默的", "喜欢思考的", "机智幽默的", "情感丰富的", "心地善良的", "充满自信的", "天真烂漫的",
+            "追求完美的", "充满活力的", "喜欢冒险的", "充满创造力的", "沉着冷静的", "目标明确的", "性格温和的", "乐于助人的",
+            "聪明伶俐的", "重情重义的", "思维敏捷的", "慷慨大方的", "婉约多姿的", "时尚前卫的", "豁达开朗的", "气质高雅的",
+            "优雅大方的", "沉静深沉的", "坚韧不拔的", "独立自主的", "外向开朗的", "内向沉默的", "深情专注的", "精力旺盛的",
+            "富于幽默的", "心思细腻的", "喜怒形于色的", "忠心耿耿的", "玩世不恭的", "活力四射的", "脚踏实地的", "注重细节的",
+            "保守谨慎的", "世故圆滑的", "梦想家的", "勇往直前的", "干练果敢的", "待人友善的", "思想开放的", "敢于挑战的",
+            "感性洒脱的", "洒脱不羁的", "自我牺牲的", "处事果断的", "好奇心强的", "待人热情的", "热情洋溢的", "孤独悲伤的",
+            "浪漫多情的", "爱笑的", "不羁的", "傻气的", "不拘小节的", "懒散的", "无聊的", "低调的", "敏感的", "冷酷的", "专注的",
+            "不屑的", "激情的", "忠诚的", "神秘的", "高傲的", "自由的", "文艺的", "时尚的", "落落大方的", "有才华的", "有气质的",
+            "阳光的", "风趣的", "天真浪漫的", "爽朗开朗的", "内敛沉静的", "刻苦努力的", "性格迥异的", "个性张扬的", "脾气火爆的",
+            "傲娇的", "爱撒娇的", "心思缜密的", "理智果断的", "懒惰的", "喜欢拖延的", "有责任感的", "追求自由的", "感性的", "理性的",
+            "缺乏安全感的", "追求安全感的", "情绪化的", "乐观的", "悲观的", "现实主义的", "理想主义的", "平易近人的", "目中无人的",
+            "重视亲情的", "重视友情的", "重视爱情的", "有爱心的", "有正义感的", "有同情心的", "有童心的", "有自信的", "胆小怕事的",
+            "爱唠叨的", "话多的", "话少的", "勇于冒险的", "爱挑战的", "善于发现美的", "自我意识强的", "不喜欢被约束的", "慢热型的",
+            "热情洋溢的", "容易受伤的", "重视感情的", "善于沟通的", "不善于表达的", "有幽默感的", "平易近人的", "有亲和力的", "脸皮厚的",
+            "喜欢交际的", "宅男/宅女的", "喜欢独处的", "有自知之明的", "喜欢音乐的", "喜欢阅读的", "喜欢旅行的", "喜欢美食的", "喜欢运动的",
+            "喜欢摄影的", "喜欢收藏的", "喜欢购物的", "不喜欢出门的", "喜欢挑剔的", "喜欢自省的", "不喜欢评价他人的", "喜欢评价他人的",
             "有品位的", "不讲卫生的", "讲究卫生的", "喜欢干净的", "喜欢乱的", "喜欢组织的", "喜欢随意的", "喜欢收纳的"
         ];
         const nouns = [
@@ -342,7 +315,7 @@ window.tlrtcfile = {
             '小面条', '小牛肉面', '小糯米鸡', '小蒸饺', '小炒面', '小蒸包', '小烤肉', '小烤串', '小花生米', '小太阳',
             '小月亮', '小星星', '小彩虹', '小风车', '小气球', '小钢琴', '小吉他', '小音响', '小麦克风', '小演员',
             '小画家', '小工程师', '小医生', '小警察', '小消防员', '小司机', '小农民', '小潜水员', '小飞行员', '小篮球',
-            '小游泳健将', '小跑步冠军', '小武术高手', '小芭蕾舞者', '小沙画家', '小书法家', '小拼图专家', '小玩具收藏家', 
+            '小游泳健将', '小跑步冠军', '小武术高手', '小芭蕾舞者', '小沙画家', '小书法家', '小拼图专家', '小玩具收藏家',
             '小电影制片人', '小太空旅行家', '超级英雄', '无敌大魔王', '终极霸主', '至尊帝王', '天降巨人', '绝世奇才', '神话之门',
             '恐怖怪兽', '魔法使者', '神秘剑客', '不朽传说', '宇宙霸主', '地狱火山', '无尽黑暗', '闪耀之星', '璀璨之光', '金色骑士',
             '毁天灭地', '战无不胜', '碾压一切', '绝世高手', '超凡脱俗', '万象之王', '黑暗骑士', '霸天战神', '万众瞩目', '震古烁今',
@@ -350,6 +323,201 @@ window.tlrtcfile = {
             '刀锋之舞', '独步天下', '吞噬万物', '永恒之境', '灭世战神', '海量财富', '神话传说', '唯我独尊', '万剑归宗', '嗜血狂魔',
             '深海之王', '幻想之城', '天命之子'
         ]
-        return {adjectives, nouns}
+        return { adjectives, nouns }
+    },
+    previewCodeFile: function (options) {
+        let { file, max, callback } = options;
+
+        if (file.size > max) {
+            return callback(`最大只能预览 ${max / 1024 / 1024}M的文件`);
+        }
+
+        let reader = new FileReader();
+        reader.onloadend = function () {
+            const content = reader.result;
+            let lang, html;
+
+            if (file.type === "text/plain") {
+                lang = "plaintext";
+                html = content;
+            } else {
+                lang = file.name.split(".").pop();
+                if(lang === 'log'){lang = 'txt'}
+                html = hljs.highlight(content, { language: lang }).value;
+            }
+
+            if (typeof hljs.getLanguage(lang) === "undefined") {
+                return callback && callback("预览文件 【" + file.name + "】，【" + file.type + "】格式不支持预览")
+            }
+
+            if (window.layer) {
+                layer.open({
+                    title: file.name,
+                    type: 1,
+                    content: `
+                        <div class="file-preview">
+                            <pre><code class="hljs ${lang}">${html}</code></pre>
+                        </div>
+                    `,
+                    area: ["80%","80%"],
+                    success: function (layero, index) {
+                        document.querySelector(".layui-layer-content").style.borderRadius = "15px"
+                    },
+                });
+            }
+            
+            return callback && callback("预览文件 【" + file.name + "】")
+        };
+
+        reader.readAsText(file);
+    },
+    previewPdfFile: async function (options) {
+        let { file, max, callback } = options;
+
+        if (file.size > max) {
+            return callback(`最大只能预览 ${max / 1024 / 1024}M的文件`)
+        }
+
+        layer.open({
+            type: 1,
+            area: ["80%", "80%"],
+            title: file.name,
+            content: `  <div id="tl-rtc-file-pdf-container" style="height: 100%;"> </div> `,
+            success: function (layero, index) {
+                document.querySelector(".layui-layer-content").style.borderRadius = "15px"
+                try{
+                    let fileReader = new FileReader();
+                    fileReader.onload = function(e) {
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js';
+                        pdfjsLib.getDocument(e.target.result).promise.then(async function(pdf) {
+                            function renderPage(numPages, num){
+                                if(num - 1 >= numPages){
+                                    return callback && callback("pdf加载渲染完毕")
+                                }
+                                pdf.getPage(num).then(function(page) {
+                                    const viewport = page.getViewport({scale: 1.5});
+                                    const canvas = document.createElement('canvas');
+                                    let pdfDom = document.getElementById("tl-rtc-file-pdf-container");
+                                    if(pdfDom){
+                                        pdfDom.appendChild(canvas);
+                                        canvas.setAttribute("style","height: auto; width: 100%;")
+                                        canvas.height = viewport.height;
+                                        canvas.width = viewport.width;
+        
+                                        page.render({
+                                            canvasContext: canvas.getContext('2d'),
+                                            viewport: viewport
+                                        }).promise.then(function(e) {
+                                            let dom = document.querySelector(".layui-layer-title");
+                                            if(dom){
+                                                dom.innerText = `共${numPages}页 - 已渲染${num}页`;
+                                            }
+                                            renderPage(numPages, num+1)
+                                        });
+                                    }
+                                })
+                            }
+                            renderPage(pdf.numPages, 1)
+                        });
+                    }
+                    fileReader.readAsDataURL(file);
+                }catch(e){
+                    return callback && callback("加载预览pdf资源失败");
+                }
+            }
+        });
+    },
+    previewWordFile : function (options) {
+        let { file, max, callback } = options;
+
+        if (file.size > max) {
+            return callback(`最大只能预览 ${max / 1024 / 1024}M的文件`)
+        }
+
+        layer.open({
+            type: 1,
+            content : `
+                <div style="width:100%;height:100%;" id="tl-rtc-file-word"></div>
+            `,
+            area: ["80%", "80%"],
+            title: file.name,
+            success: function (layero, index) {
+                document.querySelector(".layui-layer-content").style.borderRadius = "15px"
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    let blob = new Blob([event.target.result], {type: file.type});
+                    docx.renderAsync(blob, document.getElementById("tl-rtc-file-word"))
+                };
+                reader.readAsArrayBuffer(file);
+            },
+        });
+    },
+    previewExcelFile : function (options) {
+        let { file, max, callback } = options;
+
+        if (file.size > max) {
+            return callback(`最大只能预览 ${max / 1024 / 1024}M的文件`)
+        }
+
+        // 创建iframe元素
+        let iframe = document.createElement("iframe");
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+
+        // 把iframe加入到弹窗的内容区域中
+        let content = document.createElement("div");
+        content.style.width = "100%";
+        content.style.height = "100%";
+        content.appendChild(iframe);
+
+        layer.open({
+            type: 1,
+            content,
+            area: ["80%"],
+            title: file.name,
+            success: function (layero, index) {
+                document.querySelector(".layui-layer-content").style.borderRadius = "15px"
+                Office.initialize = function () {
+                    Excel.run(iframe, function (context) {
+                        context.workbook.worksheets.getActiveWorksheet().getRange().format.autofitColumns();
+                        context.workbook.worksheets.getActiveWorksheet().getRange().format.autofitRows();
+                        context.workbook.worksheets.getActiveWorksheet().getRange().format.horizontalAlignment = "Center";
+                        context.workbook.worksheets.getActiveWorksheet().getRange().format.verticalAlignment = "Center";
+                        context.workbook.worksheets.getActiveWorksheet().getRange().values = [[file.name]];
+                        return context.sync();
+                    });
+                };
+            },
+        });
+    },
+    previewImageFile: function (options) {
+        let { file, max, callback } = options;
+
+        if (file.size > max) {
+            return callback(`最大只能预览 ${max / 1024 / 1024}M的文件`)
+        }
+
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function () {
+            let img = new Image();
+            img.src = reader.result;
+            img.onload = function () {
+                layer.open({
+                    title: file.name,
+                    type: 1,
+                    shadeClose: true,
+                    area: [`65%`],
+                    content: `
+                        <div style="display: flex; justify-content: center; align-items: center;">
+                            <img src="${reader.result}" style="max-width: 98%; max-height: 98%;  margin-left: 1%;  margin-top: 1%;">
+                        </div>
+                    `,
+                    success : function(){
+                        document.querySelector(".layui-layer-content").style.borderRadius = "15px";
+                    }
+                });
+            };
+        };
     }
 }

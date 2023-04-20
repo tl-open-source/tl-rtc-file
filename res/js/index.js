@@ -24,17 +24,23 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 isJoined: false, // 是否加入房间
                 showReceiveFile: false, // 展示底部接收文件列表
                 showSendFile: false, // 展示底部发送文件列表
+                showChooseFile: false, // 展示底部已选文件列表
+                showSendFileHistory: false, // 展示底部发送文件历史记录列表
                 showReceiveTxt: false, // 展示底部接收文字列表
                 showCodeFile: false, // 展示底部取件码文件列表
                 showLogs: false, // 展示运行日志
                 showMedia: false, // 展示音视频/屏幕共享
                 sendFileMaskHeightNum: 150, // 用于控制底部栏展示
+                chooseFileMaskHeightNum: 150, // 用于控制底部栏展示
+                sendFileHistoryMaskHeightNum: 150, // 用于控制底部栏展示
                 receiveFileMaskHeightNum: 150,// 用于控制底部栏展示
                 logMaskHeightNum: 150, // 用于控制日志栏展示
                 mediaVideoMaskHeightNum: 150, // 用于控制音视频展示
                 mediaScreenMaskHeightNum: 150, // 用于控制屏幕共享展示
                 logsHeight: 0, // 日志栏目展示高度
                 sendFileListHeight : 0, // 发送文件展示列表高度
+                chooseFileListHeight: 0, // 已选文件展示列表高度
+                sendFileHistoryListHeight : 0, // 发送文件历史记录展示列表高度
                 receiveFileListHeight : 0, // 接收文件展示列表高度
                 allManCount: 0, // 当前在线人数
                 txtEditId: 0, // 文字模式输入框id
@@ -54,13 +60,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 currentChooseFile: null, //当前发送中的文件
                 chooseFileList: [], //选择的文件列表
-                sendFileList: [], //发过文件的列表
+                sendFileList: [], //发送文件的列表
+                sendFileHistoryList: [], //发送过文件的列表记录
                 receiveFileList: [], //接收文件的列表
                 receiveTxtList: [], //接收的文字列表 
                 codeFileList: [], //取件码文件列表
                 chatingCommList: [], //公共聊天频道内容
                 aiChatList: [], //ai对话内容
                 logs: [],  //记录日志
+                popUpList: [], //消息数据
 
                 isScreen: false, //是否在录屏中
                 screenTimes: 0,  //当前录屏时间
@@ -83,6 +91,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 ips: [], // 记录ip列表，检测是否支持p2p
                 clientWidth : document.body.clientWidth,
                 openRoomInput : false, //是否打开房间号输入框
+                previewFileMaxSize : 1024 * 1024 * 5, // 5M以内允许预览
+                popUpMsgDom : [] // 消息弹窗dom
             }
         },
         computed: {
@@ -162,7 +172,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     if (!this.socketId) return;
 
                     that.sendFileList = []
-
                     //选中文件
                     newV.forEach((file) => {
                         that.allSended = false;
@@ -190,6 +199,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             }).length > 0;
 
                             if (!hasFile) {
+
                                 that.sendFileList.push({
                                     index: file.index,
                                     id: id,
@@ -212,37 +222,178 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             }
         },
         methods: {
+            startPopUpMsg : function(data) {
+                let msgDom = document.createElement('div');
+                msgDom.className = 'tl-rtc-file-notification';
+                msgDom.innerHTML = ` 
+                    <div class="tl-rtc-file-notification-close"><i class="layui-icon layui-icon-close "></i></div>
+                    <div class="tl-rtc-file-notification-icon"><i class="layui-icon layui-icon-chat"></i></div>
+                    <div class="tl-rtc-file-notification-content">
+                        <div class="tl-rtc-file-notification-title"> ${data.title} </div>
+                        <div class="tl-rtc-file-notification-content-msg"> ${data.message} </div>
+                    </div> 
+                `;
+
+                let msgDomContainer = document.getElementById('notificationContainer');
+                msgDomContainer.prepend(msgDom);
+                msgDom.style.opacity = '1';
+
+                this.popUpMsgDom.unshift(msgDom);
+
+                //如果当前弹出的弹窗超过限制，移除一个，移除的时候注意下动画过渡
+                if (this.popUpMsgDom.length > 2) {
+                    let oldMsgDom = this.popUpMsgDom.pop();
+                    oldMsgDom.style.opacity = '0';
+                }
+
+                // 添加自动消失效果，3秒后自动移除通知
+                setTimeout(() => {
+                    msgDom.style.opacity = '0';
+                    setTimeout(() => {
+                        msgDomContainer.removeChild(msgDom);
+                        this.popUpMsgDom.splice(this.popUpMsgDom.indexOf(msgDom), 1);
+                    }, 500);
+                }, 1500);
+            },
+            previewSendFile: async function (index) {
+                let filterFile = this.chooseFileList.filter(item=>{
+                    return item.index === index;
+                });
+
+                if(filterFile.length === 0){
+                    this.addUserLogs("预览文件 【", file.name, "】失败，文件资源不存在");
+                    return
+                }
+                await this.previewFile(filterFile[0])
+            },
+            previewReceiveFile: async function (index) {
+                let filterFile = this.receiveFileList.filter(item=>{
+                    return item.index === index;
+                });
+
+                if(filterFile.length === 0){
+                    this.addUserLogs("预览文件 【", file.name, "】失败，文件资源不存在");
+                    return
+                }
+
+                let fileRecorde = filterFile[0];
+                if (fileRecorde.size > this.previewFileMaxSize) {
+                    if(window.layer){
+                        layer.msg(`最大只能预览 ${max / 1024 / 1024}M的文件`);
+                    }
+                    return
+                }
+
+                let file = await new Promise((resolve, reject) => {
+                    let req = new XMLHttpRequest();
+                    req.open("GET", fileRecorde.href);
+                    req.setRequestHeader('Accept', 'image/png');
+                    req.responseType = "blob";
+                    req.onload = () => {
+                        resolve( new File([req.response], fileRecorde.name, { type: fileRecorde.type }) );
+                    };
+                    req.onerror = reject
+                    req.send();
+                });
+
+                await this.previewFile(file);
+            },
+            previewFile : async function(file){
+                let that = this;
+
+                let isText = this.typeInArr([
+                    'text','json', 'lua', 'html', 'css', 'js', 'java', 'cpp', 'javascript',
+                    'sql', 'php', 'py', 'go', 'conf', 'log', 'md', 'scss', 'xml',
+                    'rb', 'sh' , 'ts','jsx', 'less', 'htm', 'xhtml', 'tsx',
+                ], file.type, file.name);
+
+                let isPdf = this.typeInArr([
+                    'pdf', 'pdx', 'pdn', 'fdf', 'pdp'
+                ], file.type, file.name);
+
+                let isImage = this.typeInArr([
+                    'image', 'png', 'jpg', 'jpeg', 'gif', 'webp'
+                ], file.type, file.name);
+
+                let isDoc = this.typeInArr([
+                    'wordprocessingml.document','application/msword'
+                ], file.type, file.name);
+
+                if(isPdf){
+                    await window.tlrtcfile.previewPdfFile({
+                        file : file,
+                        max : this.previewFileMaxSize,
+                        callback : function(msg){
+                            if(window.layer){
+                                layer.msg(msg)
+                            }
+                            that.addUserLogs(msg)
+                        }
+                    })
+                } else if (isImage) {
+                    window.tlrtcfile.previewImageFile({
+                        file : file,
+                        max : this.previewFileMaxSize,
+                        callback : function(msg){
+                            if(window.layer){
+                                layer.msg(msg)
+                            }
+                            that.addUserLogs(msg)
+                        }
+                    })
+                } else if (isText) {
+                    window.tlrtcfile.previewCodeFile({
+                        file : file,
+                        max : this.previewFileMaxSize,
+                        callback : function(msg){
+                            if(window.layer){
+                                layer.msg(msg)
+                            }
+                            that.addUserLogs(msg)
+                        }
+                    })
+                } else{
+                    layer.msg("暂不支持预览此格式");
+                }
+            },
             deleteSendFile: function(index){            
+                let that = this;
                 let sendFileRecorde = this.sendFileList[index];
                 if(sendFileRecorde){
                     let filename = sendFileRecorde.name;
                     let fileindex = sendFileRecorde.index;
+                    let fileId = sendFileRecorde.id;
 
-                    // 清除对应的记录
-                    this.sendFileList = this.sendFileList.filter(item=>{
-                        return fileindex !== item.index && filename !== item.filename
-                    })
-                    // 移除文件
-                    this.chooseFileList =  this.chooseFileList.filter(item=>{
-                        return item.index !== fileindex;
-                    })
+                    let dom = document.querySelector("#send-file-item"+index)
+                    dom.classList.add("tl-rtc-file-fade-leave-active");
+                    
+                    setTimeout(() => { // 因为动画效果，所以延迟执行
+                        // 清除对应的记录
+                        that.sendFileList = that.sendFileList.filter(item=>{
+                            return fileindex !== item.index && filename !== item.filename
+                        })
+                        // 移除文件
+                        that.chooseFileList =  that.chooseFileList.filter(item=>{
+                            return item.index !== fileindex;
+                        })
 
-                    layer.msg(`已取消发送【${filename}】`);
+                        layer.msg(`已取消发送【${filename}】`);
+                    }, 600);
                 }
             },
-            sendFileToSingle:function(){
+            sendFileToSingle: function(){
                 if(window.layer){
-                    layer.msg("即将支持")
+                    layer.msg("即将支持单独发送文件给单个用户")
                 }
             },
             sendChatToSingle:function(){
                 if(window.layer){
-                    layer.msg("即将支持")
+                    layer.msg("即将支持单独发送文本给单个用户")
                 }
             },
             initSendFileToSingle:function(){
                 if(window.layer){
-                    layer.msg("即将支持")
+                    layer.msg("即将支持单独发送文件给单个用户")
                 }
             },
             setNickName: function(){
@@ -1191,10 +1342,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.addUserLogs("当前网络状态为" + (this.network !== 'wifi' ? '移动流量' : this.network))
             },
             addPopup: function (msg) {
-                window.Bus.$emit("addPopup", msg);
-            },
-            cleanPopup: function () {
-                window.Bus.$emit("popupMap");
+                this.popUpList.push({
+                    title : msg.title,
+                    message : msg.msg
+                })
             },
             addSysLogs: function (msg) {
                 this.addLogs(msg, "【系统日志】: ")
@@ -1243,7 +1394,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             refleshRoom: function () {
                 if (!this.isJoined) {
                     this.roomId = parseInt(Math.random() * 100000);
-                    this.addPopup("你刷新了房间号, 当前房间号为 " + this.roomId);
+                    this.addPopup({
+                        title : "刷新房间",
+                        msg : "你刷新了房间号, 当前房间号为 " + this.roomId
+                    });
                     this.addUserLogs("你刷新了房间号, 当前房间号为 " + this.roomId);
                 }
             },
@@ -1259,6 +1413,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.addUserLogs("复制房间链接成功");
             },
             copyTxt: function (id, content) {
+                let that = this;
                 document.querySelector("#" + id).setAttribute("data-clipboard-text", content);
                 var clipboard = new ClipboardJS('#' + id);
                 clipboard.on('success', function (e) {
@@ -1287,7 +1442,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                 window.location.hash = "";
                                 layer.close(index)
                             })
-                            this.addPopup("你通过分享加入了房间号为 " + this.roomId);
+                            this.addPopup({
+                                title : "分享房间",
+                                msg : "你通过分享加入了房间号为 " + this.roomId
+                            });
                             this.addUserLogs("你通过分享加入了房间号为 " + this.roomId);
                         }
                     }
@@ -1326,28 +1484,62 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
                 this.showReceiveFile = !this.showReceiveFile;
                 if (this.showReceiveFile) {
-                    this.addUserLogs("展开接收文件面板");
+                    this.addUserLogs("展开已接收文件面板");
                     this.receiveFileMaskHeightNum = 20;
                 } else {
                     this.receiveFileMaskHeightNum = 150;
-                    this.addUserLogs("收起接收文件面板");
+                    this.addUserLogs("收起已接收文件面板");
                 }
             },
-            //点击发送文件面板
+            //点击已选文件面板
+            clickChooseFile: function () {
+                if(!this.hasManInRoom && !this.showChooseFile){
+                    if(window.layer){
+                        layer.msg("房间内至少需要两个人才能发送文件")
+                    }
+                    return
+                }
+                this.showChooseFile = !this.showChooseFile;
+                if (this.showChooseFile) {
+                    this.chooseFileMaskHeightNum = 20;
+                    this.addUserLogs("展开已选文件面板");
+                } else {
+                    this.chooseFileMaskHeightNum = 150;
+                    this.addUserLogs("收起已选文件面板");
+                }
+            },
+            //点击待发送文件面板
             clickSendFile: function () {
                 if(!this.hasManInRoom && !this.showSendFile){
                     if(window.layer){
-                        layer.msg("房间内至少需要两个人才能发送内容")
+                        layer.msg("房间内至少需要两个人才能发送文件")
                     }
                     return
                 }
                 this.showSendFile = !this.showSendFile;
                 if (this.showSendFile) {
                     this.sendFileMaskHeightNum = 20;
-                    this.addUserLogs("展开发送文件/文本面板");
+                    this.addUserLogs("展开待发送文件面板");
                 } else {
                     this.sendFileMaskHeightNum = 150;
-                    this.addUserLogs("收起发送文件/文本面板");
+                    this.addUserLogs("收起待发送文件面板");
+                }
+            },
+            //点击发送文件历史记录面板
+            clickSendFileHistory: function () {
+                if(this.sendFileHistoryList.length === 0){
+                    if(window.layer){
+                        layer.msg("暂时没有发送过文件")
+                    }
+                    return
+                }
+                this.showSendFileHistory = !this.showSendFileHistory;
+                if (this.showSendFileHistory) {
+                    this.sendFileHistoryMaskHeightNum = 20;
+                    this.addUserLogs("展开发送文件记录面板");
+                } else {
+                    this.sendFileHistoryMaskHeightNum = 150;
+                    this.addUserLogs("收起发送文件记录面板");
                 }
             },
             //点击查看日志面板
@@ -1383,10 +1575,17 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.addUserLogs("收起音视频/屏幕共享面板");
                 }
             },
-            typeInArr: function(arr, type){
-                return arr.filter(item=>{
-                    return type.includes(item);
-                }).length > 0;
+            typeInArr: function(arr, type, name = ""){
+                if(type === ''){
+                    let fileTail = name.split(".").pop()
+                    return arr.filter(item=>{
+                        return fileTail.toLowerCase().includes(item) && name.endsWith("."+fileTail);
+                    }).length > 0;
+                }else{
+                    return arr.filter(item=>{
+                        return type.toLowerCase().includes(item);
+                    }).length > 0;
+                }
             },
             //文件大小
             getFileSizeStr: function (size) {
@@ -1465,8 +1664,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.setNickName();
                     this.socket.emit('createAndJoin', { room: this.roomId, nickName : this.nickName });
                     this.isJoined = true;
-                    this.addPopup("你进入了房间" + this.roomId);
-                    this.addUserLogs("你进入了房间" + this.roomId);
+                    this.addPopup({
+                        title : "文件房间",
+                        msg : "你进入了文件房间" + this.roomId
+                    });
+                    this.addUserLogs("你进入了文件房间" + this.roomId);
                 }
             },
             //创建流媒体房间
@@ -1494,8 +1696,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.setNickName();
                     this.socket.emit('createAndJoin', { room: this.roomId, type: type, nickName : this.nickName });
                     this.isJoined = true;
-                    this.addPopup("你进入了房间" + this.roomId);
-                    this.addUserLogs("你进入了房间" + this.roomId);
+                    this.addPopup({
+                        title : "流媒体房间",
+                        msg : "你进入了流媒体房间" + this.roomId
+                    });
+                    this.addUserLogs("你进入了流媒体房间" + this.roomId);
                 }
             },
             //创建密码房间
@@ -1532,8 +1737,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     this.setNickName();
                     this.socket.emit('createAndJoin', { room: this.roomId, password: password, nickName : this.nickName });
                     this.isJoined = true;
-                    this.addPopup("你进入了房间" + this.roomId);
-                    this.addUserLogs("你进入了房间" + this.roomId);
+                    this.addPopup({
+                        title : "密码房间",
+                        msg : "你进入了密码房间" + this.roomId
+                    });
+                    this.addUserLogs("你进入了密码房间" + this.roomId);
                 }
             },
             //退出房间
@@ -1700,7 +1908,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 let that = this;
                 if (that.currentChooseFile === null) {
                     that.chooseFileList = []
-                    that.addPopup("文件全部发送完毕");
+                    that.addPopup({
+                        title : "文件发送",
+                        msg : "文件全部发送完毕"
+                    });
                     that.addSysLogs("文件全部发送完毕")
                     that.isSending = false;
                     return;
@@ -1766,7 +1977,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 // 开始发送通知
                 if (fileOffset === 0) {
-                    this.addPopup("正在发送给" + nextSendingId.substr(0, 4) + ",0%。");
+                    this.addPopup({
+                        title : "文件发送",
+                        msg : "正在发送给" + nextSendingId.substr(0, 4) + ",0%。"
+                    });
                     this.addSysLogs("正在发送给" + nextSendingId.substr(0, 4) + ",0%。")
                     this.updateSendFileProcess(nextSendingId, {
                         start: Date.now()
@@ -1797,7 +2011,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 //发送完一份重置相关数据
                 if (fileOffset === this.currentChooseFile.size) {
-                    this.addPopup("正在发送给" + nextSendingId.substr(0, 4) + ",100%。");
+                    this.addPopup({
+                        title : "文件发送",
+                        msg : "正在发送给" + nextSendingId.substr(0, 4) + ",100%。"
+                    });
                     this.addSysLogs("正在发送给" + nextSendingId.substr(0, 4) + ",100%。")
                     this.socket.emit('message', {
                         emitType: "sendDone",
@@ -1933,7 +2150,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 if (receivedSize === size) {
                     this.addSysLogs(name + " 接收完毕");
-                    this.addPopup("文件[ " + name + " ]接收完毕，可点击右下角查看。");
+                    this.addPopup({
+                        title : "文件接收",
+                        msg : "文件[ " + name + " ]接收完毕，可点击右下角查看。"
+                    });
 
                     //更新接收进度
                     this.updateReceiveProcess(id, {
@@ -1990,6 +2210,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     if (item.id === id && item.index === this.currentChooseFile.index && !item.done) {
                         data.cost = ((Date.now() - item.start) / 1000).toFixed(3);
                         Object.assign(this.sendFileList[i], data);
+
+                        if(data.done){ // 发送完毕，统计到历史记录
+                            this.sendFileHistoryList.push(this.sendFileList[i])
+                        }
                     }
                 }
             },
@@ -2126,7 +2350,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             that.initMediaShareChannel(rtcConnect, data.type, track, stream)
                         });
                     }
-                    that.addPopup(data.nickName + " 加入了房间。");
+                    that.addPopup({
+                        title : "加入房间",
+                        msg : data.nickName + " 加入了房间。"
+                    });
                     that.touchResize();
                 });
 
@@ -2169,7 +2396,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     if (typeof (rtcConnect) == 'undefined') {
                         return;
                     } else {
-                        that.addPopup(data.from + "退出了房间。");
+                        that.addPopup({
+                            title : "退出房间",
+                            msg : data.from + "退出了房间。"
+                        });
                         that.addSysLogs("退出房间," + JSON.stringify(data));
                         that.getOrCreateRtcConnect(data.from).close;
                         delete that.rtcConns[data.from];
@@ -2182,9 +2412,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.socket.on('sendFileInfo', function (data) {
                     let fromId = data.from;
                     that.setRemoteInfo(fromId, { receiveFiles: data });
-                    that.addPopup(data.from + "选择了文件 [ " + data.name + " ]，即将发送。");
+                    that.addPopup({
+                        title : "文件准备",
+                        msg : data.from + "选择了文件 [ " + data.name + " ]，即将发送。"
+                    });
                     that.addSysLogs(data.from + "选择了文件 [ " + data.name + " ]，即将发送。");
-                    // document.querySelector("#receiveProgress").max = data.size;
 
                     that.receiveFileList.push({
                         id: fromId,
@@ -2222,7 +2454,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //发送文字内容
                 this.socket.on('sendChatingRoom', function (data) {
                     let fromId = data.from;
-                    that.addPopup(data.from + "发送了文字 [ " + data.content.substr(0, 10) + " ]");
+                    that.addPopup({
+                        title : "文本",
+                        msg : data.from + "发送了文字 [ " + data.content.substr(0, 10) + " ]"
+                    });
                     that.addSysLogs(data.from + "发送了文字 [ " + data.content.substr(0, 10) + " ]");
 
                     try {
@@ -2294,9 +2529,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.isAiAnswering = false
                     that.aiChatList.push(data)
                     that.addSysLogs("AI : " + data.content)
-                    if (window.layer) {
-                        layer.msg("AI回复了你，快点聊起来吧～")
-                    }
+                    that.addPopup({
+                        title : "AI回复",
+                        msg : "AI回复了你，快点聊起来吧～"
+                    });
                     that.aiChatList.forEach(item => {
                         item.timeAgo = window.util ? util.timeAgo(item.time) : item.time;
                     })
@@ -2307,6 +2543,16 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.socket.on('commData', function (data) {
                     that.switchData = data.switchData
                     that.switchDataGet = true;
+                    if(data.switchData.noticeMsgList){
+                        let alert = window.localStorage.getItem("tl-rtc-file-alert-notice")
+                        if(!alert || (Date.now() - parseInt(alert)) / 1000 > (24 * 60 * 60) ){
+                            setTimeout(() => {
+                                that.clickNotice()
+                                window.localStorage.setItem("tl-rtc-file-alert-notice", Date.now())
+                            }, 1000);
+                        }
+                    }
+
                     if(data.chatingCommData){
                         data.chatingCommData.forEach(elem => {
                             try {
@@ -2338,6 +2584,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         item.timeAgo = window.util ? util.timeAgo(item.time) : item.time;
                     })
                     that.chatingCommTpl()
+
+                    that.addPopup({
+                        title : "公共聊天",
+                        msg : "公共聊天频道有人互动啦，快去瞧瞧"
+                    });
                 });
 
                 this.socket.on('manageCheck', function (data) {
@@ -2415,9 +2666,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     setTimeout(() => {
                         $("#p2pCheck").addClass("layui-anim-rotate")
                         let msg = "<p style='font-size:16px;margin-bottom:10px'>p2p检测原理: </p> "
-                        msg += "<p style='margin-bottom:5px'> 双方加入房间后，如果客户端可以获取到房间内双方的内网IP，大概率就可以进行p2p传输。 </p>"
-                        msg += "<p style='margin-bottom:5px'> chrome默认是关闭mdns开关，就导致会拿不到内网ip，那么就只能通过中继服务进行传输。 </p>"
-                        msg += "<p style='margin-bottom:5px'> 具体是否有获取到双方内网IP，请自行在日志中搜索关键字 “IP” 。 </p>"
+                        msg += "<p style='margin-bottom:5px'> 本项目是基于webrtc实现的，webrtc的p2p受限于连接<b> 双方的网络NAT类型和浏览器限制 </b></p>"
+                        msg += "<p style='margin-bottom:5px'> 对称NAT网络类型或者浏览器不支持获取内网ip的情况是不支持p2p的</p>"
+                        msg += "<p style='font-size:16px;margin-bottom:10px;margin-top: 10px;'>自检步骤: </p> "
+                        msg += "<p style='margin-bottom:5px'> 在验证p2p之前，<b> 请先关闭中继服务开关后 </b>，双方进入后房间，再进行自检</p>"
+                        msg += "<p style='margin-bottom:5px'> 双方加入房间后，如果客户端可以获取到房间内双方的内网IP，大概率就可以进行p2p传输 </p>"
+                        msg += "<p style='margin-bottom:5px'> 如果是chrome电脑版，可以打开 chrome://flags/ , 然后搜索 'mdns' 关键字，打开开关后重启即可 </p>"
+                        msg += "<p style='margin-bottom:5px'> 具体是否有获取到双方内网IP，请自行在执行日志中搜索关键字 “IP”，查看是否有类似内网格式的IP即可 </p>"
                         layer.confirm(msg, (index) => {
                             layer.closeAll(() => {
                                 that.clickLogs()
@@ -2439,19 +2694,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (window.layer && this.manageIframeId !== 0) {
                     layer.full(this.manageIframeId)
                 }
-
-                //full video
-                if (document.querySelector("#selfMediaShareVideo_full")) {
-                    document.querySelector("#selfMediaShareVideo_full").parentElement.style.height = "auto"
-                }
-                if (document.querySelector("#otherMediaShareVideo_full")) {
-                    document.querySelector("#otherMediaShareVideo_full").parentElement.style.height = "auto"
-                }
-
-                // logs height
-                this.logsHeight = document.documentElement.clientHeight - 55;
-                this.sendFileListHeight = document.querySelector("#send-file-list").clientHeight - 190;
-                this.receiveFileListHeight = document.querySelector("#receive-file-list").clientHeight - 40;
             },
             reCaculateSwiperSize: function () {
                 this.clientWidth = document.body.clientWidth;
@@ -2462,6 +2704,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 if (window.toolSwiper) {
                     window.toolSwiper.params.slidesPerView = this.toolSlidesPerViewCount;
                 }
+
+                // logs height
+                this.logsHeight = document.documentElement.clientHeight - 55;
+                this.sendFileListHeight = document.querySelector("#send-file-list").clientHeight - 190;
+                this.chooseFileListHeight = document.querySelector("#send-file-list-choose").clientHeight - 40;
+                this.sendFileHistoryListHeight = document.querySelector("#send-file-list-history").clientHeight - 40;
+                this.receiveFileListHeight = document.querySelector("#receive-file-list").clientHeight - 40;
             },
             touchResize: function () {
                 let that = this;
@@ -2609,7 +2858,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     observer: true,
                 })
                 window.toolSwiper = toolSwiper;
-            }
+            },            
         },
         mounted: function () {
             this.addSysLogs("刷新随机房间号 初始化中...");
@@ -2628,11 +2877,21 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             this.socket.emit('getCommData', {});
             this.addSysLogs("基础数据 初始化完成");
 
+            this.addSysLogs("基础样式 初始化中...");
+            this.touchResize()      
+            this.addSysLogs("基础样式 初始化完成");
+
             this.addSysLogs("窗口事件监听 初始化中...");
+            this.addSysLogs("消息弹窗 初始化中...");
             window.onresize = this.initCss;
             setInterval(() => {
                 this.touchResize()
+                let msgData = this.popUpList.shift();
+                if(msgData){
+                    this.startPopUpMsg(msgData)
+                }
             }, 1000);
+            this.addSysLogs("消息弹窗 初始化完成");
             this.addSysLogs("窗口事件监听 初始化完成");
 
             this.addSysLogs("分享组件 初始化中...");
@@ -2648,12 +2907,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.renderChooseFileComp();
                 this.addSysLogs("文件选择组件 初始化完成");
             }, 2000);
-
-            this.addSysLogs("基础样式 初始化中...");
-            this.logsHeight = document.documentElement.clientHeight - 55;
-            this.sendFileListHeight = document.querySelector("#send-file-list").clientHeight - 190;
-            this.receiveFileListHeight = document.querySelector("#receive-file-list").clientHeight - 40;            
-            this.addSysLogs("基础样式 初始化完成");
 
             this.addSysLogs("DEBUG组件 初始化中...");
             this.loadVConsoleJs();

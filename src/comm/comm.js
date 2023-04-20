@@ -4,6 +4,7 @@ const request = require('request');
 const wsConf = conf.ws;
 const webrtcConf = conf.webrtc;
 const qiwei = conf.notify.qiwei;
+const open = conf.notify.open;
 
 
 // 统计企微机器人发送map
@@ -42,6 +43,9 @@ function initData(req, res) {
  * @param {*} msg 
  */
 function requestMsg(msg) {
+     if(!open){
+          return
+     }
      let finalKey = "";
      for (let key in qiweiMap) {
           // 单个还没达到20次，直接用

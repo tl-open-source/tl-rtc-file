@@ -57,6 +57,7 @@
           }
      },
      "notify": {
+          "open": false,
           "qiwei": [
                
           ]
