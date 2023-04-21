@@ -1,45 +1,25 @@
 const http = require('http'); // http
 const socketIO = require('socket.io'); //socket
-const app = require("express")(); //express
 const db = require("./src/tables/db"); //db
 const conf = require("./conf/cfg.json"); //conf
-const utils = require("./utils/utils"); //utils
 const socket = require("./src/socket/index") //socket handler
 
-let tables = {};
-let sql = {};
+// Socket连接监听
+let io = socketIO.listen(http.createServer().listen(conf.ws.port));
 
-if(conf.db.open){
-  // db init
-  let dbData = db.excute(conf);
-  tables = dbData.tables;
-  sql = dbData.sql;
-  
-  app.use(async function (req,res,next) {
-    req.ctx = {};
-    req.ctx.tables = tables;
-    req.ctx.sql = sql;
-    req.ctx.Sql = Sql;
-    await next();
-  })
-  console.log("db init...")
+if (!conf.db.open) {// 没开db
+	
+	console.log("db not open ...")
+	socket.excute({}, {}, io);
+	console.log("socket init done ...")
+	console.log("socket server listen on ", conf.ws.port, " successful");
+} else { // 开了db
+
+	(async () => {
+		let { tables, dbClient } = await db.excute(conf)
+		console.log("db init done ...")
+		socket.excute(tables, dbClient, io);
+		console.log("socket init done ...")
+		console.log("socket server listen on ", conf.ws.port, " successful");
+	})();
 }
-
-
-//log flow init --日志流水初始
-app.use(async function (req,res,next) {  
-  res.tl = {};
-  res.tl.flowId = utils.genFlow();
-  await next();
-})
-console.log("flow init...")
-
-//Socket连接监听
-let io = socketIO.listen(
-  http.createServer().listen(conf.ws.port)
-);
-conf.ws.io = io;
-socket.excute(tables, sql, conf);
-console.log("socket init...")
-
-console.log("socket listen on ",conf.ws.port," successful");

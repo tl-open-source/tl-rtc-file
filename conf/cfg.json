@@ -37,11 +37,7 @@
      "router": {
           "filter": {
                "whiteDir": [
-                    "socket",
-                    "tables",
-                    "worker",
-                    "oss",
-                    "openai"
+
                ],
                "whiteFile": [
                     "router.js"

@@ -1662,7 +1662,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         return;
                     }
                     this.setNickName();
-                    this.socket.emit('createAndJoin', { room: this.roomId, nickName : this.nickName });
+                    this.socket.emit('createAndJoin', { 
+                        room: this.roomId,
+                        type : 'password',
+                        password : '', 
+                        nickName : this.nickName 
+                    });
                     this.isJoined = true;
                     this.addPopup({
                         title : "文件房间",
@@ -1694,7 +1699,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         return;
                     }
                     this.setNickName();
-                    this.socket.emit('createAndJoin', { room: this.roomId, type: type, nickName : this.nickName });
+                    this.socket.emit('createAndJoin', { 
+                        room: this.roomId, 
+                        type: type, 
+                        nickName : this.nickName 
+                    });
                     this.isJoined = true;
                     this.addPopup({
                         title : "流媒体房间",
@@ -1735,7 +1744,12 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         return;
                     }
                     this.setNickName();
-                    this.socket.emit('createAndJoin', { room: this.roomId, password: password, nickName : this.nickName });
+                    this.socket.emit('createAndJoin', { 
+                        room: this.roomId, 
+                        type : 'password', 
+                        password: password, 
+                        nickName : this.nickName 
+                    });
                     this.isJoined = true;
                     this.addPopup({
                         title : "密码房间",
