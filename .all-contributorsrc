@@ -1,0 +1,26 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "iamtsm",
+      "name": "iamtsm",
+      "avatar_url": "https://user-images.githubusercontent.com/44826979/154636603-14635c19-0b28-433f-a420-3bcc0ab084ba.png",
+      "profile": "https://blog.iamtsm.cn",
+      "contributions": [
+        "code",
+        "ideas",
+        "bug"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "tl-rtc-file",
+  "projectOwner": "iamtsm",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
