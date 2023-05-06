@@ -1,4 +1,4 @@
-# tl-rtc-file-tool
+# tl-rtc-file-tool 【More Than Just File Transfer】
 
 [![](https://img.shields.io/badge/webrtc-p2p-blue)](https://webrtc.org.cn/)
 [![](https://img.shields.io/badge/code-simple-green)](https://github.com/iamtsm/tl-rtc-file/)
@@ -6,106 +6,77 @@
 [![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
 
-#### demo ： https://im.iamtsm.cn/file
+#### Background: Organized around the topic of a 2020 thesis
 
-## Table of Contents
+#### Introduction: (tl webrtc datachannel filetools) uses WebRTC to transfer files on the web and supports the transfer of very large files.
 
-- [Prepare](#Prepare)
+#### Advantages: Supports fragmented transmission, cross-device compatibility, platform independence, easy-to-use, unlimited internal network speed, private deployment, and supports the drag-and-drop sending of multiple files.
 
-- [Debug](#Debug)
+#### Extensions: Many rich functions have been added, such as local screen recording, remote screen sharing, remote audio and video calls, live broadcasting, password rooms, relay service settings, WebRTC detection, text transmission, public chat, rich back-end management, integrated Enterprise WeChat robot alarm notification, real-time execution log display, etc.
 
-- [Production](#Production)
+#### Experience: https://im.iamtsm.cn/file
 
-- [Database-Configuration](#Database-Configuration)
+**QQ Communication Group: 624214498**
 
-- [Wss-Configuration](#Wss-Configuration)
+## Preparation
 
-- [TurnServer-Configuration](#TurnServer-Configuration)
+    Install Node.js and npm and then enter the project directory.
+    
+    npm install
 
-- [Overview](#Overview)
+    Go to the build directory: cd build/webpack/
 
-- [中文说明](#Chinese)
-
-### Prepare
-
-Before this you need to install `node` and `npm`。
-
-If already installed `node` and `npm`, enter the project directory and execute  `npm install`, enter the build directory to install node dependencies `npm install`。
-
-If you want to modify the web resource code, keep webpack running in the background。
-
-debug environment uses `npm run dev`
-
-production environment uses `npm run pro`
-
-### Debug 
-
-debugging environment starts the web `npm run dev`
-
-debugging environment starts the file socket `npm run devsocket`
-
-### Production
-
-##### If you want to deploy in a public network environment, you need to configure wss
-
-Production environment starts the web `npm run svr`
-
-Production environment starts the file socket `npm run svrsocket`
+    Install some dependencies: npm install
 
 
-### Database-Configuration
+    If you need to develop and modify the files in the res directory, keep one of the following two backend commands open.
 
-If you want to configure open database related, you can modify the configuration in conf/cfg.json。`open, dbName, host, port, user, pwd ...`
+    npm run dev packages the development environment min.
+
+    npm run pro packages the production environment min.
+
+## Test Environment 
+
+    Start the following two services.
+
+    Local startup file-res: npm run dev
+
+    Local startup file-socket: npm run devsocket
+
+## Online Environment (WSS Configuration Required)
+
+    Start the following two services.
+
+    Public network environment starts file-res: npm run svr
+
+    Public network environment starts file-socket: npm run svrsocket
 
 
-### Wss-Configuration
+## Configure the db (turned off by default)
 
-If you want to configure open database related, you can modify the configuration ws in conf/cfg.json。`port, ws_online ...`
+    Modify the corresponding DB configuration in conf/cfg.json, such as open, dbName, host, port, user, pwd, etc.
 
 
-### TurnServer-Configuration 
+## Configure the wss
 
-1. install coturn ( ubuntu )
+    Modify the corresponding WS configuration in conf/cfg.json, such as port, ws_online, etc.
 
-        sudo apt-get install coturn
 
-2. modify conf/turn/turnserver.conf and execute
+## Configure turnserver (private deployment)
 
-        cp conf/turn/turnserver.conf /etc/turnserver.conf
+    Ubuntu:
 
-3. modify bin/genTurnUser.sh and execute
+    1. sudo apt-get install coturn  # Install coturn.
 
-        chomd +x bin/genTurnUser.sh && ./genTurnUser.sh 
+    2. cp conf/turn/turnserver.conf /etc/turnserver.conf # Modify the configuration file, and modify the file content as needed.
 
-4. modify bin/startTurnServer.sh and execute
-
-        chomd +x bin/startTurnServer.sh
-
-5. start turn server
-
-        ./startTurnServer.sh 
+    3. chomd +x bin/genTurnUser.sh && ./genTurn
 
 
 ### Overview
 
 ![image](tl-rtc-file-tool.jpg)
 
-
-## Thanks
-
-### [scroxt](https://github.com/chenjianfang/scroxt)
-
-### [layui](https://github.com/layui/layui)
-
-### [webpack](https://github.com/webpack/webpack)
-
-### [swiper](https://github.com/nolimits4web/swiper)
-
 ## License
 
-#### Apache License 2.0
-
-
-### Chinese
-
-[中文说明](README_ZN.md)
+### MIT License Copyright (c) 2022 iamtsm

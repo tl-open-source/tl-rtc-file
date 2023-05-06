@@ -13,15 +13,13 @@
 
 #### 优点 ： 分片传输，跨终端，不限平台，方便使用，内网不限速，支持私有部署，支持多文件拖拽发送
 
-#### 扩展 ： 扩展了许多丰富的小功能，如本地屏幕录制，远程屏幕共享，远程音视频通话，密码房间，中继服务设置，webrtc检测，文字传输，公共聊天，丰富的后台管理，集成了企微机器人告警通知，实时执行日志展示... 等等
+#### 扩展 ： 扩展了许多丰富的小功能，如本地屏幕录制，远程屏幕共享，远程音视频通话，直播，密码房间，中继服务设置，webrtc检测，文字传输，公共聊天，丰富的后台管理，集成了企微机器人告警通知，实时执行日志展示... 等等
 
-#### 说明 ： 示例网站是在公网环境中，为了更好的展示传输功能，所以默认开启了中继服务，如果各位是验证能否走p2p传输，只需关闭中继服务，且p2p检测后，如果能看到内网环境ip，webrtc连接大概率可以走p2p，跑到10M/s轻轻松松，公网环境下的内网用户一般情况下来说也会自动识别到的，如果内网速度慢，可以反馈留言，会尽快优化处理
+#### 说明 ： 示例网站是在公网环境中，为了更好的展示传输功能，所以默认开启了中继服务，如果各位是验证能否走p2p传输，只需关闭中继服务，且p2p检测后，如果能看到内网环境ip，webrtc连接大概率可以走p2p，公网环境下的内网用户一般情况下来说也会自动识别到的，如果内网速度慢，可以反馈留言，会尽快优化处理
 
 #### 体验 ： https://im.iamtsm.cn/file
 
 **qq交流群 : 624214498**
-
-[EN-DOC](doc/README_EN.md)
 
 ## 准备
 
@@ -57,7 +55,7 @@
     公网环境启动file-socket : npm run svrsocket
 
 
-## 配置db
+## 配置db (默认关闭)
 
     修改conf/cfg.json中相应db配置即可, 如open, dbName, host, port, user, pwd 等
 
@@ -109,17 +107,6 @@
 
 ![image](doc/tl-rtc-file-tool.jpg)
 
-
-## 引用致谢
-
-### [scroxt](https://github.com/chenjianfang/scroxt)
-
-### [layui](https://github.com/layui/layui)
-
-### [webpack](https://github.com/webpack/webpack)
-
-### [swiper](https://github.com/nolimits4web/swiper)
-
 ## License
 
-### Apache License 2.0
+### MIT License Copyright (c) 2022 iamtsm
