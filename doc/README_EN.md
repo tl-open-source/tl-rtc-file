@@ -1,4 +1,4 @@
-# tl-rtc-file-tool
+# tl-rtc-file-tool   [More than just file transfer, starting from file transfer]
 
 [![](https://img.shields.io/badge/webrtc-p2p-blue)](https://webrtc.org.cn/)
 [![](https://img.shields.io/badge/code-simple-green)](https://github.com/iamtsm/tl-rtc-file/)
@@ -6,106 +6,132 @@
 [![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
 
-#### demo ： https://im.iamtsm.cn/file
 
-## Table of Contents
+#### Background: Consolidated from the topic of the 20-year graduation project
 
-- [Prepare](#Prepare)
+#### Introduction: (tl webrtc datachannel filetools) Transfer files on the web using WebRTC, supporting the transfer of large files.
 
-- [Debug](#Debug)
+#### Advantages: Fragmented transmission, cross-platform, platform-independent, easy to use, unlimited speed in the intranet, support for private deployment, support for multiple file drag and drop sending.
 
-- [Production](#Production)
+#### Extensions: Extended with many rich features such as local screen recording, remote screen sharing, remote audio and video calls, live streaming, pickup codes, password-protected rooms, relay service settings, WebRTC detection, text transmission, public chat, rich backend management, integration of Enterprise WeChat robot alert notification, real-time execution log display, and more.
 
-- [Database-Configuration](#Database-Configuration)
+#### Instructions: The example website is in a public network environment. In order to better demonstrate the transmission function, the relay service is enabled by default. If you want to verify whether P2P transmission is possible, simply disable the relay service. After the P2P detection, if you can see the internal network IP, the WebRTC connection can most likely go through P2P. In general, users in the internal network environment in the public network environment will also be automatically recognized. If the internal network speed is slow, you can leave feedback and it will be optimized and processed as soon as possible.
 
-- [Wss-Configuration](#Wss-Configuration)
+#### Experience: https://im.iamtsm.cn/file
 
-- [TurnServer-Configuration](#TurnServer-Configuration)
+**QQ Communication Group: 624214498**
 
-- [Overview](#Overview)
+## Preparation
 
-- [中文说明](#Chinese)
+Install node-14.x and npm, then enter the project directory and run the following commands:
 
-### Prepare
+    `cd svr/`
 
-Before this you need to install `node` and `npm`。
+    `npm install`
 
-If already installed `node` and `npm`, enter the project directory and execute  `npm install`, enter the build directory to install node dependencies `npm install`。
+    `cd build/webpack/`
 
-If you want to modify the web resource code, keep webpack running in the background。
+    `npm install`
 
-debug environment uses `npm run dev`
+    For the first run or self-developed pages, you need to start the following two commands:
 
-production environment uses `npm run pro`
+    `cd build/webpack/`
 
-### Debug 
+    `npm run dev` (package for development environment min) or `npm run pro` (package for production environment min)
 
-debugging environment starts the web `npm run dev`
+## Start
 
-debugging environment starts the file socket `npm run devsocket`
+Start the following two services in HTTP format:
 
-### Production
+    API service: `npm run lapi`
 
-##### If you want to deploy in a public network environment, you need to configure wss
+    Socket service: `npm run lsocket`
 
-Production environment starts the web `npm run svr`
+    Or start the following two services in HTTPS format:
 
-Production environment starts the file socket `npm run svrsocket`
+    API service: `npm run sapi`
 
+    Socket service: `npm run ssocket`
 
-### Database-Configuration
+Choose one mode to start.
 
-If you want to configure open database related, you can modify the configuration in conf/cfg.json。`open, dbName, host, port, user, pwd ...`
+## Configure Database (Default: Disabled)
 
+    Modify the corresponding database configuration in conf/cfg.json, such as open, dbName, host, port, user, pwd, etc.
 
-### Wss-Configuration
+## Configure WebSocket (WS/WSS)
 
-If you want to configure open database related, you can modify the configuration ws in conf/cfg.json。`port, ws_online ...`
+    Modify the corresponding WS configuration or WSS configuration in conf/cfg.json.
 
+## Configure TURN Server (Relay Service)
 
-### TurnServer-Configuration 
+    Ubuntu:
 
-1. install coturn ( ubuntu )
+    1. sudo apt-get install coturn  # Install coturn.
 
-        sudo apt-get install coturn
+    2. cp conf/turn/turnserver.conf /etc/turnserver.conf    # Modify the configuration file, modify the file content as needed.
 
-2. modify conf/turn/turnserver.conf and execute
+    3. chmod +x bin/genTurnUser.sh && ./
 
-        cp conf/turn/turnserver.conf /etc/turnserver.conf
+    genTurnUser.sh     # Modify the file content as needed.
 
-3. modify bin/genTurnUser.sh and execute
+    4. chmod +x bin/startTurnServer.sh && ./startTurnServer.sh     # Start turnserver, modify the file content as needed.
 
-        chomd +x bin/genTurnUser.sh && ./genTurnUser.sh 
+## Docker
 
-4. modify bin/startTurnServer.sh and execute
+    Modify the IP address of ws/wss in conf/cfg.json (feedback is welcome if there is a better way).
 
-        chomd +x bin/startTurnServer.sh
+    docker build -t iamtsm/tl-rtc-file .
 
-5. start turn server
+    docker run -p 9092:9092 -p 8444:8444 --name local -d iamtsm/tl-rtc-file
 
-        ./startTurnServer.sh 
+    Access: http://localhost:9092 or http://localhost-ip:9092
 
+## Admin Panel
 
-### Overview
+    Prerequisite: Database configuration needs to be enabled.
+
+    Modify the room and password of manage in conf/cfg.json. The default room number and password are both tlrtcfile.
+
+    Access: http://localhost:9092 or http://localhost-ip:9092
+
+    Enter the configured room number and password to enter the admin panel.
+
+    PS: If you need to configure Enterprise WeChat notification, modify the qiwei array in conf/cfg.json of notify and enter the key of the Enterprise WeChat robot.
+
+## Chat-GPT
+
+    Modify openai.apiKeys in conf/cfg.json and fill in your own apiKey generated by your OpenAI account.
+
+## Overview Diagram
 
 ![image](tl-rtc-file-tool.jpg)
 
-
-## Thanks
-
-### [scroxt](https://github.com/chenjianfang/scroxt)
-
-### [layui](https://github.com/layui/layui)
-
-### [webpack](https://github.com/webpack/webpack)
-
-### [swiper](https://github.com/nolimits4web/swiper)
-
 ## License
 
-#### Apache License 2.0
+MIT License
+
+Copyright (c) 2022 iamtsm
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
-### Chinese
+## Disclaimer
 
-[中文说明](README_ZN.md)
+[Disclaimer](DISCLAIMER.md)

@@ -1,0 +1,105 @@
+{
+     "version": "10.0.5",
+     "ws": {
+          "port": 8444,
+          "host": "ws://127.0.0.1:8444",
+          "control_port": 8445,
+          "control_host": "ws://127.0.0.1:8445"
+     },
+     "wss" : {
+          "port": 8444,
+          "host": "wss://域名 || wss://ip:8444",
+          "control_port": 8445,
+          "control_host": "wss://域名 || wss://ip:8445"
+     },
+     "api": {
+          "port": 9092,
+          "router": {
+               "filter": {
+                    "whiteDir": [ ],
+                    "whiteFile": [ "router.js" ]
+               },
+               "res": {
+                    "/": "res/",
+                    "/static": "static/"
+               }
+          }
+     },
+     "manage": {
+          "room": "tlrtcfile",
+          "password": "tlrtcfile"
+     },
+     "webrtc": {
+          "iceServers": [{
+               "urls": "stun:stun.xten.com"
+          }],
+          "iceTransportPolicy": "all",
+          "options": {
+               "offerToReceiveAudio": 1,
+               "offerToReceiveVideo": 1
+          }
+     },
+     "openai" : {
+          "apiKeys" : [
+               
+          ]
+     },
+     "oss" : {
+          "seafile" : {
+               "repoid" : "存储库id",
+               "host" : "seafile私有网盘域名",
+               "username" : "账号",
+               "password" : "密码"
+          },
+          "alyun" : {
+
+          },
+          "qiniuyun" : {
+
+          }
+     },
+     "notify": {
+          "open": false,
+          "qiwei": {
+               "normal" : [
+                    "填写企业微信机器人key"
+               ],
+               "error" : [
+                    "填写企业微信机器人key"
+               ]
+          }
+     },
+     "db": {
+          "open" : false,
+          "mysql": {
+               "host": "host地址",
+               "port": 3306,
+               "dbName": "数据库名称",
+               "user": "用户名",
+               "password": "密码",
+               "other": {
+                    "sequelize": {
+                         "dialect": "mysql",
+                         "host": "host地址",
+                         "port": 3306,
+                         "logging": false,
+                         "pool": {
+                              "max": 5,
+                              "min": 0,
+                              "acquire": 30000,
+                              "idle": 10000
+                         },
+                         "timezone": "+08:00",
+                         "define": {
+                              "freezeTableName": true,
+                              "underscored": true,
+                              "charset": "utf8",
+                              "collate": "utf8_general_ci",
+                              "timestamps": false,
+                              "paranoid": true
+                         }
+                    }
+               }
+          }
+     }
+}
