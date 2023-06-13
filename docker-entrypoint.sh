@@ -2,9 +2,9 @@
 
 cd /home/tlrtcfile/svr
 
-pm2 start npm --name=tlapi -- run sapi
+pm2 start npm --name=tlapi -- run lapi
 
-pm2 start npm --name=tlsocket -- run ssocket
+pm2 start npm --name=tlsocket -- run lsocket
 
 cd build/webpack
 
