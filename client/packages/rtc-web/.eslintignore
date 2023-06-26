@@ -1,0 +1,19 @@
+*.sh
+*.md
+*.woff
+*.ttf
+*.yaml
+.vscode
+.idea
+node_modules
+dist
+public
+docs
+.husky
+.eslintrc.js
+
+# Allowlist 'test.js' in the '.build' folder
+# But do not allow anything else in the '.build' folder to be linted
+!.build
+.build/*
+!.build/test.js
