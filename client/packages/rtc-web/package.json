@@ -8,6 +8,7 @@
     "build": "vue-tsc && vite build"
   },
   "dependencies": {
+    "@vitejs/plugin-vue-jsx": "^3.0.1",
     "vue": "^3.3.4"
   },
   "devDependencies": {
