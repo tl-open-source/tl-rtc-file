@@ -3,17 +3,17 @@ import { MenuSide, SvgIcon, NavIcons } from './base';
 
 export const NavHeader = () => {
   return (
-    <div class="drawer">
+    <div class="drawer shadow-md dark:shadow-sm dark:shadow-neutral-600">
       <input id="my-drawer-3" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content flex flex-col">
         {/* Navbar */}
-        <div class="navbar w-full bg-base-300">
+        <div class="navbar w-full">
           <div class="flex-none lg:hidden">
             <label for="my-drawer-3" class="btn-ghost btn-square btn">
               <SvgIcon
                 name="nav-menu"
                 color="#A6ADBA"
-                class="inline-block h-6 w-6 stroke-current"
+                class="inline-block h-6 w-6"
               />
             </label>
           </div>

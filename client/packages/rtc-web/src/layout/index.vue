@@ -11,7 +11,9 @@ defineOptions({
   <FullHeightFlexBox dire="col">
     <NavHeader />
     <FullHeightFlexBox type="full">
-      <MenuSide class="hidden lg:block" />
+      <MenuSide
+        class="hidden dark:shadow-sm dark:shadow-neutral-600 lg:block lg:shadow-md"
+      />
       <RouterView />
     </FullHeightFlexBox>
   </FullHeightFlexBox>

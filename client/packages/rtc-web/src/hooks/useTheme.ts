@@ -1,6 +1,5 @@
-import { themeChange } from 'theme-change';
 import { useLocalStorage, usePreferredDark } from '@vueuse/core';
-import { onMounted, watch } from 'vue';
+import { watch, computed } from 'vue';
 
 export enum ThemeEnum {
   DARK = 'dark',
@@ -19,14 +18,18 @@ export const useTheme = () => {
     themeInfo.value = theme;
   };
 
+  const isDark = computed(() => themeInfo.value === ThemeEnum.DARK);
+
   return {
     themeInfo,
     setTheme,
+    isDark,
   };
 };
 
 export const useSwitchTheme = () => {
-  const { themeInfo, setTheme } = useTheme();
+  const themeInfomation = useTheme();
+  const { themeInfo } = themeInfomation;
 
   watch(
     () => themeInfo.value,
@@ -38,5 +41,5 @@ export const useSwitchTheme = () => {
     }
   );
 
-  return { themeInfo, setTheme };
+  return { ...themeInfomation };
 };

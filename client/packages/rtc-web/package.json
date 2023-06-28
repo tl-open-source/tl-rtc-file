@@ -10,7 +10,6 @@
   "dependencies": {
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "@vueuse/core": "^10.2.0",
-    "theme-change": "^2.5.0",
     "vue": "^3.3.4",
     "vue-router": "4"
   },
