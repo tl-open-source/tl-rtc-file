@@ -1,13 +1,7 @@
 import { SetupContext } from 'vue';
-import { MenuSide, SvgIcon } from './base';
+import { MenuSide, SvgIcon, NavIcons } from './base';
 
-<SvgIcon
-  name="nav-menu"
-  color="#A6ADBA"
-  class="stroke-curren inline-block h-5 w-5"
-/>;
-
-export function NavHeader() {
+export const NavHeader = () => {
   return (
     <div class="drawer">
       <input id="my-drawer-3" type="checkbox" class="drawer-toggle" />
@@ -24,6 +18,7 @@ export function NavHeader() {
             </label>
           </div>
           <div class="mx-2 flex-1 px-2">Web-Rtc</div>
+          <NavIcons class="flex-none pr-3" />
         </div>
       </div>
       <div class="drawer-side">
@@ -32,20 +27,27 @@ export function NavHeader() {
       </div>
     </div>
   );
-}
+};
 
-export function FullScreenBox(
-  props: { dire: 'col' | 'row' },
+export type FullHeightFlexBoxProps = Partial<{
+  dire: 'col' | 'row';
+  type: 'full' | 'screen';
+}>;
+
+export const FullHeightFlexBox = (
+  props: FullHeightFlexBoxProps,
   ctx: SetupContext
-) {
-  const { dire } = props;
+) => {
+  const { dire = 'row', type = 'screen' } = props;
+
+  const height: Record<'full' | 'screen', string> = {
+    full: 'h-full',
+    screen: 'h-screen',
+  };
+
   return (
-    <div class={['flex', 'h-screen', `flex-${dire}`]}>
+    <div class={['flex', height[type], `flex-${dire}`]}>
       {ctx.slots.default?.()}
     </div>
   );
-}
-
-export function NavContent(_: unknown, ctx: SetupContext) {
-  return <div class="flex h-full">{ctx.slots.default?.()}</div>;
-}
+};

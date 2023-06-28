@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { MenuSide } from '@/components/base';
-import { NavHeader, FullScreenBox, NavContent } from '@/components/lib';
+import { NavHeader, FullHeightFlexBox } from '@/components/lib';
 
 defineOptions({
   name: 'LayoutIndex',
@@ -8,11 +8,11 @@ defineOptions({
 </script>
 
 <template>
-  <FullScreenBox dire="col">
+  <FullHeightFlexBox dire="col">
     <NavHeader />
-    <NavContent>
+    <FullHeightFlexBox type="full">
       <MenuSide class="hidden lg:block" />
-      <div class="flex-1">content</div>
-    </NavContent>
-  </FullScreenBox>
+      <RouterView />
+    </FullHeightFlexBox>
+  </FullHeightFlexBox>
 </template>

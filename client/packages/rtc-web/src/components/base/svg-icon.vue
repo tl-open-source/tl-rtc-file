@@ -1,10 +1,11 @@
 <template>
-  <svg aria-hidden="true">
+  <svg aria-hidden="true" class="svg-icon">
     <use :href="symbolId" :fill="color" />
   </svg>
 </template>
 
 <script lang="ts">
+import { PropType } from 'vue';
 import { defineComponent, computed } from 'vue';
 
 export default defineComponent({
@@ -14,18 +15,34 @@ export default defineComponent({
       type: String,
       default: 'icon',
     },
+    hoverColor: {
+      type: String,
+      default: '',
+    },
     name: {
       type: String,
       required: true,
     },
     color: {
-      type: String,
-      default: '#333',
+      type: String as PropType<string>,
+      default: '#A6ADBA',
     },
   },
   setup(props) {
     const symbolId = computed(() => `#${props.prefix}-${props.name}`);
-    return { symbolId };
+
+    const realHoverColor = computed(() => props.hoverColor || props.color);
+    return { symbolId, realHoverColor };
   },
 });
 </script>
+
+<style scoped>
+.svg-icon {
+  &:hover {
+    use {
+      fill: v-bind(realHoverColor);
+    }
+  }
+}
+</style>
