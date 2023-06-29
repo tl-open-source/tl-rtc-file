@@ -25,7 +25,7 @@ export default defineComponent({
     },
     color: {
       type: String as PropType<string>,
-      default: '#A6ADBA',
+      default: 'currentcolor',
     },
   },
   setup(props) {

@@ -16,6 +16,7 @@ importers:
       eslint-config-prettier: ^8.8.0
       eslint-plugin-prettier: ^4.2.1
       eslint-plugin-vue: ^9.15.1
+      nanoid: ^4.0.2
       postcss: ^8.4.24
       postcss-import: ^15.1.0
       prettier: ^2.8.8
@@ -32,6 +33,7 @@ importers:
     dependencies:
       '@vitejs/plugin-vue-jsx': 3.0.1_vite@4.3.9+vue@3.3.4
       '@vueuse/core': 10.2.0_vue@3.3.4
+      nanoid: 4.0.2
       vue: 3.3.4
       vue-router: 4.2.2_vue@3.3.4
     devDependencies:
@@ -2552,6 +2554,12 @@ packages:
     resolution: {integrity: sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
+
+  /nanoid/4.0.2:
+    resolution: {integrity: sha512-7ZtY5KTCNheRGfEFxnedV5zFiORN1+Y1N6zvPTnHQd8ENUvfaDBeuJDZb2bN/oXwXxu3qkTXDzy57W5vAmDTBw==}
+    engines: {node: ^14 || ^16 || >=18}
+    hasBin: true
+    dev: false
 
   /nanomatch/1.2.13:
     resolution: {integrity: sha512-fpoe2T0RbHwBTBUOftAfBPaDEi06ufaUai0mE6Yn1kacc3SnTErfb/h+X94VXzI64rKFHYImXSvdwGGCmwOqCA==}

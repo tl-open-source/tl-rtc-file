@@ -21,5 +21,7 @@ module.exports = {
     indent: ['error', 2],
     semi: ['error', 'always'],
     'vue/attribute-hyphenation': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    'no-debugger': 'off',
   },
 };

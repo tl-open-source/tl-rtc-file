@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { MenuSide } from '@/components/base';
+import { MenuSide } from '@/components/menu';
 import { NavHeader, FullHeightFlexBox } from '@/components/lib';
 
 defineOptions({

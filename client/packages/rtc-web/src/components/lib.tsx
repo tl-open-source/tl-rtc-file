@@ -1,5 +1,6 @@
 import { SetupContext } from 'vue';
-import { MenuSide, SvgIcon, NavIcons } from './base';
+import { SvgIcon, NavIcons } from './base';
+import { MenuSide } from './menu';
 
 export const NavHeader = () => {
   return (
@@ -23,7 +24,7 @@ export const NavHeader = () => {
       </div>
       <div class="drawer-side">
         <label for="my-drawer-3" class="drawer-overlay"></label>
-        <MenuSide></MenuSide>
+        <MenuSide class="bg-base-200"></MenuSide>
       </div>
     </div>
   );
