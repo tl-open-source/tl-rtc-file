@@ -9,8 +9,8 @@ const seafile = require('../../../conf/cfg.json').oss.seafile
 /**
  * 获取token
  */
-function seafileGetToken() {
-    return new Promise(resolve => {
+async function seafileGetToken() {
+    return await new Promise(resolve => {
         request({
             url: `${seafile.host}/api2/auth-token/`,
             method: "POST",
@@ -31,32 +31,14 @@ function seafileGetToken() {
     })
 }
 
-/**
- * 服务是否正常
- * @param {*} token 
- * @returns 
- */
-function seafilePingPong(token) {
-    return new Promise(resolve => {
-        request({
-            url: `${seafile.host}/api2/ping/`,
-            method: "GET",
-            headers: {
-                "Authorization": `Token ${token}`
-            },
-        }, function (error, response, body) {
-            resolve(body)
-        });
-    })
-}
 
 /**
  * 获取上传链接
  * @param {*} token 
  * @returns 
  */
-function seafileGetUploadLink(token) {
-    return new Promise(resolve => {
+async function seafileGetUploadLink(token) {
+    return await new Promise(resolve => {
         request({
             url: `${seafile.host}/api2/repos/${seafile.repoid}/upload-link/`,
             method: "GET",
@@ -69,45 +51,15 @@ function seafileGetUploadLink(token) {
     })
 }
 
-/**
- * 上传文件
- * @param {*} token 
- * @param {*} link 
- * @returns 
- */
-function seafileUpload(token, options) {
-    return new Promise(resolve => {
-        request({
-            url: `${options.link}?ret-json=1`,
-            method: "POST",
-            headers: {
-                "content-type": "application/json",
-                "Authorization": `Token ${token}`
-            },
-            body: JSON.stringify({
-                replace: options.replace,
-                file: options.file,
-                parent_dir: options.parent_dir
-            })
-        }, function (error, response, body) {
-            if (body) {
-                resolve(JSON.parse(body))
-            } else {
-                resolve(undefined)
-            }
-        });
-    })
-}
-
 
 /**
- * 创建分享链接
+ * 获取直接下载链接
  * @param {*} token 
- * @param {*} name 
+ * @param {*} options 
  * @returns 
  */
-function seafileCreateShareLink(token, options) {
-    return new Promise(resolve => {
+async function seafileGetDownLoadLink(token, options) {
+    return await new Promise(resolve => {
         request({
             url: `${seafile.host}/api/v2.1/share-links/`,
             method: "POST",
@@ -126,7 +78,14 @@ function seafileCreateShareLink(token, options) {
             })
         }, function (error, response, body) {
             if (body) {
-                resolve(JSON.parse(body))
+                let data = JSON.parse(body);
+                if(data){
+                    resolve({
+                        downloadLink : `${seafile.host}/f/${data.token}/?dl=1`,
+                    })
+                }else{
+                    resolve(undefined)
+                }
             } else {
                 resolve(undefined)
             }
@@ -134,45 +93,8 @@ function seafileCreateShareLink(token, options) {
     })
 }
 
-
-/**
- * 删除分享链接
- * @param {*} token 
- * @param {*} name 
- * @returns 
- */
-function seafileDeleteShareLink(token, shareLinkToken) {
-    return new Promise(resolve => {
-        request({
-            url: `${seafile.host}/api/v2.1/share-links/${shareLinkToken}/`,
-            method: "POST",
-            headers: {
-                "Authorization": `Token ${token}`
-            },
-        }, function (error, response, body) {
-            resolve(body)
-        });
-    })
-}
-
-
-/**
- * 获取直接下载链接
- * @param {*} token 
- * @param {*} name 
- * @returns 
- */
-function seafileGetDownLoadLink(shareLinkToken) {
-    return `${seafile.host}/f/${shareLinkToken}/?dl=1`;
-}
-
-
 module.exports = {
     seafileGetToken,
-    seafilePingPong,
-    seafileCreateShareLink,
-    seafileGetDownLoadLink,
-    seafileDeleteShareLink,
     seafileGetUploadLink,
-    seafileUpload
+    seafileGetDownLoadLink,
 }

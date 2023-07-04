@@ -1,4 +1,5 @@
 const os = require('os');
+const crypto = require('crypto');
 const cfg = require('./../../conf/cfg.json');
 
 /**
@@ -146,9 +147,6 @@ function getFileSizeStr(size) {
     return head + '.' + tail + "M";
 }
 
-// const style = "color: yellow; font-style: italic; background-color: black; padding: 5px; font-weight: bold; font-family: system-ui;"
-// console.log( `%ctl-rtc-file-${cfg.version} \t ${msg}`, style );
-
 function tlConsole(...msg){
     console.log(`\x1B[1m${new Date().toLocaleString()}\x1B[0m \x1B[40m\x1B[33m tl-rtc-file-${cfg.version} \x1B[0m : \x1B[36m%s\x1B[0m`,...msg)
 }
@@ -171,6 +169,136 @@ ${".".repeat(process.stdout.columns - 2)}
 }
 
 
+/**
+ * 生成客户端控制台打印logo
+ */
+function genClientLogo(){
+    let style = "font-size:20px;color: black; font-style: italic;";
+    style += "font-weight: bold; font-family: system-ui;";
+    style += "padding: 8px;cursor: pointer;"
+    return style;
+}
+
+
+/**
+ * 生成turn服务的iceServers配置
+ * @param {*} withTurn 
+ * @param {*} useSecret
+ * @param {*} username 
+ * @returns 
+ */
+function genTurnServerIceServersConfig(withTurn, useSecret, username){
+    let iceServers = [{
+        urls : cfg.webrtc.stun.host
+    }];
+
+    //无需turn中继
+    if(!withTurn){
+        return iceServers;
+    }
+
+    //turn固定账号模式
+    if(!useSecret){
+        iceServers.push({
+            urls : cfg.webrtc.turn.host,
+            username: cfg.webrtc.turn.username,
+            credential: cfg.webrtc.turn.credential
+        })
+        return iceServers;
+    }
+
+    // 有效账号模式
+    const secret = cfg.webrtc.turn.secret || "tlrtcfile";
+    //生成账号的有效期
+    const expirseTime = 60 * 60 * 24 * 1000;
+    //当前时间
+    const time = new Date().getTime();
+    //turn服务的用户名规则
+    const turnUsername = `${time + expirseTime}:${username}`;
+    //turn服务的密码规则
+    const dig = crypto.createHmac('sha1', secret).update(turnUsername).digest();
+    const turnPassword = Buffer.from(dig, 'utf-8').toString('base64');
+
+    iceServers.push({
+        urls : cfg.webrtc.turn.host,
+        username: turnUsername,
+        credential: turnPassword
+    })
+
+    return iceServers;
+}
+
+/**
+ * 转义字符串
+ * @param {*} str 
+ * @returns 
+ */
+function escapeStr(str) {
+    const entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;',
+        '`': '&#x60;',
+        '=': '&#x3D;'
+    };
+
+    const encodedMap = {
+        '%': '%25',
+        '!': '%21',
+        "'": '%27',
+        '(': '%28',
+        ')': '%29',
+        '*': '%2A',
+        '-': '%2D',
+        '.': '%2E',
+        '_': '%5F',
+        '~': '%7E'
+    };
+
+    return String(str).replace(/[&<>"'`=\/%!'()*\-._~]/g, function (s) {
+        return entityMap[s] || encodedMap[s] || '';
+    });
+}
+
+/**
+ * 解析转义字符串
+ * @param {*} str 
+ * @returns 
+ */
+function unescapeStr(str) {
+    const entityMap = {
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"',
+        '&#39;': "'",
+        '&#x2F;': '/',
+        '&#x60;': '`',
+        '&#x3D;': '='
+    };
+
+    const encodedMap = {
+        '%25': '%',
+        '%21': '!',
+        '%27': "'",
+        '%28': '(',
+        '%29': ')',
+        '%2A': '*',
+        '%2D': '-',
+        '%2E': '.',
+        '%5F': '_',
+        '%7E': '~'
+    };
+
+    return String(str).replace(/&(amp|lt|gt|quot|#39|#x2F|#x60|#x3D);|%(25|21|27|28|29|2A|2D|2E|5F|7E)/g, function (s) {
+        return entityMap[s] || encodedMap[s] || '';
+    });
+}
+
+
 module.exports = {
     getLocalIP,
     getClientIP,
@@ -181,5 +309,9 @@ module.exports = {
     getSocketClientInfo,
     getFileSizeStr,
     tlConsole,
-    tlConsoleIcon
+    tlConsoleIcon,
+    genTurnServerIceServersConfig,
+    genClientLogo,
+    unescapeStr,
+    escapeStr
 }

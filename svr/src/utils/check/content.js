@@ -1,7 +1,11 @@
 const checkLib = require("./core").trie
-const utils = require("../../../src/utils/utils");
 
-
+/**
+ * 内容过滤
+ * @param {*} text 
+ * @param {*} replaceChar 
+ * @returns 
+ */
 function contentFilter(text, replaceChar = '*') {
     let filteredText = '';
     let currentIndex = 0;
@@ -19,9 +23,32 @@ function contentFilter(text, replaceChar = '*') {
     return filteredText;
 }
 
-module.exports = {
-    contentFilter
+/**
+ * 对象内容过滤
+ * @param {*} text 
+ * @returns 
+ */
+function objectContentFilter(obj) {
+    if (obj === null || obj === undefined) {
+        return obj;
+    }
+    if (typeof obj === 'string') {
+        return contentFilter(obj);
+    }
+    if (typeof obj === 'object') {
+        if (obj instanceof Array) {
+            return obj.map(item => objectContentFilter(item));
+        } else {
+            const newObj = {};
+            for (const key in obj) {
+                newObj[key] = objectContentFilter(obj[key]);
+            }
+            return newObj;
+        }
+    }
+    return obj;
 }
 
-
-utils.tlConsole(contentFilter("草泥马"))
+module.exports = {
+    contentFilter, objectContentFilter
+}

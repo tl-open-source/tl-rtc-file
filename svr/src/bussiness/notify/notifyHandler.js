@@ -12,7 +12,7 @@ function sendChatingNotify(data) {
         `库记录ID: ${data.recoderId}\n` +
         `消息体ID: ${data.msgRecoderId}\n` +
         `发送方ID: ${data.socketId}\n` +
-        `文本内容: ${decodeURIComponent(data.msg)}\n` +
+        `文本内容: ${utils.unescapeStr(data.msg)}\n` +
         `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
         `访问IP: ${data.ip}\n` +
         `访问设备: ${data.userAgent}\n`;
@@ -67,7 +67,7 @@ function sendChatingRoomNotify(data) {
         ` - <font color="comment">${data.room}</font>\n` +
         `库记录ID: ${data.recoderId}\n` +
         `发送方ID: ${data.from}\n` +
-        `文本内容: ${decodeURIComponent(data.content)}\n` +
+        `文本内容: ${utils.unescapeStr(data.content)}\n` +
         `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
         `访问IP: ${data.ip}\n` +
         `访问设备: ${data.userAgent}\n`;
@@ -415,6 +415,35 @@ function sendSystemErrorMsg(data) {
 }
 
 
+/**
+ * 发送开始远程画笔通知
+ * @param {*} data 
+ */
+function sendStartRemoteDrawNotify(data) {
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
+    notify.requestMsg(notifyMsg)
+}
+
+
+/**
+ * 发送停止远程画笔通知
+ * @param {*} data 
+ */
+function sendStopRemoteDrawNotify(data) {
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
+        `画笔记录: ${data.drawCount}条\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
+    notify.requestMsg(notifyMsg)
+}
+
+
 module.exports = {
     sendExitRoomNotify,
     sendCreateJoinRoomNotify,
@@ -441,5 +470,7 @@ module.exports = {
     addCodeFileNotify,
     getCodeFileNotify,
     prepareCodeFileNotify,
-    sendSystemErrorMsg
+    sendSystemErrorMsg,
+    sendStartRemoteDrawNotify,
+    sendStopRemoteDrawNotify
 }

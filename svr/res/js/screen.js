@@ -1,14 +1,30 @@
-var screen = new Vue({
+// --------------------------- //
+// --       screen.js       -- //
+// --   version : 1.0.0     -- //
+// --   date : 2023-06-22   -- //
+// --------------------------- //
+
+const screen = new Vue({
     el: '#screenApp',
     data: function () {
         return {
-            stream: null,
-            chunks: [],
-            mediaRecorder: null,
-            recording: null,
-            times: 0,
-            interverlId: 0,
-            size: 0,
+            stream: null, //录制流
+            chunks: [], //录制数据
+            mediaRecorder: null, //录制对象
+            recording: null, //录制文件
+            times: 0,   //录制时间
+            interverlId: 0, //计时器id
+            size: 0, //录制文件大小
+            isScreen : false, //是否正在录制
+        }
+    },
+    watch: {
+        isScreen: function (val, oldVal) {
+            if (val) {
+                $("#screenTimes").css("display", "contents");
+            } else {
+                $("#screenTimes").css("display", "none");
+            }
         }
     },
     methods: {
@@ -24,6 +40,22 @@ var screen = new Vue({
                     video: { 'mandatory': { 'chromeMediaSource': 'desktop' } },
                     audio: true
                 })
+            }
+        },
+        openLocalScreen : async function({
+            openCallback, closeCallback
+        }){
+            if(!this.isScreen){
+                layer.confirm("是否进行本地屏幕录制", (index) => {
+                    this.startScreen();
+                    this.isScreen = !this.isScreen;
+                    openCallback && openCallback();
+                }, (index) => {
+                    layer.close(index)
+                })
+            }else{
+                this.stopScreen(closeCallback ? closeCallback : ()=>{});
+                this.isScreen = !this.isScreen;
             }
         },
         startScreen: async function () {
@@ -42,10 +74,8 @@ var screen = new Vue({
             }
 
             if (this.stream == null) {
-                if (window.layer) {
-                    layer.msg("获取设备录制权限失败")
-                }
-                window.Bus.$emit("changeScreenState", false)
+                layer.msg("获取设备录制权限失败")
+                this.isScreen = false
                 return;
             }
 
@@ -61,7 +91,11 @@ var screen = new Vue({
             //计算时间
             this.interverlId = setInterval(() => {
                 that.times += 1;
-                window.Bus.$emit("changeScreenTimes", that.times)
+                if(that.times < 10){
+                    $("#screenTimes").text("录制中: 0" + that.times + "秒")
+                }else{
+                    $("#screenTimes").text("录制中: "+that.times + "秒")
+                }
                 $("#screenIcon").css("color","#fb0404")
                 $("#screenTimes").css("color","#fb0404")
                 setTimeout(() => {
@@ -80,9 +114,7 @@ var screen = new Vue({
             try {
                 this.mediaRecorder.stop();
             } catch (e) {
-                if (window.layer) {
-                    layer.msg("屏幕录制完毕! 检测到录制不完整，如需停止录制，请点击本页面的停止按钮来停止录制")
-                }
+                layer.msg("屏幕录制完毕! 检测到录制不完整，如需停止录制，请点击本页面的停止按钮来停止录制")
                 hasErr = true
             }
 
@@ -109,7 +141,7 @@ var screen = new Vue({
 
             callback(data)
 
-            if (window.layer && !hasErr) {
+            if (!hasErr) {
                 layer.msg("录制完成，请在接收文件列表查看")
             }
 
@@ -121,7 +153,6 @@ var screen = new Vue({
         },
     },
     mounted: function () {
-        window.Bus.$on("startScreen", this.startScreen);
-        window.Bus.$on("stopScreen", this.stopScreen);
+        window.Bus.$on("openLocalScreen", this.openLocalScreen);
     }
 })

@@ -6,6 +6,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const seafile = require("./../../bussiness/oss/seafile")
 const rtcCommData = require("./../rtcCommData/commData");
+const check = require("./../../utils/check/content");
 
 /**
  * 添加取件码文件
@@ -31,19 +32,17 @@ async function addCodeFile(io, socket, tables, dbClient, data){
 
         let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
-        const ossToken = await seafile.seafileGetToken();
-
         let donwloadLink = ""
-
+        const ossToken = await seafile.seafileGetToken();
         if(ossToken){
-            let shareLink = await seafile.seafileCreateShareLink(ossToken, {
+            let downloadData = await seafile.seafileGetDownLoadLink(ossToken, {
                 name : data.ossFileName,
                 can_edit : false,
                 can_download : true,
                 expire_days : 1
             });
-            if(shareLink){
-                donwloadLink = seafile.seafileGetDownLoadLink(shareLink.token);
+            if(downloadData){
+                donwloadLink = downloadData.downloadLink;
             }
         }
 
@@ -98,6 +97,7 @@ async function addCodeFile(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-addCodeFile",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

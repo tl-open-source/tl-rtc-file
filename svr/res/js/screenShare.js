@@ -1,3 +1,10 @@
+// --------------------------- //
+// --     screenShare.js    -- //
+// --   version : 1.0.0     -- //
+// --   date : 2023-06-22   -- //
+// --------------------------- //
+
+
 var screenShare = new Vue({
     el: '#screenShareApp',
     data: function () {
@@ -75,9 +82,17 @@ var screenShare = new Vue({
                 $("#screenShareIcon").css("color","#fb0404")
                 $("#screenShareTimes").css("color","#fb0404")
                 setTimeout(() => {
-                    $("#screenShareIcon").css("color","#ffffff")
-                    $("#screenShareTimes").css("color","#ffffff")
+                    $("#screenShareIcon").css("color","#000000")
+                    $("#screenShareTimes").css("color","#000000")
                 }, 500)
+
+                if(that.times >= 15){
+                    that.stopScreenShare();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    return
+                }
             }, 1000);
 
             if (window.layer) {

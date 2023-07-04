@@ -1,4 +1,4 @@
-# tl-rtc-file-tool   [More than just file transfer, starting from file transfer]
+# tl-rtc-file-tool 【More Than Just File Transfer】
 
 [![](https://img.shields.io/badge/webrtc-p2p-blue)](https://webrtc.org.cn/)
 [![](https://img.shields.io/badge/code-simple-green)](https://github.com/iamtsm/tl-rtc-file/)
@@ -6,16 +6,13 @@
 [![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
 
+#### Background: Organized around the topic of a 2020 thesis
 
-#### Background: Consolidated from the topic of the 20-year graduation project
+#### Introduction: (tl webrtc datachannel filetools) uses WebRTC to transfer files on the web and supports the transfer of very large files.
 
-#### Introduction: (tl webrtc datachannel filetools) Transfer files on the web using WebRTC, supporting the transfer of large files.
+#### Advantages: Supports fragmented transmission, cross-device compatibility, platform independence, easy-to-use, unlimited internal network speed, private deployment, and supports the drag-and-drop sending of multiple files.
 
-#### Advantages: Fragmented transmission, cross-platform, platform-independent, easy to use, unlimited speed in the intranet, support for private deployment, support for multiple file drag and drop sending.
-
-#### Extensions: Extended with many rich features such as local screen recording, remote screen sharing, remote audio and video calls, live streaming, pickup codes, password-protected rooms, relay service settings, WebRTC detection, text transmission, public chat, rich backend management, integration of Enterprise WeChat robot alert notification, real-time execution log display, and more.
-
-#### Instructions: The example website is in a public network environment. In order to better demonstrate the transmission function, the relay service is enabled by default. If you want to verify whether P2P transmission is possible, simply disable the relay service. After the P2P detection, if you can see the internal network IP, the WebRTC connection can most likely go through P2P. In general, users in the internal network environment in the public network environment will also be automatically recognized. If the internal network speed is slow, you can leave feedback and it will be optimized and processed as soon as possible.
+#### Extensions: Many rich functions have been added, such as local screen recording, remote screen sharing, remote audio and video calls, live broadcasting, password rooms, relay service settings, WebRTC detection, text transmission, public chat, rich back-end management, integrated Enterprise WeChat robot alarm notification, real-time execution log display, etc.
 
 #### Experience: https://im.iamtsm.cn/file
 
@@ -23,115 +20,63 @@
 
 ## Preparation
 
-Install node-14.x and npm, then enter the project directory and run the following commands:
+    Install Node.js and npm and then enter the project directory.
+    
+    npm install
 
-    `cd svr/`
+    Go to the build directory: cd build/webpack/
 
-    `npm install`
+    Install some dependencies: npm install
 
-    `cd build/webpack/`
 
-    `npm install`
+    If you need to develop and modify the files in the res directory, keep one of the following two backend commands open.
 
-    For the first run or self-developed pages, you need to start the following two commands:
+    npm run dev packages the development environment min.
 
-    `cd build/webpack/`
+    npm run pro packages the production environment min.
 
-    `npm run dev` (package for development environment min) or `npm run pro` (package for production environment min)
+## Test Environment 
 
-## Start
+    Start the following two services.
 
-Start the following two services in HTTP format:
+    Local startup file-res: npm run dev
 
-    API service: `npm run lapi`
+    Local startup file-socket: npm run devsocket
 
-    Socket service: `npm run lsocket`
+## Online Environment (WSS Configuration Required)
 
-    Or start the following two services in HTTPS format:
+    Start the following two services.
 
-    API service: `npm run sapi`
+    Public network environment starts file-res: npm run svr
 
-    Socket service: `npm run ssocket`
+    Public network environment starts file-socket: npm run svrsocket
 
-Choose one mode to start.
 
-## Configure Database (Default: Disabled)
+## Configure the db (turned off by default)
 
-    Modify the corresponding database configuration in conf/cfg.json, such as open, dbName, host, port, user, pwd, etc.
+    Modify the corresponding DB configuration in conf/cfg.json, such as open, dbName, host, port, user, pwd, etc.
 
-## Configure WebSocket (WS/WSS)
 
-    Modify the corresponding WS configuration or WSS configuration in conf/cfg.json.
+## Configure the wss
 
-## Configure TURN Server (Relay Service)
+    Modify the corresponding WS configuration in conf/cfg.json, such as port, ws_online, etc.
+
+
+## Configure turnserver (private deployment)
 
     Ubuntu:
 
     1. sudo apt-get install coturn  # Install coturn.
 
-    2. cp conf/turn/turnserver.conf /etc/turnserver.conf    # Modify the configuration file, modify the file content as needed.
+    2. cp conf/turn/turnserver.conf /etc/turnserver.conf # Modify the configuration file, and modify the file content as needed.
 
-    3. chmod +x bin/genTurnUser.sh && ./
+    3. chomd +x bin/genTurnUser.sh && ./genTurn
 
-    genTurnUser.sh     # Modify the file content as needed.
 
-    4. chmod +x bin/startTurnServer.sh && ./startTurnServer.sh     # Start turnserver, modify the file content as needed.
-
-## Docker
-
-    Modify the IP address of ws/wss in conf/cfg.json (feedback is welcome if there is a better way).
-
-    docker build -t iamtsm/tl-rtc-file .
-
-    docker run -p 9092:9092 -p 8444:8444 --name local -d iamtsm/tl-rtc-file
-
-    Access: http://localhost:9092 or http://localhost-ip:9092
-
-## Admin Panel
-
-    Prerequisite: Database configuration needs to be enabled.
-
-    Modify the room and password of manage in conf/cfg.json. The default room number and password are both tlrtcfile.
-
-    Access: http://localhost:9092 or http://localhost-ip:9092
-
-    Enter the configured room number and password to enter the admin panel.
-
-    PS: If you need to configure Enterprise WeChat notification, modify the qiwei array in conf/cfg.json of notify and enter the key of the Enterprise WeChat robot.
-
-## Chat-GPT
-
-    Modify openai.apiKeys in conf/cfg.json and fill in your own apiKey generated by your OpenAI account.
-
-## Overview Diagram
+### Overview
 
 ![image](tl-rtc-file-tool.jpg)
 
 ## License
 
-MIT License
-
-Copyright (c) 2022 iamtsm
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-## Disclaimer
-
-[Disclaimer](DISCLAIMER.md)
+### MIT License Copyright (c) 2022 iamtsm

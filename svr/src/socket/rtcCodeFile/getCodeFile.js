@@ -5,6 +5,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const daoFile = require("./../../dao/file/file")
 const rtcCommData = require("./../rtcCommData/commData");
+const check = require("./../../utils/check/content");
 
 /**
  * 取件码取件
@@ -71,6 +72,7 @@ async function getCodeFile(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-getCodeFile",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

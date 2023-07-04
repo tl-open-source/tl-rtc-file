@@ -5,6 +5,7 @@ const utils = require("./../../utils/utils");
 const cfg = require("./../../../conf/cfg.json")
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
+const check = require("./../../utils/check/content");
 
 /**
  * 用户创建或加入房间
@@ -18,7 +19,7 @@ const rtcClientEvent = rtcConstant.rtcClientEvent
 async function userCreateAndJoin(io, socket, tables, dbClient, data){
     let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
-    let {room, type, nickName, password = ''} = data;
+    let {room, type, nickName, password = '', langMode = 'zh'} = data;
 
     if (room && room.length > 15) {
         room = room.toString().substr(0, 14);
@@ -29,6 +30,7 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
     }
     //设置昵称
     io.sockets.connected[socket.id].nickName = nickName;
+    io.sockets.connected[socket.id].langMode = langMode;
 
     if(password && password.length > 6){
         password = password.toString().substr(0,6);
@@ -62,6 +64,8 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             recoderId : recoderId
         });
 
+        io.sockets.connected[socket.id].owner = true;
+
         //密码房间 首次创建设置密码
         if(type === 'password'){
             io.sockets.adapter.rooms[room].password = password
@@ -92,12 +96,15 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             }
         }
 
+        io.sockets.connected[socket.id].owner = false;
+
         io.sockets.in(room).emit(rtcClientEvent.joined,{
             id: socket.id,
             room: room,
             nickName : nickName,
             type: type,
-            recoderId : recoderId
+            recoderId : recoderId,
+            langMode : langMode,
         });
 
         let peers = new Array();
@@ -105,9 +112,13 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
         for (let i = 0; i < otherSocketIds.length; i++) {
             let otherSocketId = otherSocketIds[i]
             let peerNickName = io.sockets.connected[otherSocketId].nickName
+            let peerOwner = io.sockets.connected[otherSocketId].owner
+            let peerLangMode = io.sockets.connected[otherSocketId].langMode
             peers.push({
                 id: otherSocketId,
-                nickName: peerNickName
+                nickName: peerNickName,
+                owner : peerOwner,
+                langMode : peerLangMode
             });
         }
 
@@ -233,6 +244,7 @@ async function createJoin(io, socket, tables, dbClient, data){
         }
 
         if (cfg.manage.room !== room) { 
+            data.room = check.contentFilter(data.room);
             // 用户加入/创建房间
             userCreateAndJoin(io, socket, tables, dbClient, data)
         }else{ 
@@ -248,6 +260,7 @@ async function createJoin(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-createJoin",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

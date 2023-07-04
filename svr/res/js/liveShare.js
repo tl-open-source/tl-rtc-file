@@ -1,3 +1,9 @@
+// --------------------------- //
+// --      liveShare.js     -- //
+// --   version : 1.0.0     -- //
+// --   date : 2023-06-22   -- //
+// --------------------------- //
+
 var liveShare = new Vue({
     el: '#liveShareApp',
     data: function () {
@@ -106,9 +112,17 @@ var liveShare = new Vue({
                 $("#liveShareIcon").css("color", "#fb0404")
                 $("#liveShareTimes").css("color", "#fb0404")
                 setTimeout(() => {
-                    $("#liveShareIcon").css("color", "#ffffff")
-                    $("#liveShareTimes").css("color", "#ffffff")
+                    $("#liveShareIcon").css("color", "#000000")
+                    $("#liveShareTimes").css("color", "#000000")
                 }, 500)
+
+                if(that.times >= 15){
+                    that.stopLiveShare();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    return
+                }
             }, 1000);
 
             if (window.layer) {

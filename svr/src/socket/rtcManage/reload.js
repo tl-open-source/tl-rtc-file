@@ -8,6 +8,7 @@ const cfg = require("./../../../conf/cfg.json")
 const manageConfig = cfg.manage
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
+const check = require("./../../utils/check/content");
 
 /**
  * 管理后台登陆验证
@@ -85,6 +86,7 @@ async function reload(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-manage-reload",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

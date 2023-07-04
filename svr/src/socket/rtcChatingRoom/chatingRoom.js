@@ -3,6 +3,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
+const check = require("./../../utils/check/content");
 
 /**
  * 房间内聊天 群聊/私聊
@@ -17,7 +18,6 @@ const rtcClientEvent = rtcConstant.rtcClientEvent
  */
 async function chatingRoom(io, socket, tables, dbClient, data){
     try {
-
         let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
         await daoDog.addDogData({
@@ -76,6 +76,7 @@ async function chatingRoom(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-chatingRoom",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

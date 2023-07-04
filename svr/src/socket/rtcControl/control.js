@@ -3,6 +3,7 @@ const daoDog = require("./../../dao/dog/dog")
 const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
+const check = require("./../../utils/check/content");
 
 /**
  * 远程控制
@@ -15,7 +16,6 @@ const rtcClientEvent = rtcConstant.rtcClientEvent
  */
 async function control(io, socket, tables, dbClient, data){
     try{
-
         let {room, from, to, opArr} = data;
 
         if(from !== socket.id){
@@ -78,6 +78,7 @@ async function control(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-control",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

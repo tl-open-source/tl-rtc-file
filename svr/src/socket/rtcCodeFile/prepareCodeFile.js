@@ -5,6 +5,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const seafile = require("./../../bussiness/oss/seafile")
 const rtcCommData = require("./../rtcCommData/commData");
+const check = require("./../../utils/check/content");
 
 /**
  * 生成取件码上传链接
@@ -17,7 +18,6 @@ const rtcCommData = require("./../rtcCommData/commData");
  */
 async function prepareCodeFile(io, socket, tables, dbClient, data){
     try{
-
         let cacheSwitchData = rtcCommData.getCacheSwitchData()
 
         if(!cacheSwitchData.openGetCodeFile){
@@ -42,10 +42,8 @@ async function prepareCodeFile(io, socket, tables, dbClient, data){
             return
         }
     
-        const ossToken = await seafile.seafileGetToken();
-    
         data.uploadLink = "";
-    
+        const ossToken = await seafile.seafileGetToken();
         if(ossToken){
             let uploadLink = await seafile.seafileGetUploadLink(ossToken);
             uploadLink = uploadLink.replace(/^(\s|\")+|(\s|\")+$/g, '') + "?ret-json=1";
@@ -90,6 +88,7 @@ async function prepareCodeFile(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-prepareCodeFile",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

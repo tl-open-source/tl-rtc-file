@@ -73,8 +73,12 @@ let rtcServerMessageEvent = {
     stopVideoShare : "stopVideoShare",
     //开始直播
     startLiveShare : "startLiveShare",
-    // 结束直播
+    //结束直播
     stopLiveShare : "stopLiveShare",
+    //开始远程画笔
+    startRemoteDraw : "startRemoteDraw",
+    //结束远程画笔
+    stopRemoteDraw : "stopRemoteDraw",
 }
 
 /**

@@ -15,7 +15,7 @@ async function count(io, socket, tables, dbClient, data){
     try{
         let allManCount = Object.keys(io.sockets.connected).length || 0;
         io.sockets.emit(rtcClientEvent.count, {
-            mc : allManCount + 50
+            mc : allManCount
         })
     }catch(e){
        utils.tlConsole(e)

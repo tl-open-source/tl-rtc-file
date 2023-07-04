@@ -5,6 +5,7 @@ const utils = require("./../../utils/utils");
 const bussinessOpenai = require("./../../bussiness/openai/openai")
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
+const check = require("./../../utils/check/content");
 
 /**
  * ai聊天
@@ -32,6 +33,9 @@ async function openai(io, socket, tables, dbClient, data){
         if(value){
             value = value.substr(0, 1000)
         }
+
+        data.content = check.contentFilter(data.content);
+        data.value = check.contentFilter(data.value);
 
         // 有上下文，结合上下文
         if(content){
@@ -61,7 +65,7 @@ async function openai(io, socket, tables, dbClient, data){
             socketId: data.socketId,
             device: userAgent,
             flag: 0,
-            content: decodeURIComponent(data.content),
+            content: utils.unescapeStr(data.content),
             handshake: JSON.stringify(handshake),
             ip: ip
         }, tables, dbClient);
@@ -85,6 +89,7 @@ async function openai(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-openai",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

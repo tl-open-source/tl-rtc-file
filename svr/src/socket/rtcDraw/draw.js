@@ -2,7 +2,7 @@ const utils = require("./../../utils/utils");
 const daoDog = require("./../../dao/dog/dog")
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-
+const check = require("./../../utils/check/content");
 /**
  * canvas画图
  * @param {*} io socketio对象

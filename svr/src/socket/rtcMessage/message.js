@@ -3,6 +3,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcServerMessageEvent = rtcConstant.rtcServerMessageEvent
+const check = require("./../../utils/check/content");
 
 let rtcEventOpName = {
     "sendFileInfo": "准备发送文件",
@@ -16,6 +17,8 @@ let rtcEventOpName = {
     "stopVideoShare": "停止音视频通话",
     "startLiveShare": "开启直播",
     "stopLiveShare": "关闭直播",
+    "startRemoteDraw": "开启远程画笔",
+    "stopRemoteDraw": "关闭远程画笔",
 }
 
 /**
@@ -36,6 +39,7 @@ async function message(io, socket, tables, dbClient, data){
         let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
         if (emitType === rtcServerMessageEvent.sendFileInfo) {
+            data.name = check.contentFilter(data.name);
             bussinessNotify.sendFileInfoNotify({
                 title: rtcEventOpName.sendFileInfo,
                 room: data.room,
@@ -50,6 +54,7 @@ async function message(io, socket, tables, dbClient, data){
         }
 
         if (emitType === rtcServerMessageEvent.sendDone) {
+            data.name = check.contentFilter(data.name);
             bussinessNotify.sendFileDoneNotify({
                 title: rtcEventOpName.sendDone,
                 room: data.room,
@@ -152,6 +157,26 @@ async function message(io, socket, tables, dbClient, data){
             })
         }
 
+        if (emitType === rtcServerMessageEvent.startRemoteDraw) {
+            bussinessNotify.sendStartRemoteDrawNotify({
+                title: rtcEventOpName.startRemoteDraw,
+                userAgent: userAgent,
+                ip: ip,
+                room: data.room,
+            })
+        }
+
+        if (emitType === rtcServerMessageEvent.stopRemoteDraw) {
+            bussinessNotify.sendStopRemoteDrawNotify({
+                title: rtcEventOpName.stopRemoteDraw,
+                userAgent: data.userAgent,
+                userAgent: userAgent,
+                ip: ip,
+                room: data.room,
+                drawCount : data.drawCount
+            })
+        }
+
         if (rtcEventOpName[emitType]) {
             await daoDog.addDogData({
                 name: rtcEventOpName[emitType],
@@ -200,6 +225,7 @@ async function message(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-message",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

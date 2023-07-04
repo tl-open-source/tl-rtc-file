@@ -1,3 +1,9 @@
+// --------------------------- //
+// --     videoShare.js     -- //
+// --   version : 1.0.0     -- //
+// --   date : 2023-06-22   -- //
+// --------------------------- //
+
 var videoShare = new Vue({
     el: '#videoShareApp',
     data: function () {
@@ -106,9 +112,17 @@ var videoShare = new Vue({
                 $("#videoShareIcon").css("color", "#fb0404")
                 $("#videoShareTimes").css("color", "#fb0404")
                 setTimeout(() => {
-                    $("#videoShareIcon").css("color", "#ffffff")
-                    $("#videoShareTimes").css("color", "#ffffff")
+                    $("#videoShareIcon").css("color", "#000000")
+                    $("#videoShareTimes").css("color", "#000000")
                 }, 500)
+                
+                if(that.times >= 15){
+                    that.stopVideoShare();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    return
+                }
             }, 1000);
 
             if (window.layer) {

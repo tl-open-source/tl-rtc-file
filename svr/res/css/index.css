@@ -19,6 +19,7 @@ body {
     margin: 0;
     margin-left: 5%;
     max-width: 90%;
+    padding-bottom: 30px;
     align-items: center;
     justify-content: center;
     transition: background-color var(--duration);
@@ -31,6 +32,10 @@ body {
 
 .layui-layer {
     border-radius: 8px !important;
+}
+
+.language-mode{
+    border-radius: 8px;
 }
 
 .layui-card {
@@ -47,7 +52,7 @@ body {
 .tl-rtc-file-header-tool {
     position: absolute;
     top: 10px;
-    left: 10px;
+    right: 10px;
     cursor: pointer;
 }
 
@@ -220,12 +225,12 @@ body {
     background-color: rgb(248 253 255 / 45%);
     border-radius: 10px;
     display: inline-flex;
-    /* box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 3px; */
     transition: all 0.3s;
 }
 
 .tl-rtc-file-tool:hover {
-    box-shadow: rgba(0, 0, 0, 0.4) 0px 7px 14px;
+    box-shadow: rgba(9,30,66,0.25) 0px 8px 9px;
+    /* box-shadow: 0 20px 32px -8px rgba(9,30,66,0.25), 0 0 1px rgba(9,30,66,0.31); */
 }
 
 .tl-rtc-file-tool i {
@@ -244,6 +249,7 @@ body {
 .tl-rtc-file-tool b {
     margin: 10px 10px 10px 0;
     letter-spacing: 2px;
+    left: 15px;
 }
 
 .tl-rtc-file-tool-disabled,
@@ -385,6 +391,7 @@ body {
 }
 
 .tl-rtc-file-create-room-input {
+    text-align: right;
     width: 0%;
     position: fixed;
     padding: 0px 15px 0px 15px;
@@ -793,8 +800,8 @@ body {
 @media screen and (min-width: 765px) and (max-width: 1280px) {
     
 }
-/** 1280px以上 */
-@media screen and (min-width: 1280px) {
+/** 765px以上 */
+@media screen and (min-width: 765px) {
     
 }
 
@@ -846,15 +853,16 @@ body {
 .tl-rtc-file-notification-container{
     position: fixed;
     top: 10px;
-    right: 10px;
     z-index: 9999;
     display: flex;
     flex-direction: column;
+    transition: right .45s;
 }
 
 .tl-rtc-file-notification {
     background-color: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 32px -8px rgba(9,30,66,0.25), 0 0 1px rgba(9,30,66,0.31);
+    transition: opacity .45s;
     border-radius: 10px;
     padding: 16px;
     margin: 10px;
@@ -864,7 +872,6 @@ body {
     flex-direction: initial;
     align-items: center;
     opacity: 0;
-    transition: all 0.5s ease-in-out;
 }
 
 .tl-rtc-file-notification-content{
@@ -922,9 +929,9 @@ body {
 
 .tl-rtc-file-tool-mobile-title{
     position: absolute;
+    width: 100%;
     word-break: keep-all;
     margin: 0 !important;
-    margin-left: 6px !important;
     bottom: 0;
     -webkit-transform-origin-x: 0; 
     transform: scale(0.6);
@@ -963,3 +970,167 @@ body {
     width: 50%;
     margin-left: 50%;
 }
+
+#tl-rtc-file-mouse-draw{
+    margin: 0px 5px 0px 5px;
+    border: 1px dashed;
+    height: 100%;
+}
+
+#tl-rtc-file-mouse-draw svg{
+    cursor: pointer;
+    width: 22px; 
+    height: 22px; 
+    margin-top: -2px;  
+    margin-left: 5px;
+}
+
+#tl-rtc-file-mouse-draw-canvas-body{
+    margin-left:4px; 
+    border-top: 1px dashed;}
+
+.tl-rtc-file-mouse-draw-body{
+    margin:5px;
+    user-select: none;
+}
+
+
+.tl-rtc-file-mouse-draw-body-item{
+    padding: 10px;
+    display: inline-flex;
+    font-weight: 300;
+}
+
+.tl-rtc-file-mouse-draw-body-item i{
+    margin-left: 5px;
+    font-size: 20px;
+    margin-top: -2px;
+    font-weight: 900;
+    color: black;
+    cursor: pointer;
+}
+
+#tl-rtc-file-mouse-draw-line-size-txt, #tl-rtc-file-mouse-draw-div-size-txt{
+    position: relative;
+    top: 3px;
+    margin-left: 5px;
+    font-size: 20px;
+    margin-top: -2px;
+    font-weight: 900;
+    color: black;
+    cursor: pointer;
+}
+
+.tl-rtc-file-mouse-draw-body-item i:hover{
+    color: #5280d7;
+}
+
+#tl-rtc-file-mouse-draw-stroke-color{
+    margin-left: 3px;
+    margin-top: -8px;
+}
+
+#tl-rtc-file-mouse-draw-stroke-color .layui-colorpicker{
+    width: 50px;
+    height: 35px;
+}
+
+.tl-rtc-file-mouse-draw-body-item:disabled{
+    color: #4c53d91f;
+    cursor: no-drop;
+}
+
+.tl-rtc-file-mouse-draw-canvas-line{
+    cursor: url("/image/drawline.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-delete{
+    cursor: url("/image/drawdelete.png") 15 20, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-circle{
+    cursor: url("/image/drawcircle.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-circle-fill{
+    cursor: url("/image/drawcirclefill.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-rectangle{
+    cursor: url("/image/drawrectangle.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-rectangle-fill{
+    cursor: url("/image/drawrectanglefill.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-hexagon{
+    cursor: url("/image/drawhexagon.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-hexagon-fill{
+    cursor: url("/image/drawhexagonfill.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-triangle{
+    cursor: url("/image/drawtriangle.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-triangle-fill{
+    cursor: url("/image/drawtrianglefill.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-rhomboid{
+    cursor: url("/image/drawrhomboid.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-rhomboid-fill{
+    cursor: url("/image/drawrhomboidfill.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-star{
+    cursor: url("/image/drawstar.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-star-fill{
+    cursor: url("/image/drawstarfill.png") 5 24, auto;
+}
+
+.tl-rtc-file-mouse-draw-canvas-text{
+    cursor: url("/image/drawtext.png") 5 24, auto;
+}
+
+.layui-layer-title{
+    user-select: none;
+}
+
+
+.chating_input_body{
+    bottom: 0px; 
+    position: absolute; 
+    width: 100%; 
+    padding: 20px;
+}
+
+.chating_input_body textarea{
+    border-radius: 15px;
+}
+
+.chating_send_body{
+    float: right;
+    margin-top: 10px;
+    user-select: none;
+}
+
+.chating_send_body_span{
+    font-size: 12px;
+    color: #0000007d;
+    position: absolute;
+    bottom: 26px;
+    right: 75px;
+}
+
+.chating_send_body_button{
+    border-radius: 5px;
+}
+

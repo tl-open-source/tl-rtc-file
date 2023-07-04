@@ -1,38 +1,38 @@
 {
-  "name": "tl-rtc-file",
-  "version": "1.0.0",
-  "description": "webrtc， p2p，file",
-  "main": "main.js",
-  "scripts": {
-    "lapi": "cross-env ENV_MODE=local node localapi",
-    "lsocket": "cross-env ENV_MODE=local node localsocket",
-    "lcsocket": "cross-env ENV_MODE=local node localcontrolsocket",
-    "sapi": "cross-env ENV_MODE=server node serverapi",
-    "ssocket": "cross-env ENV_MODE=server node serversocket",
-    "scsockert": "cross-env ENV_MODE=server node servercontrolsocket",
-    "test": "cross-env mocha ./test/test.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
-  "keywords": [
-    "none"
-  ],
-  "author": "iamtsm",
-  "license": "MIT",
-  "dependencies": {
-    "cross-env": "^5.2.0",
-    "express": "^4.17.1",
-    "mocha": "^10.2.0",
-    "mysql2": "^2.1.0",
-    "openai": "^1.0.0",
-    "request": "^2.88.2",
-    "sequelize": "^6.1.0",
-    "sequelize-pool": "^6.0.0",
-    "socket.io": "^2.3.0",
-    "pngjs": "^7.0.0",
-    "robotjs": "^0.6.0"
-  },
-  "devDependencies": {}
+	"name": "tl-rtc-file",
+	"version": "1.0.0",
+	"description": "webrtc， p2p，file",
+	"main": "main.js",
+	"scripts": {
+		"lapi": "cross-env ENV_MODE=local node localapi",
+		"lsocket": "cross-env ENV_MODE=local node localsocket",
+		"lcsocket": "cross-env ENV_MODE=local node localcontrolsocket",
+		"sapi": "cross-env ENV_MODE=server node serverapi",
+		"ssocket": "cross-env ENV_MODE=server node serversocket",
+		"scsocket": "cross-env ENV_MODE=server node servercontrolsocket",
+		"test": "cross-env mocha ./test/test.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": ""
+	},
+	"keywords": [
+		"none"
+	],
+	"author": "iamtsm",
+	"license": "MIT",
+	"dependencies": {
+		"cross-env": "^5.2.0",
+		"express": "^4.17.1",
+		"mocha": "^10.2.0",
+		"mysql2": "^2.1.0",
+		"openai": "^1.0.0",
+		"request": "^2.88.2",
+		"sequelize": "^6.1.0",
+		"sequelize-pool": "^6.0.0",
+		"socket.io": "^2.3.0",
+		"pngjs": "^7.0.0",
+		"robotjs": "^0.6.0"
+	},
+	"devDependencies": {}
 }

@@ -1,14 +1,18 @@
+// --------------------------- //
+// --       index.js         -- //
+// --   version : 1.0.0     -- //
+// --   date : 2023-06-22   -- //
+// --------------------------- //
+
+
 // index.js
 var file = null;
-axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
-    let resData = initData.data;
 
-    // 是否禁用中继
-    let notUseRelay = window.localStorage.getItem("tl-rtc-file-not-use-relay");
-    notUseRelay = notUseRelay && notUseRelay === 'true'
-    if (notUseRelay) {
-        resData.rtcConfig.iceServers = [resData.rtcConfig.iceServers[0]]
-    }
+// 是否禁用中继
+let useTurn = (window.localStorage.getItem("tl-rtc-file-use-relay") || "") === 'true';
+
+axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
+    let resData = initData.data;
 
     file = new Vue({
         el: '#tl-rtc-file-app',
@@ -18,6 +22,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 socket = io(resData.wsHost);
             }
             return {
+                langMode : "zh", // 默认中文
+                lang : {}, // 语言包
+                logo : resData.logo, // 打印logo
+                version : resData.version,// 项目当前版本
                 socket: socket, // socket
                 config: resData.rtcConfig, // rtc配置
                 options: resData.options, // rtc配置
@@ -30,8 +38,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 showCodeFile: false, // 展示底部取件码文件列表
                 showLogs: false, // 展示运行日志
                 showMedia: false, // 展示音视频/屏幕共享/直播
-                isScreen: false, //是否在录屏中
-                screenTimes: 0,  //当前录屏时间
                 isScreenShare: false, //是否在屏幕共享中
                 screenShareTimes: 0,  //当前屏幕共享时间
                 isVideoShare: false, //是否在音视频中
@@ -51,6 +57,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 isMouseDrag : false, //是否正在拖拽鼠标
                 isSendAllWaiting : false, //一键发送文件时，有1秒时间间隔，这个记录当前是否是一键发送文件等待中
                 isShareJoin : false, //是否是分享加入房间
+                isRemoteControl : false, // 是否正在进行远程控制
 
                 sendFileMaskHeightNum: 150, // 用于控制发送文件列表面板展示
                 chooseFileMaskHeightNum: 150, // 用于控制选择文件列表面板展示
@@ -88,7 +95,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 uploadCodeFileProgress: 0, // 上传暂存文件的进度
                 previewFileMaxSize : 1024 * 1024 * 5, // 5M以内允许预览
                 uploadCodeFileMaxSize : 1024 * 1024 * 10, // 10M以内允许暂存
-                controlListMaxSize : 100, // 100条控制指令以内，发送到socket
+                controlListMaxSize : 20, // 100条控制指令以内，发送到socket
+                mouseMoveUnit : 1, //鼠标移动的最小单位
 
                 currentChooseFileRecoder : null, //当前进行发送的文件记录
                 currentChooseFile: null, //当前发送中的文件
@@ -102,20 +110,19 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 receiveAiChatList: [], //ai对话内容
                 logs: [],  //记录日志
                 popUpList: [], //消息数据
-                mouseMove : [], // 鼠标移动坐标
-                controlList : [], // 控制列表
+                preMouseMove : {}, //上一次鼠标移动的事件
+                controlList : [], // 远程控制操作列表
                 ips: [], // 记录ip列表，检测是否支持p2p
                 popUpMsgDom : [], // 消息弹窗dom
 
 
                 token: "", //登录token
                 manageIframeId: 0, //实现自适应
-                useTurn: !notUseRelay, //是否使用中继服务器
+                useTurn: useTurn, //是否使用中继服务器
                 aiAnsweringTxtIntervalId: 0, //实现等待动画
                 aiAnsweringTxt: "思考中...", //ai思考中的文字
                 logsFilter: "", //日志过滤参数
-                clientWidth : document.body.clientWidth,
-                preMouseMove : {}, //上一次鼠标移动的事件
+                clientWidth : document.body.clientWidth, //页面宽度
             }
         },
         computed: {
@@ -138,9 +145,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             filterLogs: function () {
                 return this.logs.filter(item => {
-                    return item.msg.indexOf(this.logsFilter) > -1
+                    if(item.msg){
+                        return item.msg.indexOf(this.logsFilter) > -1
                         || item.time.indexOf(this.logsFilter) > -1
                         || item.type.indexOf(this.logsFilter) > -1
+                    }
                 })
             },
             toolSlidesPerViewCount: function(){
@@ -156,8 +165,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             isAiAnswering: function (newV, oldV) {
                 if (newV) {
                     this.aiAnsweringTxtIntervalId = setInterval(() => {
-                        if (this.aiAnsweringTxt === '思考中....') {
-                            this.aiAnsweringTxt = '思考中'
+                        if (this.aiAnsweringTxt === this.lang.ai_thinking + '....') {
+                            this.aiAnsweringTxt = this.lang.ai_thinking
                         } else {
                             this.aiAnsweringTxt += '.'
                         }
@@ -193,12 +202,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 immediate: true
             },
             controlList: {
-                handler: function (newV, oldV) { 
-                    //如果长度大于100，将数据发送到socket，并清空
-                    if(newV.length > this.controlListMaxSize){
-                        console.log("推送鼠标事件")
-                    }
-                },
+                handler: function (newV, oldV) { },
                 deep: true,
                 immediate: true
             },
@@ -209,53 +213,75 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             }
         },
         methods: {
+            consoleLogo : function(){
+                window.console.log(`%c____ TL-RTC-FILE-V10.1.5 ____ \n____ FORK ME IN GITHUB ____ \n____ https://github.com/tl-open-source/tl-rtc-file ____`, this.logo)
+            },
+            changeLanguage: function () {
+                let that = this;
+                window.dropdown.render({
+                    elem: '#language',
+                    data: [{
+                        title: 'Chinese',
+                        id: 'zh'
+                    },{
+                        type: '-'
+                    },{
+                        title: 'English',
+                        id: 'en'
+                    }],
+                    className: 'language-mode',
+                    click: function (obj) {
+                        window.location.href = window.tlrtcfile.addUrlHashParams({
+                            lang: obj.id
+                        });
+                        window.location.reload()
+                    }
+                });
+            },
             openDisclaimer: function(){
-                if(window.layer){
-                    layer.open({
-                        type: 2,
-                        title : "演示网站/开源项目协议声明",
-                        area: ['100%','100%'],
-                        shade: 0.5,
-                        shadeClose : true,
-                        content: 'disclaimer.html',
-                        success: function(){
-                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
-                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
-                            document.querySelector(".layui-layer").style.borderRadius = "8px";
-                        }
-                    })
-                }
+                layer.open({
+                    type: 2,
+                    title : this.lang.website_agreement_statement,
+                    area: ['100%','100%'],
+                    shade: 0.5,
+                    shadeClose : true,
+                    content: 'disclaimer.html',
+                    success: function(){
+                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                        document.querySelector(".layui-layer").style.borderRadius = "8px";
+                    }
+                })
             },
             // 分享取件码
             getCodeFileCode : function(file){
-                if (window.layer) {
-                    layer.closeAll(function () {
-                        layer.open({
-                            type: 1,
-                            closeBtn: 0,
-                            fixed: true,
-                            maxmin: false,
-                            shadeClose: true,
-                            area: ['350px', '380px'],
-                            title: "分享取件码",
-                            success: function (layero, index) {
-                                document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
-                                document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
-                                document.querySelector(".layui-layer").style.borderRadius = "8px";
-                                if(window.tlrtcfile.getQrCode){
-                                    tlrtcfile.getQrCode("tl-rtc-file-code-share-image", window.location.href + "#c="+file.codeId)
-                                }
-                            },
-                            content: `
-                                <div style="margin-top: 20px; text-align: center; margin-bottom: 25px;">
-                                    <div id="tl-rtc-file-code-share"> ${file.codeId} </div>
-                                </div>
-                                <div id="tl-rtc-file-code-share-image">
-                            `
-                        })
+                let that = this;
+                layer.closeAll(function () {
+                    layer.open({
+                        type: 1,
+                        closeBtn: 0,
+                        fixed: true,
+                        maxmin: false,
+                        shadeClose: true,
+                        area: ['350px', '380px'],
+                        title: that.lang.share_pickup_code + "("+that.lang.expires_one_day+")",
+                        success: function (layero, index) {
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                            document.querySelector(".layui-layer").style.borderRadius = "8px";
+                            if(window.tlrtcfile.getQrCode){
+                                tlrtcfile.getQrCode("tl-rtc-file-code-share-image", window.location.href + "#c="+file.codeId)
+                            }
+                        },
+                        content: `
+                            <div style="margin-top: 20px; text-align: center; margin-bottom: 25px;">
+                                <div id="tl-rtc-file-code-share"> ${file.codeId} </div>
+                            </div>
+                            <div id="tl-rtc-file-code-share-image">
+                        `
                     })
-                }
-                this.addUserLogs("打开分享取件码窗口")
+                })
+                this.addUserLogs(this.lang.open_share_pickup_code)
             },
             // 暂存取件码文件
             prepareCodeFile: function (recoder) {
@@ -267,7 +293,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 if(filterFile.length === 0){
-                    this.addUserLogs("加载文件失败，文件资源不存在");
+                    this.addUserLogs(this.lang.file_not_exist);
                     return
                 }
 
@@ -275,7 +301,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 if (file.size > this.uploadCodeFileMaxSize) {
                     if(window.layer){
-                        layer.msg(`最大只能暂存 ${this.uploadCodeFileMaxSize / 1024 / 1024}M的文件`);
+                        layer.msg(`${this.lang.max_saved} ${this.uploadCodeFileMaxSize / 1024 / 1024} ${this.lang.mb_file}`);
                     }
                     return
                 }
@@ -300,52 +326,46 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             getCodeFile: function () {
                 let that = this;
                 if (!this.switchData.openGetCodeFile) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
-                if (window.layer) {
-                    layer.prompt({
-                        formType: 0,
-                        title: '请输入取件码',
-                        value: this.codeId,
-                    }, function (value, index, elem) {
-                        if(value.length < 30 || tlrtcfile.containSymbol(value) || tlrtcfile.containChinese(value)){
-                            layer.msg("请输入正确的取件码")
-                            return
-                        }
+                layer.prompt({
+                    formType: 0,
+                    title: this.lang.please_enter_code,
+                    value: this.codeId,
+                }, function (value, index, elem) {
+                    if(value.length < 30 || tlrtcfile.containSymbol(value) || tlrtcfile.containChinese(value)){
+                        layer.msg(that.lang.please_enter_right_code)
+                        return
+                    }
 
-                        that.codeId = value;
+                    that.codeId = value;
 
-                        that.socket.emit('getCodeFile', {
-                            room: that.roomId,
-                            from: that.socketId,
-                            code: that.codeId,
-                        });
-
-                        layer.close(index);
-                        that.addUserLogs("通过取件码获取文件, 取件码=" + value);
+                    that.socket.emit('getCodeFile', {
+                        room: that.roomId,
+                        from: that.socketId,
+                        code: that.codeId,
                     });
-                }
+
+                    layer.close(index);
+                    that.addUserLogs(that.lang.get_pickup_file + "," + value);
+                });
             },
             //点击搜索暂存文件面板
             clickCodeFile: function () {
                 this.showCodeFile = !this.showCodeFile;
                 if (this.showCodeFile) {
                     this.codeFileMaskHeightNum = 20;
-                    this.addUserLogs("展开暂存文件面板");
+                    this.addUserLogs(this.lang.expand_temporary);
                 } else {
                     this.codeFileMaskHeightNum = 150;
-                    this.addUserLogs("收起暂存文件面板");
+                    this.addUserLogs(this.lang.collapse_temporary);
                 }
             },
             // 单独发送文件给用户
             sendFileToSingle: function(recoder){
-                if(window.layer){
-                    layer.msg(`单独发送给用户 ${recoder.id}`)
-                }
+                layer.msg(`${this.lang.send_to_user_separately} ${recoder.id}`)
 
                 this.isSendFileToSingleSocket = true;
 
@@ -355,78 +375,88 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             startChatRoomSingle: function(remote){
                 this.chatRoomSingleSocketId = remote.id;
                 let that = this;
-                if (window.layer) {
-                    let options = {
-                        type: 1,
-                        fixed: false,
-                        maxmin: false,
-                        area: ['600px', '600px'],
-                        title: `私聊【${remote.nickName}】-【${remote.id}】`,
-                        success: function (layero, index) {
-                            if (window.layedit) {
-                                that.txtEditId = layedit.build('chating_room_single_value', {
-                                    tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right'],
-                                    height: 120
-                                });
-                            }
-                            that.chatingRoomSingleTpl();
-                        },
-                        cancel: function (index, layero) {
-                            this.chatRoomSingleSocketId = "";
-                        },
-                        content: `
-                            <div class="layui-col-sm12" style="padding: 15px;">
-                                <div id="chating_room_single_tpl_view" style="padding: 5px;"> </div>
-                                <script id="chating_room_single_tpl" type="text/html">
-                                    {{#  layui.each(d, function(index, info){ }}
-                                        {{#  if(info.socketId !== '${this.socketId}') { }}
-                                            <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
-                                                <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
-                                                <div style="margin-left: 15px; margin-top: -5px;width:100%;">
-                                                    <div style="word-break: break-all;"> 
-                                                        <small>用户: <b>{{info.nickName}}</b></small> - 
-                                                        <small>id: <b>{{info.socketId}}</b></small> - 
-                                                        <small>时间: <b>{{info.timeAgo}}</b></small> 
-                                                    </div>
-                                                    <div style="margin-top: 5px;word-break: break-all;width: 90%;"> 
-                                                        <b style="font-weight: bold; font-size: large;">{{- info.content }}</b>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {{#  }else { }}
-                                            <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
-                                                <div style="margin-right: 15px; margin-top: -5px;width:100%;text-align: right;">
-                                                    <div style="word-break: break-all;"> 
-                                                        <small>我: {{info.nickName}} </small> - 
-                                                        <small>时间: <b>{{info.timeAgo}}</b></small> 
-                                                    </div>
-                                                    <div style="margin-top: 5px;word-break: break-all;width: 90%; margin-left: 10%;"> 
-                                                        <b style="font-weight: bold; font-size: large;">{{- info.content }}</b>
-                                                    </div>
-                                                </div>
-                                                <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
-                                            </div>
-                                        {{#  } }}
-                                    {{#  }); }}
-                                </script>
-                            </div>
-                            <div style="bottom: 0px; position: absolute; width: 100%; padding: 20px;">
-                                <textarea style="border-radius: 15px;" maxlength="50000" id="chating_room_single_value" class="layui-textarea" placeholder="文明发言，理性交流 ~"></textarea>
-                                <button style="float: right;margin-top: 10px;" onclick="sendChatingRoomSingle()" type="button" class="layui-btn layui-btn-normal layui-btn-sm">发言</button>
-                            </div>
-                        `
-                    }
-                    if (this.isMobile) {
-                        delete options.area
-                    }
-                    layer.closeAll(function () {
-                        let index = layer.open(options)
-                        if (that.isMobile) {
-                            layer.full(index)
+                let options = {
+                    type: 1,
+                    fixed: false,
+                    maxmin: false,
+                    shadeClose : true,
+                    area: ['600px', '600px'],
+                    title: `${this.lang.private_chat}【${remote.nickName}】-【${remote.id}】`,
+                    success: function (layero, index) {
+                        if (window.layedit) {
+                            that.txtEditId = layedit.build('chating_room_single_value', {
+                                tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right'],
+                                height: 120
+                            });
                         }
-                    })
+                        that.chatingRoomSingleTpl();
+
+                        if(window.tlrtcfile.chatKeydown){
+                            let textareaIframe = document.getElementsByTagName("iframe");
+                            if(textareaIframe && textareaIframe.length === 1){
+                                tlrtcfile.chatKeydown(
+                                    document.getElementsByTagName("iframe")[0].contentDocument.body, 
+                                    sendChatingRoomSingle
+                                )
+                            }
+                        }
+                    },
+                    cancel: function (index, layero) {
+                        this.chatRoomSingleSocketId = "";
+                    },
+                    content: `
+                        <div class="layui-col-sm12" style="padding: 15px;">
+                            <div id="chating_room_single_tpl_view" style="padding: 5px;"> </div>
+                            <script id="chating_room_single_tpl" type="text/html">
+                                {{#  layui.each(d, function(index, info){ }}
+                                    {{#  if(info.socketId !== '${this.socketId}') { }}
+                                        <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
+                                            <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
+                                            <div style="margin-left: 15px; margin-top: -5px;width:100%;">
+                                                <div style="word-break: break-all;"> 
+                                                    <small>${this.lang.user}: <b>{{info.nickName}}</b></small> - 
+                                                    <small>id: <b>{{info.socketId}}</b></small> - 
+                                                    <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
+                                                </div>
+                                                <div style="margin-top: 5px;word-break: break-all;width: 90%;"> 
+                                                    <b style="font-weight: bold; font-size: large;">{{- info.content }}</b>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{#  }else { }}
+                                        <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
+                                            <div style="margin-right: 15px; margin-top: -5px;width:100%;text-align: right;">
+                                                <div style="word-break: break-all;"> 
+                                                    <small>${this.lang.self}: {{info.nickName}} </small> - 
+                                                    <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
+                                                </div>
+                                                <div style="margin-top: 5px;word-break: break-all;width: 90%; margin-left: 10%;"> 
+                                                    <b style="font-weight: bold; font-size: large;">{{- info.content }}</b>
+                                                </div>
+                                            </div>
+                                            <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
+                                        </div>
+                                    {{#  } }}
+                                {{#  }); }}
+                            </script>
+                        </div>
+                        <div class="chating_input_body">
+                            <textarea maxlength="50000" id="chating_room_single_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
+                            <span class="chating_send_body chating_send_body_span">shift+enter ${this.lang.enter_send} </span>
+                            <button onclick="sendChatingRoomSingle()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
+                        </div>
+                    `
                 }
-                this.addUserLogs("打开私聊面板")
+                if (this.isMobile) {
+                    delete options.area
+                }
+                layer.closeAll(function () {
+                    let index = layer.open(options)
+                    if (that.isMobile) {
+                        layer.full(index)
+                    }
+                })
+                this.addUserLogs(this.lang.open_private_chat)
             },
             // 私聊渲染
             chatingRoomSingleTpl: function () {
@@ -469,36 +499,28 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             // 私聊发言
             sendChatingRoomSingle: function () {
                 if (!this.isJoined) {
-                    if (window.layer) {
-                        layer.msg("请先加入房间，再发送内容")
-                    }
-                    this.addUserLogs("请先加入房间，再发送内容");
+                    layer.msg(this.lang.please_join_then_send)
+                    this.addUserLogs(this.lang.please_join_then_send);
                     return
                 }
                 if (!this.hasManInRoom) {
-                    if (window.layer) {
-                        layer.msg("房间内至少需要两个人才能发送内容")
-                    }
-                    this.addUserLogs("房间内至少需要两个人才能发送内容");
+                    layer.msg(this.lang.room_least_two_can_send_content)
+                    this.addUserLogs(this.lang.room_least_two_can_send_content);
                     return
                 }
                 let realContent = layedit.getContent(this.txtEditId)
                 if (realContent.length <= 0) {
-                    if (window.layer) {
-                        layer.msg("请输入文本内容")
-                    }
-                    this.addUserLogs("请输入文本内容");
+                    layer.msg(this.lang.please_enter_content)
+                    this.addUserLogs(this.lang.please_enter_content);
                     return
                 }
                 if (realContent.length > 10000) {
-                    if (window.layer) {
-                        layer.msg("文字内容过长，长度最多1w单词!")
-                    }
-                    this.addUserLogs("文字内容过长，长度最多1w单词");
+                    layer.msg(this.lang.content_max_10000)
+                    this.addUserLogs(this.lang.content_max_10000);
                     return
                 }
                 this.socket.emit('chatingRoom', {
-                    content: encodeURIComponent(realContent),
+                    content: tlrtcfile.escapeStr(realContent),
                     room: this.roomId,
                     from: this.socketId,
                     to : this.chatRoomSingleSocketId,
@@ -525,16 +547,45 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 }
 
                 this.chatingRoomSingleTpl();
-                layer.msg("文本内容发送完毕")
-                this.addUserLogs("文本内容发送完毕");
+                layer.msg(this.lang.text_send_done)
+                this.addUserLogs(this.lang.text_send_done);
                 
                 layedit.setContent(this.txtEditId, "", false)
             },
             // 右上角弹窗
-            startPopUpMsg : function(data) {
+            startPopUpMsg : async function() {
+                let that = this;
+                let data = this.popUpList.shift();
+                let lengthLevel = {//渐进式弹悬浮时间
+                    2 : 1800, // 队列只有两个弹窗排队时, 弹窗悬停时间1800ms
+                    5 : 1600,
+                    8 : 1300,
+                    10 : 900,
+                    20 : 700
+                };
+                //轮训是否有弹窗排队中
+                if(!data){
+                    await new Promise(resolve=>{
+                        setTimeout(async ()=>{
+                            await this.startPopUpMsg()
+                            resolve()
+                        }, 1000);
+                    })
+                    return
+                }
+
+                let levelTime = 1800;
+                for(let len in lengthLevel){
+                    if(len > this.popUpList.length){
+                        levelTime = lengthLevel[len]
+                        break;
+                    }
+                }
+
                 let msgDom = document.createElement('div');
-                msgDom.className = 'tl-rtc-file-notification';
-                msgDom.innerHTML = ` 
+                msgDom.setAttribute("class","tl-rtc-file-notification")
+                msgDom.style.opacity = 0;
+                msgDom.innerHTML = `
                     <div class="tl-rtc-file-notification-close"><i class="layui-icon layui-icon-close "></i></div>
                     <div class="tl-rtc-file-notification-icon"><i class="layui-icon layui-icon-chat"></i></div>
                     <div class="tl-rtc-file-notification-content">
@@ -542,27 +593,22 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         <div class="tl-rtc-file-notification-content-msg"> ${data.message} </div>
                     </div> 
                 `;
-
                 let msgDomContainer = document.getElementById('notificationContainer');
+                msgDomContainer.style.right = "-320px";
                 msgDomContainer.prepend(msgDom);
-                msgDom.style.opacity = '1';
 
-                this.popUpMsgDom.unshift(msgDom);
-
-                //如果当前弹出的弹窗超过限制，移除一个，移除的时候注意下动画过渡
-                if (this.popUpMsgDom.length > 2) {
-                    let oldMsgDom = this.popUpMsgDom.pop();
-                    oldMsgDom.style.opacity = '0';
-                }
-
-                // 添加自动消失效果，3秒后自动移除通知
                 setTimeout(() => {
-                    msgDom.style.opacity = '0';
+                    msgDomContainer.style.right = "10px";
+                    msgDom.style.opacity = 1;
                     setTimeout(() => {
-                        msgDomContainer.removeChild(msgDom);
-                        this.popUpMsgDom.splice(this.popUpMsgDom.indexOf(msgDom), 1);
-                    }, 500);
-                }, 1500);
+                        msgDomContainer.style.right = "-320px";
+                        msgDom.style.opacity = 0;
+                        setTimeout(() => {
+                            msgDomContainer.removeChild(msgDom);
+                            that.startPopUpMsg();
+                        }, 450);
+                    }, levelTime);
+                }, 450);
             },
             // 预览发送文件
             previewSendFile: async function (index) {
@@ -571,7 +617,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 if(filterFile.length === 0){
-                    this.addUserLogs("预览文件 【", file.name, "】失败，文件资源不存在");
+                    this.addUserLogs(this.lang.preview_file + "【", file.name, "】"+ this.lang.failed_find_file);
                     return
                 }
                 await this.previewFile(filterFile[0])
@@ -583,15 +629,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 if(filterFile.length === 0){
-                    this.addUserLogs("预览文件 【", file.name, "】失败，文件资源不存在");
+                    this.addUserLogs(this.lang.preview_file + "【", file.name, "】"+ this.lang.failed_find_file);
                     return
                 }
 
                 let fileRecorde = filterFile[0];
                 if (fileRecorde.size > this.previewFileMaxSize) {
-                    if(window.layer){
-                        layer.msg(`最大只能预览 ${this.previewFileMaxSize / 1024 / 1024}M的文件`);
-                    }
+                    layer.msg(`${this.lang.max_previewed} ${this.previewFileMaxSize / 1024 / 1024} ${mb_file}`);
                     return
                 }
 
@@ -681,10 +725,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             }
                         })
                     } else{
-                        layer.msg("暂不支持预览此格式");
+                        layer.msg(this.lang.preview_not_supported);
                     }
                 }catch(e){
-                    layer.msg("暂不支持预览此格式");
+                    layer.msg(this.lang.preview_not_supported);
                 }
             },
             // 删除待发送文件
@@ -709,7 +753,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             return item.index !== fileindex;
                         })
 
-                        layer.msg(`已取消发送【${filename}】`);
+                        layer.msg(`${that.lang.send_cancel}【${filename}】`);
                     }, 600);
                 }
             },
@@ -721,117 +765,118 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             // 打开公告
             clickNotice: function(){
-                if (window.layer) {
-                    let noticeMsgList = this.switchData.noticeMsgList || [{
-                        msg : "暂无公告"
-                    }]
-                    let content = "";
-                    noticeMsgList.forEach(item=>{
-                        content += `<div> ${item.msg} </div>`;
-                    })
-                    layer.open({
-                        title: '网站公告',
-                        content: content
-                    });         
-                }
+                let noticeMsgList = this.switchData.noticeMsgList || [{
+                    msg : this.lang.no_notice
+                }]
+                let content = "";
+                noticeMsgList.forEach(item=>{
+                    content += `<div> ${item.msg} </div>`;
+                })
+                layer.open({
+                    title: this.lang.notice,
+                    content: content,
+                    btn : this.lang.confirm,
+                    shadeClose : true
+                });   
             },
             // 打开ai窗口
             openaiChat: function () {
                 if (!this.switchData.openAiChat) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
                 if (!this.isJoined) {
-                    if (window.layer) {
-                        layer.msg("请先加入房间，才能和AI聊天")
-                    }
-                    this.addUserLogs("请先加入房间，才能和AI聊天")
+                    layer.msg(this.lang.please_join_then_chat_with_ai)
+                    this.addUserLogs(this.lang.please_join_then_chat_with_ai)
                     return
                 }
                 let that = this;
-                if (window.layer) {
-                    let options = {
-                        type: 1,
-                        fixed: false, //不固定
-                        maxmin: false,
-                        area: ['600px', '600px'],
-                        title: "人工智能对话",
-                        success: function (layero, index) {                            
-                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
-                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
-                            document.querySelector(".layui-layer").style.borderRadius = "15px"
-                            that.openaiChatTpl();
-                        },
-                        content: `
-                            <div class="layui-col-sm12" style="padding: 15px;">
-                                <div class="layui-card" id="openaiChat_tpl_view" style="padding: 5px;"> </div>
-                                <script id="openaiChat_tpl" type="text/html">
-                                    {{#  if(d.openaiSendContext) { }}
-                                    <div style="font-weight: bold;text-align: center; color: #000000; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
-                                        已开启同步上下文开关，AI能更好的理解您的问题，但也可能会导致回答变得不可预测，可在设置中关闭
-                                    </div>
-                                    {{#  }else{ }}
-                                    <div style="text-align: center; color: #000000; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
-                                        可尝试在设置中开启同步对话上下文开关，帮助AI能更好的连贯的理解您的问题
-                                    </div>
-                                    {{#  } }}
-                                    <div style="text-align: center; color: #000000; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
-                                        -------- 房间 ${this.roomId} - AI对话记录 -------- 
-                                    </div>
-                                    {{#  layui.each(d.list, function(index, info){ }}
-                                        {{#  if(info.type === 'openai') { }}
-                                        <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
-                                            <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
-                                            <div style="margin-left: 15px; margin-top: -5px;width:100%;">
-                                                <div style="word-break: break-all;"> <small> AI博主: </small> - <small>时间: <b>{{info.timeAgo}}</b></small> </div>
-                                                <div style="margin-top: 5px;word-break: break-all;width: 90%;"> <b style="font-weight: bold; font-size: large;"> {{- info.content}} </b></div>
-                                            </div>
-                                        </div>
-                                        {{#  }else { }}
-                                        <div style="margin-bottom: 30px;display: inline-flex;text-align: right;float: right;width:100%;">
-                                            <div style="margin-right: 15px; margin-top: -5px;width:100%;">
-                                                <div style="word-break: break-all;"> <small>我: <b>{{info.socketId}}</b> </small> <small>时间: <b>{{info.timeAgo}}</b></small>  </div>
-                                                <div style="margin-top: 5px;word-break: break-all;width: 90%; margin-left: 10%;"> <b style="font-weight: bold; font-size: large;"> {{- info.content}} </b></div>
-                                            </div>
-                                            <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
-                                        </div>
-                                        {{#  } }}
-                                    {{#  }); }}
+                let options = {
+                    type: 1,
+                    fixed: false, //不固定
+                    maxmin: false,
+                    shadeClose: true,
+                    area: ['600px', '600px'],
+                    title: this.lang.ai_chat,
+                    success: function (layero, index) {                            
+                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
+                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
+                        document.querySelector(".layui-layer").style.borderRadius = "15px"
+                        that.openaiChatTpl();
 
-                                    {{#  if(d.isAiAnswering) { }}
+                        if(window.tlrtcfile.chatKeydown){
+                            tlrtcfile.chatKeydown(document.getElementById("openaiChat_value"), sendOpenaiChat)
+                        }
+                    },
+                    content: `
+                        <div class="layui-col-sm12" style="padding: 15px;">
+                            <div class="layui-card" id="openaiChat_tpl_view" style="padding: 5px;"> </div>
+                            <script id="openaiChat_tpl" type="text/html">
+                                {{#  if(d.openaiSendContext) { }}
+                                <div style="font-weight: bold;text-align: center; color: #000000; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
+                                    ${this.lang.open_ai_switch}
+                                </div>
+                                {{#  }else{ }}
+                                <div style="text-align: center; color: #000000; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
+                                    ${this.lang.try_open_ai_switch}
+                                </div>
+                                {{#  } }}
+                                <div style="text-align: center; color: #000000; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> 
+                                    -------- ${this.lang.room} ${this.roomId} - ${this.lang.ai_chat_record} -------- 
+                                </div>
+                                {{#  layui.each(d.list, function(index, info){ }}
+                                    {{#  if(info.type === 'openai') { }}
                                     <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
                                         <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
                                         <div style="margin-left: 15px; margin-top: -5px;width:100%;">
-                                            <div style="word-break: break-all;"> 
-                                                <small> AI博主: </small> - 
-                                                <small>时间: <b>{{d.time}}</b></small> 
-                                            </div>
-                                            <div style="margin-top: 5px;word-break: break-all;width: 90%;"> <b style="font-weight: bold; font-size: large;"> {{d.aiAnsweringTxt}} </b></div>
+                                            <div style="word-break: break-all;"> <small> AI: </small> - <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> </div>
+                                            <div style="margin-top: 5px;word-break: break-all;width: 90%;"> <b style="font-weight: bold; font-size: large;"> {{- info.content}} </b></div>
                                         </div>
                                     </div>
+                                    {{#  }else { }}
+                                    <div style="margin-bottom: 30px;display: inline-flex;text-align: right;float: right;width:100%;">
+                                        <div style="margin-right: 15px; margin-top: -5px;width:100%;">
+                                            <div style="word-break: break-all;"> <small>${this.lang.self}: <b>{{info.socketId}}</b> </small> <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small>  </div>
+                                            <div style="margin-top: 5px;word-break: break-all;width: 90%; margin-left: 10%;"> <b style="font-weight: bold; font-size: large;"> {{- info.content}} </b></div>
+                                        </div>
+                                        <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
+                                    </div>
                                     {{#  } }}
-                                </script>
-                            </div>
-                            <div style="bottom: 0px; position: absolute; width: 100%; padding: 20px;">
-                                <textarea style="border-radius: 15px;" maxlength="50000" id="openaiChat_value" class="layui-textarea" placeholder="文明发言，理性交流 ~"></textarea>
-                                <button style="float: right;margin-top: 10px;" onclick="sendOpenaiChat()" type="button" class="layui-btn layui-btn-normal layui-btn-sm">发送问题</button>
-                            </div>
-                        `
-                    }
-                    if (this.isMobile) {
-                        delete options.area
-                    }
-                    layer.closeAll(function () {
-                        let index = layer.open(options)
-                        if (that.isMobile) {
-                            layer.full(index)
-                        }
-                    })
-                    this.addUserLogs("打开了AI聊天窗口")
+                                {{#  }); }}
+
+                                {{#  if(d.isAiAnswering) { }}
+                                <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
+                                    <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
+                                    <div style="margin-left: 15px; margin-top: -5px;width:100%;">
+                                        <div style="word-break: break-all;"> 
+                                            <small> AI: </small> - 
+                                            <small>${this.lang.time}: <b>{{d.time}}</b></small> 
+                                        </div>
+                                        <div style="margin-top: 5px;word-break: break-all;width: 90%;"> <b style="font-weight: bold; font-size: large;"> {{d.aiAnsweringTxt}} </b></div>
+                                    </div>
+                                </div>
+                                {{#  } }}
+                            </script>
+                        </div>
+
+                        <div class="chating_input_body">
+                            <textarea maxlength="50000" id="openaiChat_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
+                            <span class="chating_send_body chating_send_body_span">shift+enter ${this.lang.enter_send} </span>
+                            <button onclick="sendOpenaiChat()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
+                        </div>
+                    `
                 }
+                if (this.isMobile) {
+                    delete options.area
+                }
+                layer.closeAll(function () {
+                    let index = layer.open(options)
+                    if (that.isMobile) {
+                        layer.full(index)
+                    }
+                })
+                this.addUserLogs(this.lang.open_ai_chat)
             },
             // ai窗口渲染
             openaiChatTpl: function (callback) {
@@ -871,27 +916,21 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             // 发送ai问题
             sendOpenaiChat: function () {
                 if (this.isAiAnswering) {
-                    if (window.layer) {
-                        layer.msg("AI正在回答你的问题中，请稍后再提问")
-                    }
-                    this.addUserLogs("AI正在回答你的问题中，请稍后再提问")
+                    layer.msg(this.lang.ai_answering)
+                    this.addUserLogs(this.lang.ai_answering)
                     return
                 }
 
                 let value = document.querySelector("#openaiChat_value").value;
 
                 if (value === '' || value === undefined) {
-                    if (window.layer) {
-                        layer.msg("请先填写内容哦")
-                    }
-                    this.addUserLogs("请先填写内容哦")
+                    layer.msg(this.lang.please_fill_content)
+                    this.addUserLogs(this.lang.please_fill_content)
                     return
                 }
                 if (value.length > 1000) {
-                    if (window.layer) {
-                        layer.msg("内容太长啦，不能超过1000个字")
-                    }
-                    this.addUserLogs("内容太长啦，不能超过1000个字")
+                    layer.msg(this.lang.content_max_1000)
+                    this.addUserLogs(this.lang.content_max_1000)
                     return
                 }
 
@@ -949,408 +988,313 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 this.openaiChatTpl()
 
-                this.addUserLogs("我对AI说 : " + value);
+                this.addUserLogs(this.lang.i_said_to_ai + value);
 
                 document.querySelector("#openaiChat_value").value = ''
             },
             // 创建/加入密码房间
             startPassword: function () {
                 if (!this.switchData.openPasswordRoom) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
                 if (!this.isPasswordRoom) {
                     if (this.isJoined) {
-                        if (window.layer) {
-                            layer.msg("请先退出房间后，再进入密码房间")
-                        }
-                        this.addUserLogs("请先退出房间后，再进入密码房间")
+                        layer.msg(this.lang.please_exit_then_join_password_room)
+                        this.addUserLogs(this.lang.please_exit_then_join_password_room)
                         return
                     }
                     let that = this;
-                    if (window.layer) {
-                        layer.prompt({
-                            formType: 0,
-                            title: '请输入密码房间号'
-                        }, function (value, index, elem) {
-                            that.roomId = value;
-                            layer.close(index);
-                            that.isPasswordRoom = !that.isPasswordRoom;
+                    layer.prompt({
+                        formType: 0,
+                        title: this.lang.please_enter_password
+                    }, function (value, index, elem) {
+                        that.roomId = value;
+                        layer.close(index);
+                        that.isPasswordRoom = !that.isPasswordRoom;
 
-                            layer.prompt({
-                                formType: 1,
-                                title: '请输入密码'
-                            }, function (value, index, elem) {
-                                that.createPasswordRoom(value);
-                                layer.close(index);
-                                that.addUserLogs("进入密码房间，房间号:" + that.roomId + ",密码:" + value);
-                            });
+                        layer.prompt({
+                            formType: 1,
+                            title: this.lang.please_enter_password
+                        }, function (value, index, elem) {
+                            that.createPasswordRoom(value);
+                            layer.close(index);
+                            that.addUserLogs(this.lang.enter_password_room + that.roomId + `,${this.lang.password}:` + value);
                         });
-                    }
+                    });
                 }
             },
             // 打开设置
             setting: function () {
                 let that = this;
-                if (window.layer) {
-                    let options = {
-                        type: 1,
-                        fixed: false,
-                        maxmin: false,
-                        shadeClose: true,
-                        area: ['300px', '350px'],
-                        title: "功能设置",
-                        success: function (layero, index) {                            
-                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
-                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
-                            document.querySelector(".layui-layer").style.borderRadius = "15px"
-                            document.querySelector(".layui-layer-content").style.borderRadius = "15px"
-                            window.form.render()
-                        },
-                        content: `
-                        <div class="setting-main">
-                            <div class="setting-main-body">
-                                <ul class="layui-row layui-col-space10">
-                                    <li class="layui-col-xs4">
-                                        <a title="博客" href="https://blog.iamtsm.cn" target="_blank">
-                                            <svg  viewBox="0 0 1024 1024" p-id="4914" width="42px" height="56px" id="blog">
-                                                <path d="M512 520m-480 0a480 480 0 1 0 960 0 480 480 0 1 0-960 0Z" fill="#F8C5B9" p-id="4915">
-                                                </path>
-                                                <path
-                                                    d="M512 1020c-276 0-500-224-500-500S236 20 512 20s500 224 500 500-224.8 500-500 500z m0-960C258.4 60 52 266.4 52 520s206.4 460 460 460 460-206.4 460-460S765.6 60 512 60z"
-                                                    p-id="4916"></path>
-                                                <path
-                                                    d="M277.6 276c5.6 0.8 9.6-4 8.8-9.6-8-46.4-43.2-227.2-100-237.6C132 18.4 12.8 137.6 32 189.6c20.8 56 200 80.8 245.6 86.4z"
-                                                    fill="#F8C5B9" p-id="4917"></path>
-                                                <path
-                                                    d="M278.4 296h-3.2c-88-10.4-238.4-37.6-261.6-99.2C-0.8 158.4 32 112 52.8 87.2 89.6 44 148 1.6 189.6 9.6c33.6 6.4 81.6 56 116 254.4 1.6 8.8-0.8 17.6-7.2 24-5.6 4.8-12.8 8-20 8zM178.4 48c-20 0-60.8 24.8-95.2 64.8-28 32.8-36.8 59.2-32.8 69.6 9.6 27.2 96 56 212.8 71.2-24-129.6-59.2-201.6-81.6-205.6h-3.2z"
-                                                    p-id="4918"></path>
-                                                <path
-                                                    d="M751.2 276c-5.6 0.8-9.6-4-8.8-9.6 8-46.4 43.2-227.2 100-237.6 54.4-10.4 172.8 108.8 153.6 160.8-20.8 56-199.2 80.8-244.8 86.4z"
-                                                    fill="#F8C5B9" p-id="4919"></path>
-                                                <path
-                                                    d="M750.4 296c-8 0-15.2-3.2-20-8.8-6.4-6.4-8.8-15.2-7.2-24C757.6 64.8 804.8 16 838.4 9.6c41.6-8 100 35.2 136.8 77.6 20.8 24.8 53.6 71.2 40 109.6-23.2 61.6-173.6 88.8-261.6 99.2h-3.2z m99.2-248h-4c-22.4 4-56.8 76-81.6 205.6 116-15.2 202.4-44 212.8-71.2 4-10.4-4.8-36.8-32.8-69.6-33.6-40-74.4-64.8-94.4-64.8zM509.6 859.2c-82.4 0-128.8-58.4-130.4-61.6L361.6 776h284l-12 20.8c-1.6 2.4-37.6 61.6-122.4 62.4h-1.6z m-84.8-56c18.4 13.6 47.2 28.8 84.8 28.8h1.6c38.4-0.8 64-15.2 80-28.8H424.8z"
-                                                    p-id="4920"></path>
-                                                <path
-                                                    d="M354.4 789.6c-12.8 0-21.6-12.8-16.8-24.8 15.2-37.6 59.2-104.8 175.2-103.2 113.6 1.6 158.4 65.6 174.4 102.4 5.6 12-3.2 25.6-16.8 25.6H354.4z"
-                                                    fill="#EF866D" p-id="4921"></path>
-                                                <path
-                                                    d="M669.6 803.2H354.4c-10.4 0-20.8-5.6-26.4-14.4-5.6-8.8-7.2-20-3.2-29.6 17.6-41.6 64-111.2 184-111.2h4c121.6 1.6 168.8 69.6 186.4 110.4 4 9.6 3.2 21.6-2.4 30.4-6.4 8.8-16 14.4-27.2 14.4z m-160.8-128c-104 0-144 59.2-158.4 94.4-0.8 1.6 0 3.2 0.8 4 0.8 0.8 1.6 2.4 4 2.4h315.2c2.4 0 3.2-1.6 4-2.4 0.8-0.8 1.6-2.4 0-4.8-15.2-34.4-56-92.8-161.6-94.4-1.6 0.8-3.2 0.8-4 0.8z"
-                                                    p-id="4922"></path>
-                                                <path
-                                                    d="M368 674.4c-3.2 0-6.4-0.8-9.6-3.2-5.6-4.8-6.4-13.6-0.8-19.2 36.8-40 88.8-60.8 155.2-59.2 64 0.8 115.2 20.8 152 58.4 5.6 5.6 4.8 14.4 0 19.2-5.6 5.6-14.4 4.8-19.2 0-31.2-32-76-48.8-132.8-49.6-57.6-0.8-103.2 16-134.4 50.4-3.2 1.6-7.2 3.2-10.4 3.2z"
-                                                    p-id="4923"></path>
-                                                <path
-                                                    d="M368 618.4c-3.2 0-6.4-0.8-9.6-3.2-5.6-4.8-6.4-13.6-0.8-19.2 36.8-40 88.8-60.8 155.2-59.2 64 0.8 115.2 20.8 152 58.4 5.6 5.6 4.8 14.4 0 19.2-5.6 5.6-14.4 4.8-19.2 0-31.2-32-76-48.8-132.8-49.6-57.6-0.8-103.2 16-134.4 50.4-3.2 1.6-7.2 3.2-10.4 3.2z"
-                                                    p-id="4924"></path>
-                                                <path d="M456 734.4m-24 0a24 24 0 1 0 48 0 24 24 0 1 0-48 0Z" p-id="4925"></path>
-                                                <path d="M568 734.4m-24 0a24 24 0 1 0 48 0 24 24 0 1 0-48 0Z" p-id="4926"></path>
-                                                <path d="M133.6 655.2a87.2 40 0 1 0 174.4 0 87.2 40 0 1 0-174.4 0Z" fill="#EF866D" p-id="4927">
-                                                </path>
-                                                <path d="M709.6 655.2a87.2 40 0 1 0 174.4 0 87.2 40 0 1 0-174.4 0Z" fill="#EF866D" p-id="4928">
-                                                </path>
-                                                <path d="M284 478.4a72 48 90 1 0 96 0 72 48 90 1 0-96 0Z" p-id="4929"></path>
-                                                <path d="M644 478.4a72 48 90 1 0 96 0 72 48 90 1 0-96 0Z" p-id="4930"></path>
-                                                <path d="M353.6 473.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4931"></path>
-                                                <path d="M329.6 465.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4932"></path>
-                                                <path d="M705.6 473.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4933"></path>
-                                                <path d="M681.6 465.6m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0Z" fill="#FFFFFF" p-id="4934"></path>
-                                            </svg>
-                                            <cite>个人博客</cite>
-                                        </a>
-                                    </li>
-
-                                    <li class="layui-col-xs4">
-                                        <a title="github" href="https://github.com/iamtsm" target="_blank">
-                                            <svg width="42px" height="56px" id="github" viewBox="0 0 1049 1024" p-id="2500" width="64"
-                                                height="64">
-                                                <path
-                                                    d="M524.979332 0C234.676191 0 0 234.676191 0 524.979332c0 232.068678 150.366597 428.501342 358.967656 498.035028 26.075132 5.215026 35.636014-11.299224 35.636014-25.205961 0-12.168395-0.869171-53.888607-0.869171-97.347161-146.020741 31.290159-176.441729-62.580318-176.441729-62.580318-23.467619-60.841976-58.234462-76.487055-58.234463-76.487055-47.804409-32.15933 3.476684-32.15933 3.476685-32.15933 53.019436 3.476684 80.83291 53.888607 80.83291 53.888607 46.935238 79.963739 122.553122 57.365291 152.97411 43.458554 4.345855-33.897672 18.252593-57.365291 33.028501-70.402857-116.468925-12.168395-239.022047-57.365291-239.022047-259.012982 0-57.365291 20.860106-104.300529 53.888607-140.805715-5.215026-13.037566-23.467619-66.926173 5.215027-139.067372 0 0 44.327725-13.906737 144.282399 53.888607 41.720212-11.299224 86.917108-17.383422 131.244833-17.383422s89.524621 6.084198 131.244833 17.383422C756.178839 203.386032 800.506564 217.29277 800.506564 217.29277c28.682646 72.1412 10.430053 126.029806 5.215026 139.067372 33.897672 36.505185 53.888607 83.440424 53.888607 140.805715 0 201.64769-122.553122 245.975415-239.891218 259.012982 19.121764 16.514251 35.636014 47.804409 35.636015 97.347161 0 70.402857-0.869171 126.898978-0.869172 144.282399 0 13.906737 9.560882 30.420988 35.636015 25.205961 208.601059-69.533686 358.967656-265.96635 358.967655-498.035028C1049.958663 234.676191 814.413301 0 524.979332 0z"
-                                                    fill="#191717" p-id="2501"></path>
-                                                <path
-                                                    d="M199.040177 753.571326c-0.869171 2.607513-5.215026 3.476684-8.691711 1.738342s-6.084198-5.215026-4.345855-7.82254c0.869171-2.607513 5.215026-3.476684 8.691711-1.738342s5.215026 5.215026 4.345855 7.82254z m-6.953369-4.345856M219.900283 777.038945c-2.607513 2.607513-7.82254 0.869171-10.430053-2.607514-3.476684-3.476684-4.345855-8.691711-1.738342-11.299224 2.607513-2.607513 6.953369-0.869171 10.430053 2.607514 3.476684 4.345855 4.345855 9.560882 1.738342 11.299224z m-5.215026-5.215027M240.760389 807.459932c-3.476684 2.607513-8.691711 0-11.299224-4.345855-3.476684-4.345855-3.476684-10.430053 0-12.168395 3.476684-2.607513 8.691711 0 11.299224 4.345855 3.476684 4.345855 3.476684 9.560882 0 12.168395z m0 0M269.443034 837.011749c-2.607513 3.476684-8.691711 2.607513-13.906737-1.738342-4.345855-4.345855-6.084198-10.430053-2.607513-13.037566 2.607513-3.476684 8.691711-2.607513 13.906737 1.738342 4.345855 3.476684 5.215026 9.560882 2.607513 13.037566z m0 0M308.555733 853.526c-0.869171 4.345855-6.953369 6.084198-13.037566 4.345855-6.084198-1.738342-9.560882-6.953369-8.691711-10.430053 0.869171-4.345855 6.953369-6.084198 13.037566-4.345855 6.084198 1.738342 9.560882 6.084198 8.691711 10.430053z m0 0M351.145116 857.002684c0 4.345855-5.215026 7.82254-11.299224 7.82254-6.084198 0-11.299224-3.476684-11.299224-7.82254s5.215026-7.82254 11.299224-7.82254c6.084198 0 11.299224 3.476684 11.299224 7.82254z m0 0M391.126986 850.049315c0.869171 4.345855-3.476684 8.691711-9.560882 9.560882-6.084198 0.869171-11.299224-1.738342-12.168395-6.084197-0.869171-4.345855 3.476684-8.691711 9.560881-9.560882 6.084198-0.869171 11.299224 1.738342 12.168396 6.084197z m0 0"
-                                                    fill="#191717" p-id="2502"></path>
-                                            </svg>
-                                            <cite>github</cite>
-                                        </a>
-                                    </li>
-
-                                    <li class="layui-col-xs4" >
-                                        <a title="webrtc检测" onclick="webrtcCheck()">
-                                            <svg id="rtcCheck" viewBox="0 0 1024 1024" p-id="7867" width="42px" height="56px">
-                                                <path
-                                                    d="M824.593094 277.816453l-202.741656 202.741657a20.48 20.48 0 1 1-28.963094-28.963094l202.741657-202.741657-14.481547-14.481546-202.741656 202.741656a20.48 20.48 0 1 1-28.963094-28.963094l217.223203-217.223203a20.48 20.48 0 0 1 28.963094 0l86.889281 86.889281a20.48 20.48 0 0 1 0 28.963094l-217.223203 217.223203a20.48 20.48 0 1 1-28.963094-28.963094l202.741656-202.741656-14.481547-14.481547z m-346.10897 119.038316c2.114306 0.955782 4.054833 2.317048 5.792619 4.054833l304.112484 304.112484a102.4 102.4 0 0 1-144.815469 144.815469l-304.112484-304.112485c-1.737786-1.737786-3.084569-3.692794-4.054833-5.792618a176.72192 176.72192 0 0 1-156.212446-49.077963 176.88576 176.88576 0 0 1-43.097084-180.092517 20.48 20.48 0 0 1 30.324359-11.005975c10.904605 6.820809 47.238806 28.6445 108.756417 65.311776l27.674237-27.99283c-37.145168-62.545801-59.026785-98.966891-65.282814-108.669528a20.48 20.48 0 0 1 10.745308-30.527101 176.90624 176.90624 0 0 1 181.091744 42.764008 176.72192 176.72192 0 0 1 49.077962 156.183483z m-100.270231 129.696733l294.322959 294.322959a61.44 61.44 0 1 0 86.889282-86.889281L465.103175 439.662221a176.55808 176.55808 0 0 1-35.697013 51.192268 176.55808 176.55808 0 0 1-51.192269 35.697013z m-170.056805-64.660106a135.96672 135.96672 0 1 0 78.982357-231.038599c12.64239 20.954798 32.264886 53.871354 58.997822 98.908965a20.48 20.48 0 0 1-3.041125 24.850334l-50.062707 50.64197A20.48 20.48 0 0 1 268.009322 408.440006c-44.74798-26.646046-77.60661-46.297505-98.691742-59.012303a135.84384 135.84384 0 0 0 38.868472 112.43473z m95.1148 337.246263a20.48 20.48 0 0 1-28.963093-28.963093l115.852375-115.852375a20.48 20.48 0 1 1 28.963093 28.963093l-115.852375 115.852375z"
-                                                    fill="#2c2c2c" p-id="7868"></path>
-                                                <path
-                                                    d="M695.504586 777.429821m-21.722321 21.72232a30.72 30.72 0 1 0 43.444641-43.444641 30.72 30.72 0 1 0-43.444641 43.444641Z"
-                                                    fill="#2c2c2c" p-id="7869"></path>
-                                                <path
-                                                    d="M152.446578 871.559875l50.685414-94.130054 43.44464-14.481547 43.444641 43.44464-14.481547 43.444641L181.409671 900.522969z"
-                                                    fill="#2c2c2c" p-id="7870"></path>
-                                            </svg>
-                                            <cite >webrtc检测</cite>
-                                        </a>
-                                    </li>
-                                    <li class="layui-col-xs4" >
-                                        <a title="p2p检测" onclick="p2pCheck()">
-                                            <i class="layui-icon layui-icon-transfer" style="font-size: 40px;" id="p2pCheck"></i>
-                                            <cite >p2p检测</cite>
-                                        </a>
-                                    </li>
-                                    <li class="layui-col-xs4" style="${this.switchData.openTurnServer ? '' : 'display:none;'}">
-                                        <a title="中继设置" onclick="relaySetting()" >
-                                            <svg viewBox="0 0 1130 1024" p-id="8399" width="42px" height="56px">
-                                                <path d="M297.160348 734.608696C129.317843 726.349913 0 702.09447 0 550.662678c0-121.143652 82.543304-228.525635 206.358261-269.824C225.618365 121.143652 365.946435 0 531.033043 0c121.063513 0 231.121252 63.327722 288.901566 165.197913C996.031443 181.715478 1130.852174 327.644383 1130.852174 501.10553 1130.852174 685.576904 982.274226 734.608696 800.678957 734.608696H297.155896z m236.143304-681.182609c-142.905878 0-263.82247 107.45767-274.814887 247.977183l-2.746991 19.286817-19.233391 5.511791C132.073739 353.756383 57.878261 444.678678 57.878261 549.380452c0 123.993043 107.177183 123.53447 241.833182 131.802157h502.904209c151.146852 0 274.810435-24.344487 274.810435-181.394922 0-148.791652-120.916591-272.775791-274.810435-281.043478h-16.490852l-8.240974-13.775026C733.914157 111.286539 640.476383 53.426087 533.2992 53.426087z" fill="#979797" p-id="8400"></path><path d="M667.149357 499.382539h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713s5.743304-14.362713 14.358261-14.362713h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362713 0 8.614957-5.743304 14.362713-14.362713 14.362713z m0 74.680765h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713 0-8.614957 5.743304-14.362713 14.358261-14.362713h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362713s-5.743304 14.362713-14.362713 14.362713z m0 73.247166h-196.759374c-8.614957 0-14.358261-5.743304-14.358261-14.362713s5.743304-14.362713 14.358261-14.362714h196.759374c8.614957 0 14.362713 5.743304 14.362713 14.362714 0 8.614957-5.743304 14.362713-14.362713 14.362713zM342.817391 353.823165v572.037565c0 52.98087 42.611757 95.592626 95.276522 95.592627h254.664348c52.918539 0 95.276522-42.611757 95.276522-95.592627V353.818713C788.034783 300.837843 745.423026 258.226087 692.758261 258.226087H438.093913C385.175374 258.226087 342.817391 300.775513 342.817391 353.818713z" fill="#979797" p-id="8401"></path>
-                                            </svg>
-                                            <cite>中继设置</cite>
-                                        </a>
-                                    </li>
-                                    <li class="layui-col-xs4" style="${this.switchData.openAiChat ? '' : 'display:none;'}">
-                                        <a title="ai智能对话上下文" onclick="sendOpenaiChatWithContext()">
-                                            <i class="layui-icon layui-icon-service" style="font-size: 40px;" id="aiContext"></i>
-                                            <cite>智能理解</cite>
-                                        </a>
-                                    </li>
-                                    <li class="layui-col-xs4" style="${this.switchData.openSendBug ? '' : 'display:none;'}">
-                                        <a title="反馈问题" onclick="sendBugs()" >
-                                            <svg viewBox="0 0 1024 1024" p-id="4621" width="42px" height="56px" id="sendBugs">
-                                                <path d="M360.389512 557.544289l184.919617 0 0 30.819936-184.919617 0 0-30.819936Z" p-id="4622">
-                                                </path>
-                                                <path d="M360.389512 480.981543l308.200384 0 0 30.819936-308.200384 0 0-30.819936Z" p-id="4623">
-                                                </path>
-                                                <path d="M360.389512 404.417773l308.200384 0 0 30.819936-308.200384 0 0-30.819936Z" p-id="4624">
-                                                </path>
-                                                <path
-                                                    d="M511.999488 64.021106c-247.27171 0-447.724091 200.452381-447.724091 447.724091s200.452381 447.724091 447.724091 447.724091 447.724091-200.453405 447.724091-447.724091S759.271198 64.021106 511.999488 64.021106zM761.050728 620.157325c0 34.041304-27.599591 61.639872-61.640895 61.639872l-154.09968 0 0 123.280768L422.029384 681.798221 329.569576 681.798221c-34.040281 0-61.639872-27.599591-61.639872-61.639872L267.929704 373.597837c0-34.040281 27.599591-61.639872 61.639872-61.639872l369.840256 0c34.042327 0 61.640895 27.599591 61.640895 61.639872L761.050728 620.157325z"
-                                                    p-id="4625"></path>
-                                            </svg>
-                                            <cite>反馈问题</cite>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+                let options = {
+                    type: 1,
+                    fixed: false,
+                    maxmin: false,
+                    shadeClose: true,
+                    area: ['300px', '350px'],
+                    title: this.lang.setting,
+                    success: function (layero, index) {                            
+                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
+                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
+                        document.querySelector(".layui-layer").style.borderRadius = "15px"
+                        document.querySelector(".layui-layer-content").style.borderRadius = "15px"
+                        window.form.render()
+                    },
+                    content: `
+                    <div class="setting-main">
+                        <div class="setting-main-body">
+                            <ul class="layui-row layui-col-space10">
+                                <li class="layui-col-xs4">
+                                    <a title="${this.lang.blog}" href="https://blog.iamtsm.cn" target="_blank">
+                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="blog">
+                                            <use xlink:href="#icon-rtc-file-zhu"></use>
+                                        </svg>
+                                        <cite>${this.lang.blog}</cite>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs4">
+                                    <a title="github" href="https://github.com/iamtsm" target="_blank">
+                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;">
+                                            <use xlink:href="#icon-rtc-file-github"></use>
+                                        </svg>
+                                        <cite>github</cite>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs4" >
+                                    <a title="${this.lang.webrtc_check}" onclick="webrtcCheck()">
+                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="rtcCheck">
+                                            <use xlink:href="#icon-rtc-file-gongju"></use>
+                                        </svg>
+                                        <cite>${this.lang.webrtc_check}</cite>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs4" >
+                                    <a title="${this.lang.p2p_check}" onclick="p2pCheck()">
+                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="p2pCheck">
+                                            <use xlink:href="#icon-rtc-file-PP-"></use>
+                                        </svg>
+                                        <cite>${this.lang.p2p_check}</cite>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs4" style="${this.switchData.openTurnServer ? '' : 'display:none;'}">
+                                    <a title="${this.lang.relay_setting}" onclick="relaySetting()">
+                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;">
+                                            <use xlink:href="#icon-rtc-file-yunfuwuqi"></use>
+                                        </svg>
+                                        <cite>${this.lang.relay_setting}</cite>
+                                    </a>
+                                </li>
+                                
+                                <li class="layui-col-xs4" style="${this.switchData.openAiChat ? '' : 'display:none;'}">
+                                    <a title="${this.lang.ai_setting}" onclick="sendOpenaiChatWithContext()">
+                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="aiContext">
+                                            <use xlink:href="#icon-rtc-file-AIzhineng"></use>
+                                        </svg>
+                                        <cite>${this.lang.ai_setting}</cite>
+                                    </a>
+                                </li>
+                                <li class="layui-col-xs4" style="${this.switchData.openSendBug ? '' : 'display:none;'}">
+                                    <a title="${this.lang.feedback}" onclick="sendBugs()" >
+                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="sendBugs">
+                                            <use xlink:href="#icon-rtc-file-yonghufankuibeifen"></use>
+                                        </svg>
+                                        <cite>${this.lang.feedback}</cite>
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
-                        `
-                    }
-                    layer.closeAll(function () {
-                        layer.open(options)
-                    })
+                    </div>
+                    `
                 }
-                this.addUserLogs("打开设置窗口")
+                layer.closeAll(function () {
+                    layer.open(options)
+                })
+                this.addUserLogs(this.lang.open_setting)
             },
             // 打开中继设置面板
             relaySetting: function () {
-                let that = this;
-                if (window.layer) {
-                    let options = {
-                        type: 1,
-                        fixed: false,
-                        maxmin: false,
-                        shadeClose: true,
-                        area: ['300px', '350px'],
-                        title: "中继设置",
-                        success: function (layero, index) {
-                            let active = null;
-                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
-                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
-                            document.querySelector(".layui-layer").style.borderRadius = "15px"
-                            document.querySelector(".layui-layer-content").style.borderRadius = "15px"
-                        },
-                        content: `
-                        <div class="setting-main">
-                            <div class="setting-main-body">
-                                <div class="relayDoc" style="padding: 15px; position: absolute; width: 100%; height: 100%;">
-                                    <p style="text-align: center; font-weight: bold; position: relative; top: 2px; display: block; font-size: 17px;"> 中继服务器当前已 ${notUseRelay ? '“禁用”' : '“启用”'} </p>
-                                    <p style="font-weight: bold; position: relative;  top: 15px; display: block; font-size: 14px;"> 启用中继服务器可以保证在复杂的p2p网络环境下，提供保底的数据中转传输，如果禁用，则是强制走p2p（可在设置中进行p2p检测），可能会出现发送失败！</p>
-                                    <div style="position: relative; margin-top: 140px;">
-                                        <div style="text-align: center;">
-                                            <button onclick="notUseRelay()" type="button" class="layui-btn layui-btn-sm layui-btn-normal" style="margin-right: 45px;"> 启用 </button>
-                                            <button onclick="notUseRelay()" type="button" class="layui-btn layui-btn-sm layui-btn-danger"> 禁用 </button>
-                                        </div>
+                let options = {
+                    type: 1,
+                    fixed: false,
+                    maxmin: false,
+                    shadeClose: true,
+                    area: ['300px', '350px'],
+                    title: this.lang.relay_setting,
+                    success: function (layero, index) {
+                        let active = null;
+                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
+                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
+                        document.querySelector(".layui-layer").style.borderRadius = "15px"
+                        document.querySelector(".layui-layer-content").style.borderRadius = "15px"
+                    },
+                    content: `
+                    <div class="setting-main">
+                        <div class="setting-main-body">
+                            <div class="relayDoc" style="padding: 15px; position: absolute; width: 100%; height: 100%;">
+                                <p style="text-align: center; font-weight: bold; position: relative; top: 2px; display: block; font-size: 17px;"> ${this.lang.relay_server_current} ${useTurn ? this.lang.on : this.lang.off} </p>
+                                <p style="font-weight: bold; position: relative;  top: 15px; display: block; font-size: 14px;"> ${this.lang.relay_server_current_detail} </p>
+                                <div style="position: relative; margin-top: 140px;">
+                                    <div style="text-align: center;">
+                                        <button onclick="useTurn()" type="button" class="layui-btn layui-btn-sm layui-btn-normal" style="margin-right: 45px;"> ${this.lang.on} </button>
+                                        <button onclick="useTurn()" type="button" class="layui-btn layui-btn-sm layui-btn-danger"> ${this.lang.off} </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        `
-                    }
-                    layer.closeAll(function () {
-                        layer.open(options)
-                    })
+                    </div>
+                    `
                 }
-                this.addUserLogs("打开中继设置窗口")
+                layer.closeAll(function () {
+                    layer.open(options)
+                })
+                this.addUserLogs(this.lang.open_relay_setting)
             },
             // 创建/加入音视频房间
             startVideoShare: function () {
                 if (!this.switchData.openVideoShare) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
                 if (this.isScreenShare) {
-                    if (window.layer) {
-                        layer.msg("当前正在屏幕共享中，退出后再试")
-                    }
-                    this.addUserLogs("当前正在屏幕共享中，退出后再试")
+                    layer.msg(this.lang.in_sharing_screen)
+                    this.addUserLogs(this.lang.in_sharing_screen)
                     return
                 }
                 if (this.isLiveShare) {
-                    if (window.layer) {
-                        layer.msg("当前正在直播中，退出后再试")
-                    }
-                    this.addUserLogs("当前正在直播中，退出后再试")
+                    layer.msg(this.lang.in_living)
+                    this.addUserLogs(this.lang.in_living)
                     return
                 }
                 if (this.isVideoShare) {
                     window.Bus.$emit("stopVideoShare")
                     this.isVideoShare = !this.isVideoShare;
-                    this.addUserLogs("结束音视频通话");
+                    this.addUserLogs(this.lang.end_video_call);
                     return  
                 }
                 if (this.isJoined) {
-                    if (window.layer) {
-                        layer.msg("请先退出房间后，再发起音视频通话")
-                    }
-                    this.addUserLogs("请先退出房间后，再发起音视频通话")
+                    layer.msg(this.lang.please_exit_then_join_video)
+                    this.addUserLogs(this.lang.please_exit_then_join_video)
                     return
                 }
                 let that = this;
-                if (window.layer) {
-                    if(that.isShareJoin){ //分享进入
+                if(that.isShareJoin){ //分享进入
+                    that.createMediaRoom("video");
+                    that.socket.emit('message', {
+                        emitType: "startVideoShare",
+                        room: that.roomId,
+                        to : that.socketId
+                    });
+                    that.clickMediaVideo();
+                    that.isVideoShare = !that.isVideoShare;
+                    that.addUserLogs(this.lang.start_video_call);
+                }else{
+                    layer.prompt({
+                        formType: 1,
+                        title: this.lang.please_enter_video_call_room_num
+                    }, function (value, index, elem) {
+                        that.roomId = value;
                         that.createMediaRoom("video");
+                        layer.close(index)
+
                         that.socket.emit('message', {
                             emitType: "startVideoShare",
                             room: that.roomId,
+                            to : that.socketId
                         });
                         that.clickMediaVideo();
                         that.isVideoShare = !that.isVideoShare;
-                        that.addUserLogs("开始音视频通话");
-                    }else{
-                        layer.prompt({
-                            formType: 1,
-                            title: '请输入音视频通话房间号'
-                        }, function (value, index, elem) {
-                            that.roomId = value;
-                            that.createMediaRoom("video");
-                            layer.close(index)
-    
-                            that.socket.emit('message', {
-                                emitType: "startVideoShare",
-                                room: that.roomId,
-                            });
-                            that.clickMediaVideo();
-                            that.isVideoShare = !that.isVideoShare;
-                            that.addUserLogs("开始音视频通话");
-                        });
-                    }
+                        that.addUserLogs(this.lang.start_video_call);
+                    });
                 }
             },
             // 创建/加入屏幕共享房间
             startScreenShare: function () {
                 if (!this.switchData.openScreenShare) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
                 if (this.isVideoShare) {
-                    if (window.layer) {
-                        layer.msg("当前正在音视频通话中，退出后再试")
-                    }
-                    this.addUserLogs("当前正在音视频通话中，退出后再试")
+                    layer.msg(this.lang.in_videoing)
+                    this.addUserLogs(this.lang.in_videoing)
                     return
                 }
                 if (this.isLiveShare) {
-                    if (window.layer) {
-                        layer.msg("当前正在直播中，退出后再试")
-                    }
-                    this.addUserLogs("当前正在直播中，退出后再试")
+                    layer.msg(this.lang.in_living)
+                    this.addUserLogs(this.lang.in_living)
                     return
                 }
                 if (this.isScreenShare) {
                     window.Bus.$emit("stopScreenShare")
                     this.isScreenShare = !this.isScreenShare;
-                    this.addUserLogs("结束远程屏幕共享");
+                    this.addUserLogs(this.lang.end_screen_sharing);
                     return   
                 }
                 if (this.isJoined) {
-                    if (window.layer) {
-                        layer.msg("请先退出房间后，再发起屏幕共享")
-                    }
-                    this.addUserLogs("请先退出房间后，再发起屏幕共享")
+                    layer.msg(this.lang.please_exit_then_join_screen)
+                    this.addUserLogs(this.lang.please_exit_then_join_screen)
                     return
                 }
                 let that = this;
-                if (window.layer) {
-                    if(that.isShareJoin){ //分享进入
+                if(that.isShareJoin){ //分享进入
+                    that.createMediaRoom("screen");
+                    that.socket.emit('message', {
+                        emitType: "startScreenShare",
+                        room: that.roomId,
+                        to : that.socketId
+                    });
+                    that.clickMediaScreen();
+                    that.isScreenShare = !that.isScreenShare;
+                    that.addUserLogs(this.lang.start_screen_sharing);
+                }else{
+                    layer.prompt({
+                        formType: 1,
+                        title: this.lang.please_enter_screen_sharing_room_num,
+                    }, function (value, index, elem) {
+                        that.roomId = value;
                         that.createMediaRoom("screen");
+                        layer.close(index)
+
                         that.socket.emit('message', {
                             emitType: "startScreenShare",
                             room: that.roomId,
+                            to : that.socketId
                         });
                         that.clickMediaScreen();
                         that.isScreenShare = !that.isScreenShare;
-                        that.addUserLogs("开始远程屏幕共享");
-                    }else{
-                        layer.prompt({
-                            formType: 1,
-                            title: '请输入屏幕共享房间号',
-                        }, function (value, index, elem) {
-                            that.roomId = value;
-                            that.createMediaRoom("screen");
-                            layer.close(index)
-    
-                            that.socket.emit('message', {
-                                emitType: "startScreenShare",
-                                room: that.roomId,
-                            });
-                            that.clickMediaScreen();
-                            that.isScreenShare = !that.isScreenShare;
-                            that.addUserLogs("开始远程屏幕共享");
-                        });
-                    }
+                        that.addUserLogs(this.lang.this.lang.start_screen_sharing);
+                    });
                 }
             },
             // 创建/加入直播房间
             startLiveShare: function () {
                 if (!this.switchData.openLiveShare) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
                 if (this.isVideoShare) {
-                    if (window.layer) {
-                        layer.msg("当前正在音视频通话中，退出后再试")
-                    }
-                    this.addUserLogs("当前正在音视频通话中，退出后再试")
+                    layer.msg(this.lang.in_videoing)
+                    this.addUserLogs(this.lang.in_videoing)
                     return
                 }
                 if (this.isScreenShare) {
-                    if (window.layer) {
-                        layer.msg("当前正在屏幕共享中，退出后再试")
-                    }
-                    this.addUserLogs("当前正在屏幕共享中，退出后再试")
+                    layer.msg(this.lang.in_sharing_screen)
+                    this.addUserLogs(this.lang.in_sharing_screen)
                     return
                 }
                 if (this.isLiveShare) {
                     window.Bus.$emit("stopLiveShare")
                     this.isLiveShare = !this.isLiveShare;
-                    this.addUserLogs("结束直播");
+                    this.addUserLogs(this.lang.end_live);
                     return   
                 }
-
                 if (this.isJoined) {
-                    if (window.layer) {
-                        layer.msg("请先退出房间后，再进入直播")
-                    }
-                    this.addUserLogs("请先退出房间后，再进入直播")
+                    layer.msg(this.lang.please_exit_then_join_live)
+                    this.addUserLogs(this.lang.please_exit_then_join_live)
                     return
                 }
                 let that = this;
@@ -1360,14 +1304,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         that.socket.emit('message', {
                             emitType: "startLiveShare",
                             room: that.roomId,
+                            to : that.socketId
                         });
                         that.clickMediaLive();
                         that.isLiveShare = !that.isLiveShare;
-                        that.addUserLogs("进入直播");
+                        that.addUserLogs(this.lang.start_live);
                     }else{
                         layer.prompt({
                             formType: 1,
-                            title: '请输入直播房间号',
+                            title: this.lang.please_enter_live_room_num,
                         }, function (value, index, elem) {
                             that.roomId = value;
                             that.createMediaRoom("live");
@@ -1376,59 +1321,89 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             that.socket.emit('message', {
                                 emitType: "startLiveShare",
                                 room: that.roomId,
+                                to : that.socketId
                             });
                             that.clickMediaLive();
                             that.isLiveShare = !that.isLiveShare;
-                            that.addUserLogs("进入直播");
+                            that.addUserLogs(this.lang.start_live);
                         });
                     }
                 }
             },
-            // 创建/加入远程画笔房间
-            startRemoteDraw : function(){
+            // 打开画笔
+            openRemoteDraw : function(){
                 if (!this.switchData.openRemoteDraw) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
+
+                if (!this.isJoined) {
+                    layer.msg(this.lang.please_join_then_draw)
+                    this.addUserLogs(this.lang.please_join_then_draw)
+                    return
+                }
+
+                // 触发draw.js中的方法
+                window.Bus.$emit("openDraw", {
+                    openCallback: () => {
+                        this.socket.emit('message', {
+                            emitType: "startRemoteDraw",
+                            room: this.roomId,
+                            to: this.socketId
+                        });
+                    },
+                    closeCallback: (drawCount) => {
+                        this.socket.emit('message', {
+                            emitType: "stopRemoteDraw",
+                            room: this.roomId,
+                            to: this.socketId,
+                            drawCount : drawCount
+                        });
+                    },
+                    localDrawCallback : (data) => {
+                        Object.entries(this.remoteMap).forEach(([id, remote]) => {
+                            if(remote && remote.sendDataChannel){
+                                const sendDataChannel = remote.sendDataChannel;
+                                if (!sendDataChannel || sendDataChannel.readyState !== 'open') {
+                                    this.addSysLogs("sendDataChannel error in draw")
+                                    return;
+                                }
+                                sendDataChannel.send(JSON.stringify(data));
+                            }
+                        });
+                    }
+                })
             },
             // 开始本地录制
-            startScreen: function () {
+            openLocalScreen: function () {
+                let that = this;
+
                 if (!this.switchData.openScreen) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
+
                 if (this.isMobile) {
-                    if (window.layer) {
-                        layer.msg("移动端暂不支持屏幕录制")
-                    }
-                    this.addUserLogs("移动端暂不支持屏幕录制")
+                    layer.msg(this.lang.mobile_not_support_recording)
+                    this.addUserLogs(this.lang.mobile_not_support_recording)
                     return
                 }
-                if (!this.isScreen) {
-                    let that = this;
-                    if (window.layer) {
-                        layer.confirm("是否进行本地屏幕录制", (index) => {
-                            window.Bus.$emit("startScreen")
-                            that.socket.emit('message', {
-                                emitType: "startScreen",
-                                room: this.roomId,
-                            });
-                            that.addUserLogs("开始本地屏幕录制");
-                        }, (index) => {
-                            this.isScreen = !this.isScreen;
-                            layer.close(index)
-                        })
-                    }
-                } else {
-                    window.Bus.$emit("stopScreen", (res) => {
+
+                // 触发screen.js中的方法
+                window.Bus.$emit("openLocalScreen", {
+                    openCallback : () => {
+                        that.socket.emit('message', {
+                            emitType: "startScreen",
+                            room: this.roomId,
+                            to : this.socketId
+                        });
+                        that.addUserLogs(this.lang.start_local_screen_recording);
+                    },
+                    closeCallback : (res) => {
                         this.receiveFileRecoderList.push({
-                            id: "网页录屏",
+                            id: this.lang.web_screen_recording,
                             nickName : this.nickName,
                             href: res.src,
                             style: 'color: #ff5722;text-decoration: underline;',
@@ -1442,72 +1417,74 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         })
                         this.socket.emit('message', {
                             emitType: "stopScreen",
+                            to : this.socketId,
                             room: this.roomId,
                             size: res.size,
                             cost: res.times
                         });
-                        this.addUserLogs("结束本地屏幕录制");
-                    })
-                }
-                this.isScreen = !this.isScreen;
+                        this.addUserLogs(this.lang.end_local_screen_recording);
+                    }
+                });
             },
             // 打开公共聊天室
             openChatingComm: function () {
                 if (!this.switchData.openCommRoom) {
-                    if (window.layer) {
-                        layer.msg("当前功能已暂时关闭，有问题可以加群交流")
-                    }
-                    this.addUserLogs("当前功能已暂时关闭，有问题可以加群交流")
+                    layer.msg(this.lang.feature_close)
+                    this.addUserLogs(this.lang.feature_close)
                     return
                 }
                 let that = this;
-                if (window.layer) {
-                    let options = {
-                        type: 1,
-                        fixed: false, //不固定
-                        maxmin: false,
-                        area: ['600px', '600px'],
-                        title: "公共聊天频道",
-                        success: function (layero, index) {
-                            let lIndex = layer.load(1);
-                            setTimeout(() => {
-                                layer.close(lIndex)
-                                that.chatingCommTpl();
-                            }, 300);
-                        },
-                        content: `
-                            <div class="layui-col-sm12" style="padding: 15px;">
-                                <div class="layui-card" id="chating_comm_tpl_view" style="padding: 5px;overflow-x: hidden;"> </div>
-                                <script id="chating_comm_tpl" type="text/html">
-                                    <div style="text-align: center; color: #000000; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> -------- 仅展示10条历史消息 -------- </div>
-                                    {{#  layui.each(d, function(index, info){ }}
-                                    <div style="margin-bottom: 30px;display: inline-flex;">
-                                        <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
-                                        <div style="margin-left: 15px; margin-top: -5px;">
-                                            <div style="word-break: break-all;"> <small>房间号: <b>{{info.room}}</b></small> - <small>用户: <b>{{info.socketId}}</b></small> - <small>时间: <b>{{info.timeAgo}}</b></small> </div>
-                                            <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{info.msg}} </b></div>
-                                        </div>
-                                    </div>
-                                    {{#  }); }}
-                                </script>
-                            </div>
-                            <div style="bottom: 0px; position: absolute; width: 100%; padding: 20px;">
-                                <textarea style="border-radius: 15px;" maxlength="50000" id="chating_comm_value" class="layui-textarea" placeholder="文明发言，理性交流 ~"></textarea>
-                                <button style="float: right;margin-top: 10px;" onclick="sendChatingComm()" type="button" class="layui-btn layui-btn-normal layui-btn-sm">发言</button>
-                            </div>
-                        `
-                    }
-                    if (this.isMobile) {
-                        delete options.area
-                    }
-                    layer.closeAll(function () {
-                        let index = layer.open(options)
-                        if (that.isMobile) {
-                            layer.full(index)
+                let options = {
+                    type: 1,
+                    fixed: false, //不固定
+                    maxmin: false,
+                    shadeClose : true,
+                    area: ['600px', '600px'],
+                    title: this.lang.public_chat_channel,
+                    success: function (layero, index) {
+                        let lIndex = layer.load(1);
+                        setTimeout(() => {
+                            layer.close(lIndex)
+                            that.chatingCommTpl();
+                        }, 300);
+
+                        if(window.tlrtcfile.chatKeydown){
+                            tlrtcfile.chatKeydown(document.getElementById("chating_comm_value"), sendChatingComm)
                         }
-                    })
+                    },
+                    content: `
+                        <div class="layui-col-sm12" style="padding: 15px;">
+                            <div class="layui-card" id="chating_comm_tpl_view" style="padding: 5px;overflow-x: hidden;"> </div>
+                            <script id="chating_comm_tpl" type="text/html">
+                                <div style="text-align: center; color: #000000; font-size: 12px;margin-top: -5px; margin-bottom: 20px;"> -------- ${this.lang.only_show}${this.switchData.chatingCommCount || 10}${this.lang.history_msg} -------- </div>
+                                {{#  layui.each(d, function(index, info){ }}
+                                <div style="margin-bottom: 30px;display: inline-flex;">
+                                    <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
+                                    <div style="margin-left: 15px; margin-top: -5px;">
+                                        <div style="word-break: break-all;"> <small>${this.lang.room}: <b>{{info.room}}</b></small> - <small>${this.lang.user}: <b>{{info.socketId}}</b></small> - <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> </div>
+                                        <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{info.msg}} </b></div>
+                                    </div>
+                                </div>
+                                {{#  }); }}
+                            </script>
+                        </div>
+                        <div class="chating_input_body">
+                            <textarea maxlength="50000" id="chating_comm_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
+                            <span class="chating_send_body chating_send_body_span">shift+enter ${this.lang.enter_send} </span>
+                            <button onclick="sendChatingComm()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
+                        </div>
+                    `
                 }
-                this.addUserLogs("打开公共聊天面板")
+                if (this.isMobile) {
+                    delete options.area
+                }
+                layer.closeAll(function () {
+                    let index = layer.open(options)
+                    if (that.isMobile) {
+                        layer.full(index)
+                    }
+                })
+                this.addUserLogs(this.lang.open_public_chat_panel)
             },
             // 公共聊天室渲染数据
             chatingCommTpl: function () {
@@ -1555,34 +1532,28 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             // 发送公共聊天室消息
             sendChatingComm: function () {
                 if (!this.isJoined) {
-                    if (window.layer) {
-                        layer.msg("请先加入房间，才能发言哦")
-                    }
-                    this.addUserLogs("请先加入房间，才能发言哦")
+                    layer.msg(this.lang.please_join_then_send)
+                    this.addUserLogs(this.lang.please_join_then_send)
                     return
                 }
                 let content = document.querySelector("#chating_comm_value").value;
                 if (content === '' || content === undefined) {
-                    if (window.layer) {
-                        layer.msg("请先填写内容哦")
-                    }
-                    this.addUserLogs("请先填写内容哦")
+                    layer.msg(this.lang.please_fill_content)
+                    this.addUserLogs(this.lang.please_fill_content)
                     return
                 }
                 if (content.length > 1000) {
-                    if (window.layer) {
-                        layer.msg("内容太长啦，不能超过1000个字")
-                    }
-                    this.addUserLogs("内容太长啦，不能超过1000个字")
+                    layer.msg(this.lang.content_max_1000)
+                    this.addUserLogs(this.lang.content_max_1000)
                     return
                 }
                 this.socket.emit('chatingComm', {
-                    msg: encodeURIComponent(content),
+                    msg: tlrtcfile.escapeStr(content),
                     room: this.roomId,
                     socketId: this.socketId,
                 });
 
-                this.addUserLogs("公共频道发言成功");
+                this.addUserLogs(this.lang.public_channel_send_done);
 
                 document.querySelector("#chating_comm_value").value = ''
             },
@@ -1594,8 +1565,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         type: 1,
                         fixed: false, //不固定
                         maxmin: false,
+                        shadeClose : true,
                         area: ['600px', '600px'],
-                        title: `【${this.roomId}】` + "聊天频道",
+                        title: `【${this.roomId}】` + this.lang.chat_channel,
                         success: function (layero, index) {
                             if (window.layer && window.layui && window.layedit) {
                                 that.txtEditId = layedit.build('chating_room_value', {
@@ -1603,7 +1575,18 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                     height: 120
                                 });
                             }
+
                             that.chatingRoomTpl();
+
+                            if(window.tlrtcfile.chatKeydown){
+                                let textareaIframe = document.getElementsByTagName("iframe");
+                                if(textareaIframe && textareaIframe.length === 1){
+                                    tlrtcfile.chatKeydown(
+                                        document.getElementsByTagName("iframe")[0].contentDocument.body, 
+                                        sendChatingRoom
+                                    )
+                                }
+                            }
                         },
                         content: `
                             <div class="layui-col-sm12" style="padding: 15px;">
@@ -1615,9 +1598,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                                 <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
                                                 <div style="margin-left: 15px; margin-top: -5px;width:100%;">
                                                     <div style="word-break: break-all;"> 
-                                                        <small>用户: <b>{{info.nickName}}</b></small> - 
+                                                        <small>${this.lang.user}: <b>{{info.nickName}}</b></small> - 
                                                         <small>id: <b>{{info.socketId}}</b></small> - 
-                                                        <small>时间: <b>{{info.timeAgo}}</b></small> 
+                                                        <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
                                                     </div>
                                                     <div style="margin-top: 5px;word-break: break-all;width: 90%;"> 
                                                         <b style="font-weight: bold; font-size: large;"> {{- info.content}} </b>
@@ -1628,8 +1611,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                             <div style="margin-bottom: 30px;display: inline-flex;width:100%;">
                                                 <div style="margin-right: 15px; margin-top: -5px;width:100%;text-align: right;">
                                                     <div style="word-break: break-all;"> 
-                                                        <small>我: {{info.nickName}} </small> - 
-                                                        <small>时间: <b>{{info.timeAgo}}</b></small> 
+                                                        <small>${this.lang.self}: {{info.nickName}} </small> - 
+                                                        <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
                                                     </div>
                                                     <div style="margin-top: 5px;word-break: break-all;width: 90%; margin-left: 10%;"> 
                                                         <b style="font-weight: bold; font-size: large;"> {{- info.content}} </b>
@@ -1641,9 +1624,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                     {{#  }); }}
                                 </script>
                             </div>
-                            <div style="bottom: 0px; position: absolute; width: 100%; padding: 20px;">
-                                <textarea style="border-radius: 15px;" maxlength="50000" id="chating_room_value" class="layui-textarea" placeholder="文明发言，理性交流 ~"></textarea>
-                                <button style="float: right;margin-top: 10px;" onclick="sendChatingRoom()" type="button" class="layui-btn layui-btn-normal layui-btn-sm">发言</button>
+                            <div class="chating_input_body">
+                                <textarea maxlength="50000" id="chating_room_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
+                                <span class="chating_send_body chating_send_body_span">shift+enter ${this.lang.enter_send} </span>
+                                <button onclick="sendChatingRoom()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                             </div>
                         `
                     }
@@ -1657,7 +1641,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         }
                     })
                 }
-                this.addUserLogs("打开房间聊天面板")
+                this.addUserLogs(this.lang.open_room_chat_panel)
             },
             // 房间内群聊渲染
             chatingRoomTpl: function () {
@@ -1693,37 +1677,29 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             // 房间内群聊发言
             sendChatingRoom: function () {
                 if (!this.isJoined) {
-                    if (window.layer) {
-                        layer.msg("请先加入房间，再发送内容")
-                    }
-                    this.addUserLogs("请先加入房间，再发送内容");
+                    layer.msg(this.lang.please_join_then_send)
+                    this.addUserLogs(this.lang.please_join_then_send);
                     return
                 }
                 if (!this.hasManInRoom) {
-                    if (window.layer) {
-                        layer.msg("房间内至少需要两个人才能发送内容")
-                    }
-                    this.addUserLogs("房间内至少需要两个人才能发送内容");
+                    layer.msg(this.lang.room_least_two_can_send_content)
+                    this.addUserLogs(this.lang.room_least_two_can_send_content);
                     return
                 }
                 let realContent = layedit.getContent(this.txtEditId)
                 if (realContent.length <= 0) {
-                    if (window.layer) {
-                        layer.msg("请输入文本内容")
-                    }
-                    this.addUserLogs("请输入文本内容");
+                    layer.msg(this.lang.please_enter_content)
+                    this.addUserLogs(this.lang.please_enter_content);
                     return
                 }
                 if (realContent.length > 10000) {
-                    if (window.layer) {
-                        layer.msg("文字内容过长，长度最多1w单词!")
-                    }
-                    this.addUserLogs("文字内容过长，长度最多1w单词");
+                    layer.msg(this.lang.content_max_10000)
+                    this.addUserLogs(this.lang.content_max_10000);
                     return
                 }
 
                 this.socket.emit('chatingRoom', {
-                    content: encodeURIComponent(realContent),
+                    content: tlrtcfile.escapeStr(realContent),
                     room: this.roomId,
                     from: this.socketId,
                     nickName : this.nickName,
@@ -1741,24 +1717,20 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 this.chatingRoomTpl();
 
-                layer.msg("文本内容发送完毕")
-                this.addUserLogs("文本内容发送完毕");
+                layer.msg(this.lang.text_send_done)
+                this.addUserLogs(this.lang.text_send_done);
                 
                 layedit.setContent(this.txtEditId, "", false)
             },
             // 中继信息提示
             useTurnMsg: function () {
-                if (window.layer) {
-                    layer.msg("当前已启用中继服务器，更多信息请到设置查看")
-                }
-                this.addUserLogs("当前已启用中继服务器，更多信息请到设置查看")
+                layer.msg(this.lang.relay_on)
+                this.addUserLogs(this.lang.relay_on)
             },
             // 当前网络状态
             networkMsg: function () {
-                if (window.layer) {
-                    layer.msg("当前网络状态为" + (this.network !== 'wifi' ? '移动流量' : this.network))
-                }
-                this.addUserLogs("当前网络状态为" + (this.network !== 'wifi' ? '移动流量' : this.network))
+                layer.msg(this.lang.current_network + (this.network !== 'wifi' ? this.lang.mobile_data : this.network))
+                this.addUserLogs(this.lang.current_network + (this.network !== 'wifi' ? this.lang.mobile_data : this.network))
             },
             // 添加弹窗
             addPopup: function (msg) {
@@ -1769,11 +1741,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             // 记录系统日志
             addSysLogs: function (msg) {
-                this.addLogs(msg, "【系统日志】: ")
+                this.addLogs(msg, "【"+this.lang.sys_log+"】: ")
             },
             // 记录用户操作日志
             addUserLogs: function (msg) {
-                this.addLogs(msg, "【操作日志】: ")
+                this.addLogs(msg, "【"+this.lang.op_log+"】: ")
             },
             // 记录日志
             addLogs: function (msg, type) {
@@ -1789,88 +1761,88 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             // 清空日志
             cleanLogs: function () {
                 this.logs = []
-                this.addSysLogs("清空日志")
+                this.addSysLogs(this.lang.clear_log)
             },
             // 发送建议反馈
             sendBugs: function () {
-                if (window.layer) {
-                    let that = this;
-                    $("#sendBugs").removeClass("layui-anim-rotate")
-                    setTimeout(() => {
-                        $("#sendBugs").addClass("layui-anim-rotate")
-                    }, 50)
-                    setTimeout(() => {
-                        layer.prompt({
-                            formType: 2,
-                            title: '请描述您需要反馈的问题',
-                        }, function (value, index, elem) {
-                            that.socket.emit('message', {
-                                emitType: "sendBugs",
-                                msg: value,
-                                room: that.roomId,
-                            });
-                            layer.msg("问题反馈成功，更多问题可以加群交流，将更快解决")
-                            layer.close(index);
-                            that.addUserLogs("问题反馈成功，更多问题可以加群交流，将更快解决 ,问题:" + value);
+                let that = this;
+                $("#sendBugs").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#sendBugs").addClass("layui-anim-rotate")
+                }, 50)
+                setTimeout(() => {
+                    layer.prompt({
+                        formType: 2,
+                        title: that.lang.please_describe_your_feedback,
+                    }, function (value, index, elem) {
+                        that.socket.emit('message', {
+                            emitType: "sendBugs",
+                            msg: value,
+                            room: that.roomId,
+                            to: that.socketId
                         });
-                    }, 500);
-                }
+                        layer.msg(that.lang.send_bug_info_ok)
+                        layer.close(index);
+                        that.addUserLogs(that.lang.send_bug_info_ok + ", " + value);
+                    });
+                }, 500);
             },
             // 随机刷新房间号
             refleshRoom: function () {
                 if (!this.isJoined) {
                     this.roomId = parseInt(Math.random() * 100000);
                     this.addPopup({
-                        title : "刷新房间",
-                        msg : "你刷新了房间号, 当前房间号为 " + this.roomId
+                        title : this.lang.refresh_room,
+                        msg : this.lang.you_refresh_room + this.roomId
                     });
-                    this.addUserLogs("你刷新了房间号, 当前房间号为 " + this.roomId);
+                    this.addUserLogs(this.lang.you_refresh_room + this.roomId);
                 }
             },
             // 复制分享房间url
             shareUrl: function () {
                 let that = this;
-                if (window.layer) {
-                    layer.closeAll(function () {
-                        layer.open({
-                            type: 1,
-                            closeBtn: 0,
-                            fixed: true,
-                            maxmin: false,
-                            shadeClose: true,
-                            area: ['350px', '380px'],
-                            title: "分享加入房间",
-                            success: function (layero, index) {
-                                let content = window.location.href + "#r="+that.roomId+"&t="+that.roomType;
-                                document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
-                                document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
-                                document.querySelector(".layui-layer").style.borderRadius = "8px";
-                                if(window.tlrtcfile.getQrCode){
-                                    tlrtcfile.getQrCode("tl-rtc-file-room-share-image", content)
-                                }
+                layer.closeAll(function () {
+                    layer.open({
+                        type: 1,
+                        closeBtn: 0,
+                        fixed: true,
+                        maxmin: false,
+                        shadeClose: true,
+                        area: ['350px', '380px'],
+                        title: that.lang.share_join_room,
+                        success: function (layero, index) {
+                            let content = window.tlrtcfile.addUrlHashParams({
+                                r : that.roomId,
+                                t : that.roomType
+                            });
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                            document.querySelector(".layui-layer").style.borderRadius = "8px";
+                            if(window.tlrtcfile.getQrCode){
+                                tlrtcfile.getQrCode("tl-rtc-file-room-share-image", content)
+                            }
 
-                                document.querySelector("#shareUrl").setAttribute("data-clipboard-text", content);
-                                let clipboard = new ClipboardJS('#shareUrl');
-                                clipboard.on('success', function (e) {
-                                    e.clearSelection();
-                                    setTimeout(() => {
-                                        layer.msg("复制房间链接成功!")
-                                    }, 500);
-                                });
-                                that.addUserLogs("复制房间链接成功");
-                            },
-                            content: `
-                                <div style="margin-top: 20px; text-align: center; margin-bottom: 25px;">
-                                    <div id="tl-rtc-file-room-share"> 分享自动加入房间链接已复制 
-                                        <i class="layui-icon layui-icon-ok-circle" style="margin-top: 3px; position: absolute; margin-left: 10px; color: #96e596; font-weight: 300;"></i>
-                                    </div>
+                            document.querySelector("#shareUrl").setAttribute("data-clipboard-text", content);
+                            let clipboard = new ClipboardJS('#shareUrl');
+                            clipboard.on('success', function (e) {
+                                e.clearSelection();
+                                setTimeout(() => {
+                                    layer.msg(that.lang.copy_room_link)
+                                }, 500);
+                            });
+                            that.addUserLogs(that.lang.copy_room_link);
+                        },
+                        content: `
+                            <div style="margin-top: 20px; text-align: center; margin-bottom: 25px;">
+                                <div id="tl-rtc-file-room-share"> ${that.lang.share_join_room_done} 
+                                    <i class="layui-icon layui-icon-ok-circle" style="margin-top: 3px; position: absolute; margin-left: 10px; color: #96e596; font-weight: 300;"></i>
                                 </div>
-                                <div id="tl-rtc-file-room-share-image">
-                            `
-                        })
+                            </div>
+                            <div id="tl-rtc-file-room-share-image">
+                        `
                     })
-                }
-                this.addUserLogs("打开分享房间窗口")
+                })
+                this.addUserLogs(this.lang.open_share_join_room)
             },
             // 获取分享的取件码文件
             handlerGetCodeFile: function () {
@@ -1880,22 +1852,20 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     let codeIdArgs = hash.split("c=");
                     if (codeIdArgs && codeIdArgs.length > 1) {
                         this.codeId = (codeIdArgs[1] + "").replace(/\s*/g, "").substring(0, 40);
-                        if (window.layer) {
-                            layer.confirm("是否取件码取件", (index) => {
-                                window.location.hash = "";
-                                layer.close(index)
-                                that.getCodeFile();
-                            }, (index) => {
-                                that.codeId = "";
-                                window.location.hash = "";
-                                layer.close(index)
-                            })
-                        }
+                        layer.confirm(this.lang.is_pickup_code, (index) => {
+                            window.location.hash = "";
+                            layer.close(index)
+                            that.getCodeFile();
+                        }, (index) => {
+                            that.codeId = "";
+                            window.location.hash = "";
+                            layer.close(index)
+                        })
                         this.addPopup({
-                            title : "分享取件码文件",
-                            msg : "你通过分享获取取件码文件 " + this.codeId
+                            title : this.lang.share_pickup_code_file,
+                            msg : this.lang.get_pickup_file + this.codeId
                         });
-                        this.addUserLogs("你通过分享获取取件码文件 " + this.codeId);
+                        this.addUserLogs(this.lang.get_pickup_file + this.codeId);
                     }
                 }
             },
@@ -1913,7 +1883,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     let typeArgs = tlrtcfile.getRequestHashArgs("t")
                     this.roomId = (roomIdArgs + "").replace(/\s*/g, "").substring(0, 15);
                     if (window.layer) {
-                        layer.confirm("进入房间" + this.roomId, (index) => {
+                        layer.confirm(this.lang.join_room + this.roomId, (index) => {
                             window.location.hash = "";
                             layer.close(index)
                             that.openRoomInput = true;
@@ -1936,101 +1906,91 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         })
                     }
                     this.addPopup({
-                        title : "分享房间",
-                        msg : "你通过分享加入了房间号为 " + this.roomId
+                        title : this.lang.share_join_room,
+                        msg : this.lang.you_join_room + this.roomId
                     });
-                    this.addUserLogs("你通过分享加入了房间号为 " + this.roomId);
+                    this.addUserLogs(this.lang.you_join_room + this.roomId);
                 }
             },
             // 赞助面板
             coffee: function () {
-                if (window.layer) {
-                    let options = {
-                        type: 1,
-                        fixed: false,
-                        maxmin: false,
-                        shadeClose: true,
-                        area: ['300px', '350px'],
-                        title: "赞助一下，为爱发电",
-                        success: function (layero, index) {
-                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
-                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
-                            document.querySelector(".layui-layer").style.borderRadius = "8px";
-                        },
-                        content: `<img style=" width: 100%; height: 100%;border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;" src="/image/coffee.jpeg" alt="img"> `
-                    }
-                    layer.closeAll(function () {
-                        layer.open(options)
-                    })
+                let options = {
+                    type: 1,
+                    fixed: false,
+                    maxmin: false,
+                    shadeClose: true,
+                    area: ['300px', '350px'],
+                    title: this.lang.donate,
+                    success: function (layero, index) {
+                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                        document.querySelector(".layui-layer").style.borderRadius = "8px";
+                    },
+                    content: `<img style=" width: 100%; height: 100%;border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;" src="/image/coffee.jpeg" alt="img"> `
                 }
-                this.addUserLogs("打开赞助窗口")
+                layer.closeAll(function () {
+                    layer.open(options)
+                })
+                this.addUserLogs(this.lang.open_donate)
             },
             //点击下载文件面板
             clickReceiveFile: function () {
                 if(this.receiveFileRecoderList.length === 0){
-                    if(window.layer){
-                        layer.msg("暂时没有收到文件")
-                    }
+                    layer.msg(this.lang.no_received_file)
                     return
                 }
                 this.showReceiveFile = !this.showReceiveFile;
                 if (this.showReceiveFile) {
-                    this.addUserLogs("展开已接收文件面板");
+                    this.addUserLogs(this.lang.expand_receive_file);
                     this.receiveFileMaskHeightNum = 20;
                 } else {
                     this.receiveFileMaskHeightNum = 150;
-                    this.addUserLogs("收起已接收文件面板");
+                    this.addUserLogs(this.lang.collapse_receive_file);
                 }
             },
             //点击已选文件面板
             clickChooseFile: function () {
                 if(!this.hasManInRoom && !this.showChooseFile){
-                    if(window.layer){
-                        layer.msg("房间内至少需要两个人才能发送文件")
-                    }
+                    layer.msg(this.lang.room_least_two_can_send_content)
                     return
                 }
                 this.showChooseFile = !this.showChooseFile;
                 if (this.showChooseFile) {
                     this.chooseFileMaskHeightNum = 20;
-                    this.addUserLogs("展开已选文件面板");
+                    this.addUserLogs(this.lang.expand_selected_file);
                 } else {
                     this.chooseFileMaskHeightNum = 150;
-                    this.addUserLogs("收起已选文件面板");
+                    this.addUserLogs(this.lang.collapse_selected_file);
                 }
             },
             //点击待发送文件面板
             clickSendFile: function () {
                 if(!this.hasManInRoom && !this.showSendFile){
-                    if(window.layer){
-                        layer.msg("房间内至少需要两个人才能发送文件")
-                    }
+                    layer.msg(this.lang.room_least_two_can_send_content)
                     return
                 }
                 this.showSendFile = !this.showSendFile;
                 if (this.showSendFile) {
                     this.sendFileMaskHeightNum = 20;
-                    this.addUserLogs("展开待发送文件面板");
+                    this.addUserLogs(this.lang.expand_wait_send_file);
                 } else {
                     this.sendFileMaskHeightNum = 150;
-                    this.addUserLogs("收起待发送文件面板");
+                    this.addUserLogs(this.lang.collapse_wait_send_file);
                 }
             },
             //点击发送文件历史记录面板
             clickSendFileHistory: function () {
                 if(this.sendFileRecoderHistoryList.length === 0){
-                    if(window.layer){
-                        layer.msg("暂时没有发送过文件")
-                    }
+                    layer.msg(this.lang.no_send_file)
                     return
                 }
                 this.showSendFileHistory = !this.showSendFileHistory;
                 if (this.showSendFileHistory) {
                     this.sendFileHistoryMaskHeightNum = 20;
-                    this.addUserLogs("展开发送文件记录面板");
+                    this.addUserLogs(this.lang.expand_send_file_record);
                 } else {
                     this.sendFileHistoryMaskHeightNum = 150;
-                    this.addUserLogs("收起发送文件记录面板");
+                    this.addUserLogs(this.lang.collapse_send_file_record);
                 }
             },
             //点击查看日志面板
@@ -2038,10 +1998,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.showLogs = !this.showLogs;
                 this.touchResize();
                 if (this.showLogs) {
-                    this.addUserLogs("展开日志面板");
+                    this.addUserLogs(this.lang.expand_log);
                     this.logMaskHeightNum = 0;
                 } else {
-                    this.addUserLogs("收起日志面板");
+                    this.addUserLogs(this.lang.collapse_log);
                     this.logMaskHeightNum = -150;
                 }
             },
@@ -2050,7 +2010,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.showMedia = !this.showMedia;
                 this.touchResize();
                 if (this.showMedia) {
-                    this.addUserLogs("展开音视频面板");
+                    this.addUserLogs(this.lang.expand_video);
                     this.mediaVideoMaskHeightNum = 0;
                     if(this.clientWidth < 500){
                         document.getElementById("iamtsm").style.marginLeft = '0';
@@ -2058,7 +2018,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         document.getElementById("iamtsm").style.marginLeft = "50%";
                     }
                 } else {
-                    this.addUserLogs("收起音视频面板");
+                    this.addUserLogs(this.lang.collapse_video);
                     this.mediaVideoMaskHeightNum = -150;
                     document.getElementById("iamtsm").style.marginLeft = "0";
                 }
@@ -2068,7 +2028,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.showMedia = !this.showMedia;
                 this.touchResize();
                 if (this.showMedia) {
-                    this.addUserLogs("展开屏幕共享面板");
+                    this.addUserLogs(this.lang.expand_screen_sharing);
                     this.mediaScreenMaskHeightNum = 0;
                     if(this.clientWidth < 500){
                         document.getElementById("iamtsm").style.marginLeft = "0";
@@ -2076,7 +2036,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         document.getElementById("iamtsm").style.marginLeft = "50%";
                     }
                 } else {
-                    this.addUserLogs("收起屏幕共享面板");
+                    this.addUserLogs(this.lang.collapse_screen_sharing);
                     this.mediaScreenMaskHeightNum = -150;
                     document.getElementById("iamtsm").style.marginLeft = "0";
                 }
@@ -2086,7 +2046,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.showMedia = !this.showMedia;
                 this.touchResize();
                 if (this.showMedia) {
-                    this.addUserLogs("展开直播面板");
+                    this.addUserLogs(this.lang.expand_live);
                     if(this.clientWidth < 500){
                         document.getElementById("iamtsm").style.marginLeft = "0";
                     }else{
@@ -2094,7 +2054,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     }
                     this.mediaLiveMaskHeightNum = 0;
                 } else {
-                    this.addUserLogs("收起直播面板");
+                    this.addUserLogs(this.lang.collapse_live);
                     this.mediaLiveMaskHeightNum = -150;
                     document.getElementById("iamtsm").style.marginLeft = "0";
                 }
@@ -2131,141 +2091,99 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 this.roomId = this.roomId.toString().replace(/\s*/g, "")
                 if (this.roomId === null || this.roomId === undefined || this.roomId === '') {
-                    if (window.layer) {
-                        layer.msg("请先填写房间号")
-                    } else {
-                        alert("请先填写房间号")
-                    }
-                    this.addUserLogs("请先填写房间号");
+                    layer.msg(this.lang.please_enter_room_num)
+                    this.addUserLogs(this.lang.please_enter_room_num);
                     return;
                 }
                 if (!this.switchData.allowChinese && window.tlrtcfile.containChinese(this.roomId)) {
-                    if (window.layer) {
-                        layer.msg("房间号不允许中文")
-                    } else {
-                        alert("房间号不允许中文")
-                    }
-                    this.addUserLogs("房间号不允许中文");
+                    layer.msg(this.lang.room_num_no_zh)
+                    this.addUserLogs(this.lang.room_num_no_zh);
                     return;
                 }
                 if (!this.switchData.allowNumber && window.tlrtcfile.containNumber(this.roomId)) {
-                    if (window.layer) {
-                        layer.msg("房间号不允许数字")
-                    } else {
-                        alert("房间号不允许数字")
-                    }
-                    this.addUserLogs("房间号不允许数字");
+                    layer.msg(this.lang.room_num_no_number)
+                    this.addUserLogs(this.lang.room_num_no_number);
                     return;
                 }
                 if (!this.switchData.allowSymbol && window.tlrtcfile.containSymbol(this.roomId)) {
-                    if (window.layer) {
-                        layer.msg("房间号不允许特殊符号")
-                    } else {
-                        alert("房间号不允许特殊符号")
-                    }
-                    this.addUserLogs("房间号不允许特殊符号");
+                    layer.msg(this.lang.room_num_no_special_symbols)
+                    this.addUserLogs(this.lang.room_num_no_special_symbols);
                     return;
                 }
                 if (this.chooseFileList.length > 0) {
-                    if (window.layer) {
-                        layer.msg("请先加入房间再选文件")
-                    } else {
-                        alert("请先加入房间再选文件")
-                    }
-                    this.addUserLogs("请先加入房间再选文件");
+                    layer.msg(this.lang.please_join_then_choose_file)
+                    this.addUserLogs(this.lang.please_join_then_choose_file);
                     return;
                 }
                 if (this.roomId) {
                     if (this.roomId.toString().length > 15) {
-                        if (window.layer) {
-                            layer.msg("房间号太长啦")
-                        } else {
-                            alert("房间号太长啦")
-                        }
-                        this.addUserLogs("房间号太长啦");
+                        layer.msg(this.lang.room_num_too_long)
+                        this.addUserLogs(this.lang.room_num_too_long);
                         return;
                     }
                     this.setNickName();
                     this.socket.emit('createAndJoin', {
                         room: this.roomId,
                         type : 'password',
-                        password : '', 
-                        nickName : this.nickName 
+                        password : '',
+                        nickName : this.nickName,
+                        langMode : this.langMode
                     });
                     this.isJoined = true;
                     this.addPopup({
-                        title : "文件房间",
-                        msg : "你进入了文件房间" + this.roomId
+                        title : this.lang.file_room,
+                        msg : this.lang.you_enter_file_room + this.roomId
                     });
-                    this.addUserLogs("你进入了文件房间" + this.roomId);
+                    this.addUserLogs( this.lang.you_enter_file_room + this.roomId);
                 }
             },
             //创建流媒体房间
             createMediaRoom: function (type) {
                 this.roomId = this.roomId.toString().replace(/\s*/g, "")
                 if (this.roomId === null || this.roomId === undefined || this.roomId === '') {
-                    if (window.layer) {
-                        layer.msg("请先填写房间号")
-                    } else {
-                        alert("请先填写房间号")
-                    }
-                    this.addUserLogs("请先填写房间号");
+                    layer.msg(this.lang.please_enter_room_num)
+                    this.addUserLogs(this.lang.please_enter_room_num);
                     return;
                 }
                 if (this.roomId) {
                     if (this.roomId.toString().length > 15) {
-                        if (window.layer) {
-                            layer.msg("房间号太长啦")
-                        } else {
-                            alert("房间号太长啦")
-                        }
-                        this.addUserLogs("房间号太长啦");
+                        layer.msg(this.lang.room_num_too_long)
+                        this.addUserLogs(this.lang.room_num_too_long);
                         return;
                     }
                     this.setNickName();
                     this.socket.emit('createAndJoin', { 
                         room: this.roomId, 
                         type: type, 
-                        nickName : this.nickName 
+                        nickName : this.nickName,
+                        langMode : this.langMode
                     });
                     this.isJoined = true;
                     this.roomType = type;
                     this.addPopup({
-                        title : "流媒体房间",
-                        msg : "你进入了流媒体房间" + this.roomId
+                        title : this.lang.stream_room,
+                        msg : this.lang.you_enter_stream_room + this.roomId
                     });
-                    this.addUserLogs("你进入了流媒体房间" + this.roomId);
+                    this.addUserLogs(this.lang.you_enter_stream_room + this.roomId);
                 }
             },
             //创建密码房间
             createPasswordRoom: function (password) {
                 this.roomId = this.roomId.toString().replace(/\s*/g, "")
                 if (this.roomId === null || this.roomId === undefined || this.roomId === '') {
-                    if (window.layer) {
-                        layer.msg("请先填写房间号")
-                    } else {
-                        alert("请先填写房间号")
-                    }
-                    this.addUserLogs("请先填写房间号");
+                    layer.msg(this.lang.please_enter_room_num)
+                    this.addUserLogs(this.lang.please_enter_room_num);
                     return;
                 }
                 if (this.roomId) {
                     if (this.roomId.toString().length > 15) {
-                        if (window.layer) {
-                            layer.msg("房间号太长啦")
-                        } else {
-                            alert("房间号太长啦")
-                        }
-                        this.addUserLogs("房间号太长啦");
+                        layer.msg(this.lang.room_num_too_long)
+                        this.addUserLogs(this.lang.room_num_too_long);
                         return;
                     }
                     if (password.toString().length > 15) {
-                        if (window.layer) {
-                            layer.msg("密码太长啦")
-                        } else {
-                            alert("密码太长啦")
-                        }
-                        this.addUserLogs("密码太长啦");
+                        layer.msg(this.lang.password_too_long)
+                        this.addUserLogs(this.lang.password_too_long);
                         return;
                     }
                     this.setNickName();
@@ -2273,14 +2191,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         room: this.roomId, 
                         type : 'password', 
                         password: password, 
-                        nickName : this.nickName 
+                        nickName : this.nickName,
+                        langMode : this.langMode
                     });
                     this.isJoined = true;
                     this.addPopup({
-                        title : "密码房间",
-                        msg : "你进入了密码房间" + this.roomId
+                        title : this.lang.password_room,
+                        msg : this.lang.you_enter_password_room + this.roomId
                     });
-                    this.addUserLogs("你进入了密码房间" + this.roomId);
+                    this.addUserLogs(this.lang.you_enter_password_room + this.roomId);
                 }
             },
             //退出房间
@@ -2314,7 +2233,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 };
 
                 rtcConnect.oniceconnectionstatechange = (e) => {
-                    this.addSysLogs("iceConnectionState: " + rtcConnect.iceConnectionState);
+                    that.addSysLogs("iceConnectionState: " + rtcConnect.iceConnectionState);
                 }
 
                 //保存peer连接
@@ -2373,36 +2292,57 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             initSendDataChannel: function (id) {
                 let that = this;
 
-                let sendChannel = this.rtcConns[id].createDataChannel('sendDataChannel');
-                sendChannel.binaryType = 'arraybuffer';
-
-                sendChannel.addEventListener('open', (event) => {
-                    if (sendChannel.readyState === 'open') {
-                        that.addSysLogs("建立连接 : channel open")
+                //文件发送数据通道
+                let sendFileDataChannel = this.rtcConns[id].createDataChannel('sendFileDataChannel');
+                sendFileDataChannel.binaryType = 'arraybuffer';
+                sendFileDataChannel.addEventListener('open', (event) => {
+                    if (sendFileDataChannel.readyState === 'open') {
+                        that.addSysLogs(that.lang.establish_connection)
                     }
                 });
-                sendChannel.addEventListener('close', (event) => {
-                    if (sendChannel.readyState === 'close') {
-                        that.addSysLogs("连接关闭 : channel close")
+                sendFileDataChannel.addEventListener('close', (event) => {
+                    if (sendFileDataChannel.readyState === 'close') {
+                        that.addSysLogs(that.lang.connection_closed)
                     }
                 });
-                sendChannel.addEventListener('error', (error) => {
+                sendFileDataChannel.addEventListener('error', (error) => {
                     console.error(error.error)
-                    that.addSysLogs("连接断开 : " + error)
+                    that.addSysLogs(that.lang.connection_disconnected + ",file:e=" + error)
                     that.removeStream(null, id, null)
                 });
+
+                //自定义数据发送通道
+                let sendDataChannel = this.rtcConns[id].createDataChannel('sendDataChannel');
+                sendDataChannel.binaryType = 'arraybuffer';
+                sendDataChannel.addEventListener('open', (event) => {
+                    if (sendDataChannel.readyState === 'open') {
+                        that.addSysLogs(that.lang.establish_connection)
+                    }
+                });
+                sendDataChannel.addEventListener('close', (event) => {
+                    if (sendDataChannel.readyState === 'close') {
+                        that.addSysLogs(that.lang.connection_closed)
+                    }
+                });
+                sendDataChannel.addEventListener('error', (error) => {
+                    console.error(error.error)
+                    that.addSysLogs(that.lang.connection_disconnected + ",cus:e=" + error)
+                    that.removeStream(null, id, null)
+                });
+
                 this.rtcConns[id].addEventListener('datachannel', (event) => {
                     that.initReceiveDataChannel(event, id);
                 });
-                this.setRemoteInfo(id, { sendChannel: sendChannel });
+                this.setRemoteInfo(id, { 
+                    sendFileDataChannel: sendFileDataChannel,
+                    sendDataChannel : sendDataChannel
+                });
             },
             // 初始发送 
             // pickRecoder : 指定发送记录进行发送
             initSendFile: function (pickRecoder) {
                 if(!this.hasManInRoom){
-                    if(window.layer){
-                        layer.msg("房间内至少需要两个人才能发送文件")
-                    }
+                    layer.msg(this.lang.room_least_two_can_send_content)
                     return
                 }
                 //选中一个记录进行发送
@@ -2419,7 +2359,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     chooseFileRecoder = pickRecoder;
 
                 }else{
-                    this.addSysLogs("选择待发送记录中...")
+                    this.addSysLogs(this.lang.select_wait_send_record)
                     for (let i = 0; i < this.sendFileRecoderList.length; i++) {
                         let recoder = this.sendFileRecoderList[i]
                         if (!recoder.done) {
@@ -2432,10 +2372,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         this.chooseFileList = []
                         this.sendFileRecoderList = []
                         this.addPopup({
-                            title : "文件发送",
-                            msg : "文件全部发送完毕"
+                            title : this.lang.send_file,
+                            msg : this.lang.file_send_done
                         });
-                        this.addSysLogs("文件全部发送完毕")
+                        this.addSysLogs(this.lang.file_send_done)
                         this.isSending = false;
                         this.allSended = true;
                         return
@@ -2448,19 +2388,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 if(filterFile.length === 0){
-                    this.addUserLogs("文件读取失败，文件资源不存在");
-                    if(window.layer){
-                        layer.msg("文件读取失败，文件资源不存在");
-                    }
+                    this.addUserLogs(this.lang.failed_find_file);
+                    layer.msg(this.lang.failed_find_file);
                     return
                 }
                 chooseFile = filterFile[0];
 
                 if(chooseFile == null){
-                    this.addUserLogs("文件读取失败，文件资源不存在");
-                    if(window.layer){
-                        layer.msg("文件读取失败，文件资源不存在");
-                    }
+                    this.addUserLogs(this.lang.failed_find_file);
+                    layer.msg(this.lang.failed_find_file);
                     return
                 }
 
@@ -2488,11 +2424,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 fileReader.addEventListener('loadend', this.sendFileToRemoteByLoop);
 
                 fileReader.addEventListener('error', error => {
-                    that.addSysLogs("读取文件错误 : " + error);
+                    that.addSysLogs(this.lang.read_file_error + " : " + error);
                 });
 
                 fileReader.addEventListener('abort', event => {
-                    that.addSysLogs("读取文件中断 : " + event);
+                    that.addSysLogs(this.lang.read_file_interrupt + " : " + event);
                 });
 
                 this.readSlice(0);
@@ -2507,9 +2443,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 let remote = this.remoteMap[this.currentChooseFileRecoder.id];
                 let fileOffset = remote[this.currentChooseFile.index + "offset"]
-                let sendChannel = remote.sendChannel;
-                if (!sendChannel || sendChannel.readyState !== 'open') {
-                    this.addSysLogs("sendChannel 出错")
+                let sendFileDataChannel = remote.sendFileDataChannel;
+                if (!sendFileDataChannel || sendFileDataChannel.readyState !== 'open') {
+                    this.addSysLogs(this.lang.file_send_channel_not_establish)
                     return;
                 }
 
@@ -2517,7 +2453,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 // 还不能进行发送，等一下
                 if (!sendFileInfoAck) {
-                    this.addSysLogs("等待ack回执中...")
+                    this.addSysLogs(this.lang.wait_ack)
                     setTimeout(() => {
                         that.sendFileToRemoteByLoop(event)
                     }, 500);
@@ -2531,28 +2467,28 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 // 开始发送通知
                 if (fileOffset === 0) {
                     this.addPopup({
-                        title : "文件发送",
-                        msg : "正在发送给" + this.currentChooseFileRecoder.id.substr(0, 4) + ",0%。"
+                        title : this.lang.send_file,
+                        msg : this.lang.sending_to + this.currentChooseFileRecoder.id.substr(0, 4) + ",0%。"
                     });
-                    this.addSysLogs("正在发送给" + this.currentChooseFileRecoder.id.substr(0, 4) + ",0%。")
+                    this.addSysLogs(this.lang.sending_to + this.currentChooseFileRecoder.id.substr(0, 4) + ",0%。")
                     this.updateSendFileRecoderProgress(this.currentChooseFileRecoder.id, {
                         start: Date.now()
                     })
                 }
 
                 // 缓冲区満了
-                if (sendChannel.bufferedAmount > sendChannel.bufferedAmountLowThreshold) {
-                    this.addSysLogs("sendChannel缓冲区已满，等待中...")
-                    sendChannel.onbufferedamountlow = () => {
-                        this.addSysLogs("sendChannel缓冲区已恢复，继续发送中...")
-                        sendChannel.onbufferedamountlow = null;
+                if (sendFileDataChannel.bufferedAmount > sendFileDataChannel.bufferedAmountLowThreshold) {
+                    this.addSysLogs(this.lang.file_send_channel_buffer_full)
+                    sendFileDataChannel.onbufferedamountlow = () => {
+                        this.addSysLogs(this.lang.file_send_channel_buffer_recover)
+                        sendFileDataChannel.onbufferedamountlow = null;
                         that.sendFileToRemoteByLoop(event);
                     }
                     return;
                 }
 
                 // 发送数据
-                sendChannel.send(event.target.result);
+                sendFileDataChannel.send(event.target.result);
                 fileOffset += event.target.result.byteLength;
                 remote[this.currentChooseFile.index + "offset"] = fileOffset
                 this.currentSendAllSize += event.target.result.byteLength;
@@ -2565,10 +2501,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //发送完一份重置相关数据
                 if (fileOffset === this.currentChooseFile.size) {
                     this.addPopup({
-                        title : "文件发送",
-                        msg : "正在发送给" + this.currentChooseFileRecoder.id.substr(0, 4) + ",100%。"
+                        title : this.lang.send_file,
+                        msg : this.lang.sending_to + this.currentChooseFileRecoder.id.substr(0, 4) + ",100%。"
                     });
-                    this.addSysLogs("正在发送给" + this.currentChooseFileRecoder.id.substr(0, 4) + ",100%。")
+                    this.addSysLogs(this.lang.sending_to + this.currentChooseFileRecoder.id.substr(0, 4) + ",100%。")
                     this.socket.emit('message', {
                         emitType: "sendDone",
                         room: this.roomId,
@@ -2608,10 +2544,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                 this.chooseFileList = []
                                 this.sendFileRecoderList = []
                                 this.addPopup({
-                                    title : "文件发送",
-                                    msg : "文件全部发送完毕"
+                                    title : this.lang.send_file,
+                                    msg : this.lang.file_send_done
                                 });
-                                this.addSysLogs("文件全部发送完毕")
+                                this.addSysLogs(this.lang.file_send_done)
                                 this.allSended = true;
                                 return
                             }
@@ -2642,31 +2578,59 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     fileReader.readAsArrayBuffer(slice);
                 }
             },
-            //创建接收文件事件
+            //初始化接收数据事件
             initReceiveDataChannel: function (event, id) {
                 if (!id || !event) {
                     return;
                 }
                 let currentRtc = this.getRemoteInfo(id);
-                if (currentRtc) {
-                    let receiveChannel = event.channel;
+                if (!currentRtc) {
+                    return
+                }
+
+                let receiveChannel = event.channel;
+
+                //文件接收
+                if(receiveChannel.label === 'sendFileDataChannel'){
                     receiveChannel.binaryType = 'arraybuffer';
-                    receiveChannel.onmessage = (env) => {
-                        this.receiveData(env, id);
+                    receiveChannel.onmessage = (evt) => {
+                        this.receiveFileData(evt, id);
                     };
                     receiveChannel.onopen = () => {
                         const readyState = receiveChannel.readyState;
-                        this.addSysLogs("receiveChannel 已就绪, readyState:" + readyState)
+                        this.addSysLogs(this.lang.file_receive_channel_ready + readyState)
                     };
                     receiveChannel.onclose = () => {
                         const readyState = receiveChannel.readyState;
-                        this.addSysLogs("receiveChannel 已关闭 readyState:" + readyState)
+                        this.addSysLogs(this.lang.file_receive_channel_closed + readyState)
                     };
-                    this.setRemoteInfo(id, { receiveChannel: receiveChannel });
+                    this.setRemoteInfo(id, { receiveFileDataChannel: receiveChannel });
+                }
+
+                //自定义数据接收
+                if(receiveChannel.label === 'sendDataChannel'){
+                    receiveChannel.binaryType = 'arraybuffer';
+                    receiveChannel.onmessage = (evt) => {
+                        //接收自定义数据 , 暂时用做远程画笔数据接收
+                        if (!evt || !id) {
+                            return;
+                        }
+                        let data = JSON.parse(evt.data) || {};
+                        window.Bus.$emit("openRemoteDraw", data)
+                    }
+                    receiveChannel.onopen = () => {
+                        const readyState = receiveChannel.readyState;
+                        this.addSysLogs(this.lang.custom_data_receive_channel_ready + readyState)
+                    };
+                    receiveChannel.onclose = () => {
+                        const readyState = receiveChannel.readyState;
+                        this.addSysLogs(this.lang.custom_data_receive_channel_closed + readyState)
+                    };
+                    this.setRemoteInfo(id, { receiveDataChannel: receiveChannel });
                 }
             },
             //接收文件
-            receiveData: function (event, id) {
+            receiveFileData: function (event, id) {
                 if (!event || !id) {
                     return;
                 }
@@ -2692,10 +2656,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 if (receivedSize === size) {
-                    this.addSysLogs(name + " 接收完毕");
+                    this.addSysLogs(name + this.lang.receive_done);
                     this.addPopup({
-                        title : "文件接收",
-                        msg : "文件[ " + name + " ]接收完毕，可点击右下角查看。"
+                        title : this.lang.file_receive,
+                        msg : "[ " + name + " ]" + this.lang.receive_done
                     });
 
                     //更新接收进度
@@ -2714,13 +2678,24 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             closeDataChannels: function () {
                 for (let remote in this.remoteMap) {
                     let id = remote.id;
-                    let sendChannel = remote.sendChannel;
-                    let receiveChannel = remote.receiveChannel;
-                    if (!id || !sendChannel || !receiveChannel) {
-                        continue;
+                    if(!id) continue;
+
+                    let sendFileDataChannel = remote.sendFileDataChannel;
+                    if(sendFileDataChannel){
+                        sendFileDataChannel.close();
                     }
-                    sendChannel.close();
-                    receiveChannel.close();
+                    let sendDataChannel = remote.sendDataChannel;
+                    if(sendDataChannel){
+                        sendDataChannel.close();
+                    }
+                    let receiveFileDataChannel = remote.receiveFileDataChannel;
+                    if(receiveFileDataChannel){
+                        receiveFileDataChannel.close();
+                    }
+                    let receiveDataChannel = remote.receiveDataChannel;
+                    if(receiveDataChannel){
+                        receiveDataChannel.close();
+                    }
                 }
             },
             //设置rtc缓存远程连接数据
@@ -2826,7 +2801,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             // offer
             offerFailed: function (rtcConnect, id, error) {
-                this.addSysLogs("offer失败," + error);
+                this.addSysLogs(this.lang.offer_failed + error);
             },
             // answer
             answerSuccess: function (rtcConnect, id, offer) {
@@ -2841,15 +2816,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             // answer
             answerFailed: function (rtcConnect, id, error) {
-                this.addSysLogs("answer失败," + error);
+                this.addSysLogs(this.lang.answer_failed + error);
             },
             //ice
             addIceCandidateSuccess: function (res) {
-                this.addSysLogs("addIceCandidateSuccess成功");
+                this.addSysLogs(this.lang.add_ice_candidate_success);
             },
             //ice
             addIceCandidateFailed: function (err) {
-                this.addSysLogs("addIceCandidate失败," + err);
+                this.addSysLogs(this.lang.add_ice_candidate_failed + err);
             },
             socketListener: function () {
                 let that = this;
@@ -2858,7 +2833,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 // 1. 对于screen, video房间来说，是双方都需要传输各自的媒体流
                 // 2. 对于live房间来说，只有房主需要获取媒体流
                 this.socket.on('created', async function (data) {
-                    that.addSysLogs("创建房间," + JSON.stringify(data));
+                    that.addSysLogs(that.lang.receive_create_room_event + JSON.stringify(data));
                     that.socketId = data.id;
                     that.roomId = data.room;
                     that.recoderId = data.recoderId;
@@ -2879,9 +2854,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     for (let i = 0; i < data.peers.length; i++) {
                         let otherSocketId = data.peers[i].id;
                         let otherSocketIdNickName = data.peers[i].nickName;
+                        let otherSocketIdLangMode = data.peers[i].langMode;
+                        let otherSocketIdOwner = data.peers[i].owner;
                         let rtcConnect = that.getOrCreateRtcConnect(otherSocketId);
                         // 处理完连接后，更新下昵称
-                        that.setRemoteInfo(otherSocketId, { nickName : otherSocketIdNickName })
+                        that.setRemoteInfo(otherSocketId, { 
+                            nickName : otherSocketIdNickName,
+                            langMode : otherSocketIdLangMode,
+                            owner : otherSocketIdOwner
+                        })
 
                         await new Promise(resolve => {
                             // 处理音视频情况
@@ -2915,11 +2896,16 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 // join的作用是通知其他人，我加入进来了
                 this.socket.on('joined', function (data) {
-                    that.addSysLogs("加入房间," + JSON.stringify(data));
+                    that.addSysLogs(that.lang.receive_join_room_event + JSON.stringify(data));
                     that.recoderId = data.recoderId;
                     let rtcConnect = that.getOrCreateRtcConnect(data.id);
                     // 处理完连接后，更新下昵称
-                    that.setRemoteInfo(data.id, { nickName : data.nickName })
+                    that.setRemoteInfo(data.id, { 
+                        nickName : data.nickName, 
+                        owner : data.owner,
+                        langMode : data.langMode,
+                        owner : false
+                    })
                     // 处理音视频逻辑
                     if (data.type === 'screen') {
                         window.Bus.$emit("getScreenShareTrackAndStream", (track, stream) => {
@@ -2937,13 +2923,13 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         });
                     }
                     that.addPopup({
-                        title : "加入房间",
-                        msg : data.nickName + " 加入了房间。"
+                        title : that.lang.join_room,
+                        msg : data.nickName + that.lang.join_room
                     });
                 });
 
                 this.socket.on('offer', function (data) {
-                    that.addSysLogs("offer," + JSON.stringify(data));
+                    that.addSysLogs(that.lang.receive_offer_event + JSON.stringify(data));
                     let rtcConnect = that.getOrCreateRtcConnect(data.from);
                     let rtcDescription = { type: 'offer', sdp: data.sdp };
                     rtcConnect.setRemoteDescription(new RTCSessionDescription(rtcDescription)).then(r => { });
@@ -2955,14 +2941,14 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 });
 
                 this.socket.on('answer', function (data) {
-                    that.addSysLogs("answer," + JSON.stringify(data));
+                    that.addSysLogs(that.lang.receive_answer_event + JSON.stringify(data));
                     let rtcConnect = that.getOrCreateRtcConnect(data.from);
                     let rtcDescription = { type: 'answer', sdp: data.sdp };
                     rtcConnect.setRemoteDescription(new RTCSessionDescription(rtcDescription)).then(r => { });
                 });
 
                 this.socket.on('candidate', function (data) {
-                    that.addSysLogs("candidate," + JSON.stringify(data));
+                    that.addSysLogs(that.lang.receive_candidate_event + JSON.stringify(data));
                     let rtcConnect = that.getOrCreateRtcConnect(data.from);
                     let rtcIceCandidate = new RTCIceCandidate({
                         candidate: data.sdp,
@@ -2982,10 +2968,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                         return;
                     } else {
                         that.addPopup({
-                            title : "退出房间",
-                            msg : data.from + "退出了房间。"
+                            title : that.lang.exit_room,
+                            msg : data.from + that.lang.exit_room
                         });
-                        that.addSysLogs("退出房间," + JSON.stringify(data));
+                        that.addSysLogs(that.lang.exit_room + JSON.stringify(data));
                         that.getOrCreateRtcConnect(data.from).close;
                         delete that.rtcConns[data.from];
                         Vue.delete(that.remoteMap, data.from);
@@ -2998,10 +2984,10 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     let fromId = data.from;
                     that.setRemoteInfo(fromId, { receiveFiles: data });
                     that.addPopup({
-                        title : "文件准备",
-                        msg : data.from + "选择了文件 [ " + data.name + " ]，即将发送。"
+                        title : that.lang.send_file,
+                        msg : data.from + that.lang.selected_file + "[ " + data.name + " ], "+that.lang.will_send
                     });
-                    that.addSysLogs(data.from + "选择了文件 [ " + data.name + " ]，即将发送。");
+                    that.addSysLogs(data.from + that.lang.selected_file + "[ " + data.name + " ], "+that.lang.will_send);
 
                     that.receiveFileRecoderList.push({
                         id: fromId,
@@ -3033,7 +3019,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     let to = data.to;
                     let fromId = data.from;
                     if (to === that.socketId) { // 是自己发出去的文件ack回执
-                        that.addSysLogs("收到ack回执，准备发送给" + fromId)
+                        that.addSysLogs(that.lang.receive_ack + fromId)
                         that.setRemoteInfo(fromId, {
                             [that.currentChooseFile.index + "ack"]: true
                         })
@@ -3043,9 +3029,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //获取取件码文件
                 this.socket.on('getCodeFile', function (data) {
                     if(!data.download){
-                        if(window.layer){
-                            layer.msg("此取件码暂无文件记录")
-                        }
+                        layer.msg(that.lang.no_code_file)
                         return
                     }
                     that.receiveCodeFileList = [data];
@@ -3054,34 +3038,27 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 //暂存成功通知
                 this.socket.on('addCodeFile', function (data) {
-                    if(window.layer){
-                        layer.msg("暂存成功");
-                    }
+                    layer.msg(that.lang.save_ok);
                 })
 
                 //收到暂存链接
                 this.socket.on('prepareCodeFile', async function (data) {
                     let index = data.index;
-
-                    that.addSysLogs("收到暂存链接");
+                    that.addSysLogs(that.lang.receive_temporary_link);
 
                     let filterFile = that.chooseFileList.filter(item=>{
                         return item.index === index;
                     });
     
                     if(filterFile.length === 0){
-                        if(window.layer){
-                            layer.msg("加载文件失败，文件资源不存在");
-                        }
-                        that.addUserLogs("加载文件失败，文件资源不存在");
+                        layer.msg(that.lang.file_not_exist);
+                        that.addUserLogs(file_not_exist);
                         return
                     }
 
                     if(!data.uploadLink){
-                        if(window.layer){
-                            layer.msg("暂存失败");
-                        }
-                        that.addSysLogs("文件暂存失败, 上传链接为空, ",file.name);
+                        layer.msg(that.lang.save_fail);
+                        that.addSysLogs(that.lang.temporary_link_empty + file.name);
                         return
                     }
 
@@ -3105,10 +3082,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                 upload : 'fail'
                             })
                             
-                            if(window.layer){
-                                layer.msg("暂存失败");
-                            }
-                            that.addSysLogs("文件暂存失败, name=",file.name);
+                            layer.msg(that.lang.save_fail);
+                            that.addSysLogs(that.lang.save_fail + file.name);
                             return
                         }
 
@@ -3140,10 +3115,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             upload : 'fail'
                         })
 
-                        if(window.layer){
-                            layer.msg("暂存失败");
-                        }
-                        that.addSysLogs("文件暂存失败, name=",file.name);
+                        layer.msg(that.lang.save_fail);
+                        that.addSysLogs(that.lang.save_fail + file.name);
                         return
                     }
                 })
@@ -3152,15 +3125,15 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 this.socket.on('chatingRoom', function (data) {
                     let fromId = data.from;
                     that.addPopup({
-                        title : "文本",
-                        msg : data.from + "发送了文字 [ " + data.content.substr(0, 10) + " ]"
+                        title : that.lang.send_text,
+                        msg : data.from + that.lang.send_text + "[ " + data.content.substr(0, 10) + " ]"
                     });
-                    that.addSysLogs(data.from + "发送了文字 [ " + data.content.substr(0, 10) + " ]");
+                    that.addSysLogs(data.from + that.lang.send_text + "[ " + data.content.substr(0, 10) + " ]");
 
                     try {
-                        data.content = decodeURIComponent(data.content)
+                        data.content = tlrtcfile.unescapeStr(data.content)
                     } catch (e) {
-                        that.addSysLogs("decode msg err : " + data.content);
+                        that.addSysLogs(that.lang.text_decode_failed + data.content);
                     }
                     let now = new Date().toLocaleString();
 
@@ -3200,7 +3173,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //在线数量
                 this.socket.on('count', function (data) {
                     that.allManCount = data.mc;
-                    that.addSysLogs("当前人数 : " + data.mc + "人在线")
+                    that.addSysLogs(that.lang.current_number + ":" + data.mc + that.lang.online_number)
                 });
 
                 //提示
@@ -3257,8 +3230,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.receiveAiChatList.push(data)
                     that.addSysLogs("AI : " + data.content)
                     that.addPopup({
-                        title : "AI回复",
-                        msg : "AI回复了你，快点聊起来吧～"
+                        title : that.lang.ai_reply,
+                        msg : that.lang.ai_reply_you
                     });
                     that.receiveAiChatList.forEach(item => {
                         item.timeAgo = window.util ? util.timeAgo(item.time) : item.time;
@@ -3283,9 +3256,9 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     if(data.chatingCommData){
                         data.chatingCommData.forEach(elem => {
                             try {
-                                elem.msg = decodeURIComponent(elem.msg)
+                                elem.msg = tlrtcfile.unescapeStr(elem.msg)
                             } catch (e) {
-                                that.addSysLogs("decode msg err : " + elem.msg);
+                                that.addSysLogs(that.lang.text_decode_failed + elem.msg);
                             }
                             that.receiveChatCommList.push(elem)
                         })
@@ -3297,11 +3270,11 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                 //公共聊天频道
                 this.socket.on('chatingComm', function (data) {
-                    that.addSysLogs(data.room + "频道的" + data.socketId + "发言: [ " + data.msg + " ]");
+                    that.addSysLogs(data.room + ":" + data.socketId + that.lang.send_text + ": [ " + data.msg + " ]");
                     try {
-                        data.msg = decodeURIComponent(data.msg)
+                        data.msg = tlrtcfile.unescapeStr(data.msg)
                     } catch (e) {
-                        that.addSysLogs("decode msg err : " + data.msg);
+                        that.addSysLogs(that.lang.text_decode_failed + data.msg);
                     }
                     that.receiveChatCommList.push(data);
                     if (that.receiveChatCommList.length > 10) {
@@ -3313,63 +3286,59 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     that.chatingCommTpl()
 
                     that.addPopup({
-                        title : "公共聊天",
-                        msg : "公共聊天频道有人互动啦，快去瞧瞧"
+                        title : that.lang.chat_comm,
+                        msg : that.lang.public_chat_channel_someone_interact
                     });
                 });
 
                 this.socket.on('manageCheck', function (data) {
-                    if (window.layer) {
-                        layer.prompt({
-                            formType: 1,
-                            title: '请输入',
-                        }, function (value, index, elem) {
-                            that.socket.emit('manageConfirm', {
-                                room: that.roomId,
-                                value: value
-                            });
-                            layer.close(index)
+                    layer.prompt({
+                        formType: 1,
+                        title: that.lang.please_enter,
+                    }, function (value, index, elem) {
+                        that.socket.emit('manageConfirm', {
+                            room: that.roomId,
+                            value: value
                         });
-                    }
+                        layer.close(index)
+                    });
                 });
 
                 this.socket.on('manage', function (data) {
-                    if (window.layer) {
-                        if (data.socketId !== that.socketId) {
-                            layer.msg("非法触发事件")
-                            return
-                        }
-                        layer.closeAll();
-                        that.token = data.token;
-                        layer.load(2, {
-                            time: 1000,
-                            shade: [0.8, '#000000'],
-                            success: function (layero) {
-                                layer.setTop(layero); //重点2
-                            }
-                        })
-                        setTimeout(() => {
-                            that.manageIframeId = layer.tab({
-                                area: ['100%', '100%'],
-                                shade: [0.8, '#393D49'],
-                                closeBtn : 0,
-                                tab: [{
-                                    title: data.content[0].title,
-                                    content: data.content[0].html
-                                }, {
-                                    title: data.content[1].title,
-                                    content: data.content[1].html
-                                }, {
-                                    title: data.content[2].title,
-                                    content: data.content[2].html
-                                }],
-                                cancel: function (index, layero) {
-                                    that.manageIframeId = 0;
-                                },
-                            })
-                            layer.full(that.manageIframeId)
-                        }, 500);
+                    if (data.socketId !== that.socketId) {
+                        layer.msg(that.lang.illegal_event)
+                        return
                     }
+                    layer.closeAll();
+                    that.token = data.token;
+                    layer.load(2, {
+                        time: 1000,
+                        shade: [0.8, '#000000'],
+                        success: function (layero) {
+                            layer.setTop(layero); //重点2
+                        }
+                    })
+                    setTimeout(() => {
+                        that.manageIframeId = layer.tab({
+                            area: ['100%', '100%'],
+                            shade: [0.8, '#393D49'],
+                            closeBtn : 0,
+                            tab: [{
+                                title: data.content[0].title,
+                                content: data.content[0].html
+                            }, {
+                                title: data.content[1].title,
+                                content: data.content[1].html
+                            }, {
+                                title: data.content[2].title,
+                                content: data.content[2].html
+                            }],
+                            cancel: function (index, layero) {
+                                that.manageIframeId = 0;
+                            },
+                        })
+                        layer.full(that.manageIframeId)
+                    }, 500);
                 });
             },
             // 检测浏览器是支持webrtc
@@ -3380,75 +3349,63 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                     setTimeout(() => {
                         $("#rtcCheck").addClass("layui-anim-rotate")
                         let rtcCheck = tlrtcfile.supposeWebrtc();
-                        if (window.layer) {
-                            layer.msg(`你的浏览器${rtcCheck ? '支持' : '不支持'}webrtc`)
-                        }
-                        that.addUserLogs(`你的浏览器${rtcCheck ? '支持' : '不支持'}webrtc`)
+                        layer.msg(`${that.lang.your_browser}${rtcCheck ? that.lang.support : that.lang.not_support}webrtc`)
+                        that.addUserLogs(`${that.lang.your_browser}${rtcCheck ? that.lang.support : that.lang.not_support}webrtc`)
                     }, 50)
                 }
             },
             // 打开p2p检测面板
             p2pCheck: function () {
                 let that = this;
-                if (window.layer) {
-                    $("#p2pCheck").removeClass("layui-anim-rotate")
-                    setTimeout(() => {
-                        $("#p2pCheck").addClass("layui-anim-rotate")
-                        let msg = "<p style='font-size:16px;margin-bottom:10px'>p2p检测原理: </p> "
-                        msg += "<p style='margin-bottom:5px'> 本项目是基于webrtc实现的，webrtc的p2p受限于连接<b> 双方的网络NAT类型和浏览器限制 </b></p>"
-                        msg += "<p style='margin-bottom:5px'> 对称NAT网络类型或者浏览器不支持获取内网ip的情况是不支持p2p的</p>"
-                        msg += "<p style='font-size:16px;margin-bottom:10px;margin-top: 10px;'>自检步骤: </p> "
-                        msg += "<p style='margin-bottom:5px'> 在验证p2p之前，<b> 请先关闭中继服务开关后 </b>，双方进入后房间，再进行自检</p>"
-                        msg += "<p style='margin-bottom:5px'> 双方加入房间后，如果客户端可以获取到房间内双方的内网IP，大概率就可以进行p2p传输 </p>"
-                        msg += "<p style='margin-bottom:5px'> 如果是chrome电脑版，可以打开 chrome://flags/ , 然后搜索 'mdns' 关键字，打开开关后重启即可 </p>"
-                        msg += "<p style='margin-bottom:5px'> 具体是否有获取到双方内网IP，请自行在执行日志中搜索关键字 “IP”，查看是否有类似内网格式的IP即可 </p>"
-                        layer.confirm(msg, (index) => {
-                            layer.closeAll(() => {
-                                that.clickLogs()
-                            })
-                        }, (index) => {
-                            layer.close(index)
+                $("#p2pCheck").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#p2pCheck").addClass("layui-anim-rotate")
+                    let msg = "<p style='font-size:16px;margin-bottom:10px'>"+that.lang.p2p_check_principle+": </p> "
+                    msg += "<p style='margin-bottom:5px'> "+that.lang.p2p_check_principle_detail+" <b> "+that.lang.p2p_check_principle_detail_2+" </b></p>"
+                    msg += "<p style='font-size:16px;margin-bottom:10px;margin-top: 10px;'>"+that.lang.p2p_check_principle_detail_3+": </p> "
+                    msg += "<p style='margin-bottom:5px'> "+that.lang.p2p_check_principle_detail_4+"<b> "+that.lang.p2p_check_principle_detail_5+" </b>"+that.lang.p2p_check_principle_detail_6+"</p>"
+                    msg += "<p style='margin-bottom:5px'> "+that.lang.p2p_check_principle_detail_7+" </p>"
+                    msg += "<p style='margin-bottom:5px'> "+that.lang.p2p_check_principle_detail_8+" chrome://flags/ , "+that.lang.p2p_check_principle_detail_9+" </p>"
+                    msg += "<p style='margin-bottom:5px'> "+that.lang.p2p_check_principle_detail_10+" </p>"
+                    layer.confirm(msg, (index) => {
+                        layer.closeAll(() => {
+                            that.clickLogs()
                         })
-                        that.addUserLogs(`你的IP列表为 : ${JSON.stringify(this.ips)}`)
-                    }, 50)
-                }
+                    }, (index) => {
+                        layer.close(index)
+                    })
+                    that.addUserLogs(`${that.lang.your_ip_list} : ${JSON.stringify(this.ips)}`)
+                }, 50)
             },
             initOpEvent : function(){
                 let that = this;
                 if (window.tlrtcfile) {
                     tlrtcfile.getOpEventData((type, event) => {
                         if(type === 'click'){
-                            that.controlList.push({type : 'click', x : event.x * 0.8, y : event.y * 0.7})
+                            if(that.isRemoteControl){
+                                // that.controlList.push({type : 'click', x : event.x * 0.8, y : event.y * 0.7})
+                            }
                         }else if(type === 'contextmenu'){
-                            that.controlList.push({type : 'rightclick', x : event.x * 0.8, y : event.y * 0.7})
+                            if(that.isRemoteControl){
+                                // that.controlList.push({type : 'rightclick', x : event.x * 0.8, y : event.y * 0.7})
+                            }
                         }else if(type === 'mousemove'){
-                            //没有移动
-                            if (that.preMouseMove.clientX === event.clientX && 
-                                that.preMouseMove.clientY === event.clientY){
-                                return;
-                            }
                             //移动距离太小
-                            if (Math.abs(that.preMouseMove.clientX - event.clientX) < 10 && 
-                                Math.abs(that.preMouseMove.clientY - event.clientY) < 10){
+                            if (Math.abs(that.preMouseMove.clientX - event.clientX) < that.mouseMoveUnit && 
+                                Math.abs(that.preMouseMove.clientY - event.clientY) < that.mouseMoveUnit){
                                 return;
                             }
-                            //鼠标拖拽
-                            if(that.isMouseDrag){
-                                that.controlList.push({type : 'mousedrag', x : event.x * 0.8, y : event.y * 0.7})
-                            }else{
-                                //鼠标移动
-                                that.controlList.push({type : 'mousemove', x : event.x * 0.8, y : event.y * 0.7})
-                            }
-                            //画笔移动监测记录
-                            let { x, y } = event;
-                            let pre = that.mouseMove.length > 0 ? that.mouseMove[that.mouseMove.length - 1] : {x:0,y:0};
-                            if(Math.abs(pre.x - x) > 10 || Math.abs(pre.y - y) > 10){
-                                if(that.mouseMove.length > 3000){ // 超过3000，丢弃最开始的2000，保留最新的1000
-                                    that.mouseMove = that.mouseMove.slice(0, 1000)
-                                    console.log("slice mouse arr done")
+                            
+                            if(that.isMouseDrag){ //鼠标拖拽
+                                if(that.isRemoteControl){
+                                    // that.controlList.push({type : 'mousedrag', x : event.x * 0.8, y : event.y * 0.7})
                                 }
-                                that.mouseMove.push({ x: x * 0.8, y : y * 0.7 })
+                            }else{//鼠标移动
+                                if(that.isRemoteControl){
+                                    // that.controlList.push({type : 'mousemove', x : event.x * 0.8, y : event.y * 0.7})
+                                }
                             }
+
                             //记录上一次移动的位置
                             that.preMouseMove = {
                                 clientX : event.clientX,
@@ -3457,24 +3414,28 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             }
                         }else if(type === 'mousedown'){
                             that.isMouseDrag = true;
-                            that.controlList.push({type : 'mousedown'})
+                            if(that.isRemoteControl){
+                                // that.controlList.push({type : 'mousedown'})
+                            }
                         }else if(type === 'mouseup'){
                             that.isMouseDrag = false;
-                            that.controlList.push({type : 'mouseup'})
+                            if(that.isRemoteControl){
+                                // that.controlList.push({type : 'mouseup'})
+                            }
                         }else if(type === 'wheel'){
-                            that.controlList.push({type : 'wheel', x : event.x * 0.8, y : event.y * 0.7, deltaY : event.deltaY})
+                            if(that.isRemoteControl){
+                                // that.controlList.push({type : 'wheel', x : event.x * 0.8, y : event.y * 0.7, deltaY : event.deltaY})
+                            }
                         }else if(type === 'keydown'){
-                            that.controlList.push({type : 'keydown', key : event.key})
+                            if(that.isRemoteControl){
+                                // that.controlList.push({type : 'keydown', key : event.key})
+                            }
                         }else if(type === 'keyup'){
-                            that.controlList.push({type : 'keyup', key : event.key})
+                            if(that.isRemoteControl){
+                                // that.controlList.push({type : 'keyup', key : event.key})
+                            }
                         }
                     })
-                }
-            },
-            // 画笔轨迹绘制
-            initDrawMousePath : function(){
-                if (window.tlrtcfile) {
-                    tlrtcfile.drawMousePath(this.mouseMove)
                 }
             },
             // 自动监听窗口变化，更新css
@@ -3499,10 +3460,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 //manage frame resize
                 if (window.layer && this.manageIframeId !== 0) {
                     layer.full(this.manageIframeId)
-                }
-
-                if(this.clientWidth < 300){
-                    
                 }
             },
             // 自动监听窗口变化，更新css
@@ -3529,12 +3486,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },
             // 定义事件到window上
             windowOnBusEvent: function () {
-                window.Bus.$on("changeScreenState", (res) => {
-                    this.isScreen = res
-                })
-                window.Bus.$on("changeScreenTimes", (res) => {
-                    this.screenTimes = res
-                })
                 window.Bus.$on("changeScreenShareState", (res) => {
                     if(!res){//状态失败，收起面板
                         this.clickMediaScreen();
@@ -3547,7 +3498,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             emitType: "stopScreenShare",
                             id: this.socketId,
                             room: this.roomId,
-                            cost: this.screenShareTimes
+                            cost: this.screenShareTimes,
+                            to : this.socketId
                         });
                     }
                     this.screenShareTimes = res
@@ -3564,7 +3516,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             emitType: "stopVideoShare",
                             id: this.socketId,
                             room: this.roomId,
-                            cost: this.videoShareTimes
+                            cost: this.videoShareTimes,
+                            to : this.socketId
                         });
                     }
                     this.videoShareTimes = res
@@ -3582,7 +3535,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                             id: this.socketId,
                             room: this.roomId,
                             cost: this.liveShareTimes,
-                            owner : this.owner
+                            owner : this.owner,
+                            to : this.socketId
                         });
                     }
                     this.liveShareTimes = res
@@ -3601,10 +3555,8 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 })
                 window.Bus.$on("sendOpenaiChatWithContext", () => {
                     this.openaiSendContext = !this.openaiSendContext;
-                    if (window.layer) {
-                        layer.msg(`AI智能理解上下文开关${this.openaiSendContext ? '已开启' : '已关闭'}`)
-                        this.addUserLogs(`AI智能理解上下文开关${this.openaiSendContext ? '已开启' : '已关闭'} `)
-                    }
+                    layer.msg(`${this.lang.ai_switch}${this.openaiSendContext ? this.lang.on : this.lang.off}`)
+                    this.addUserLogs(`${this.lang.ai_switch}${this.openaiSendContext ? this.lang.on : this.lang.off}`)
                     $("#aiContext").removeClass("layui-anim-rotate")
                     setTimeout(() => {
                         $("#aiContext").addClass("layui-anim-rotate")
@@ -3637,9 +3589,6 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                 })
                 window.Bus.$on("relaySetting", (res) => {
                     this.relaySetting()
-                })
-                window.Bus.$on("initDrawMousePath", () => {
-                    this.initDrawMousePath()
                 })
             },
             // 初始化选择文件面板
@@ -3674,7 +3623,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                                 //如果文件已经存在，就不再添加了
                                 if(hasChooseFile){
-                                    that.addUserLogs(`选择的文件已经存在相同的文件，不再重复添加 : ${file.name}, 大小 : ${that.getFileSizeStr(file.size)}, 类型 : ${file.type}`);
+                                    that.addUserLogs(`${that.lang.selected_file_exist} : ${file.name}, ${that.lang.size} : ${that.getFileSizeStr(file.size)}, ${that.lang.type} : ${file.type}`);
                                     continue
                                 }
 
@@ -3695,7 +3644,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
 
                                     //如果已经存在记录了，就不再添加了
                                     if (hasFileRecoder) {
-                                        that.addUserLogs(`已经存在相同的文件记录，不再重复添加 : ${file.name}, 发送给 : ${that.remoteMap[remoteId].nickName}`);
+                                        that.addUserLogs(`${that.lang.send_file_record_exist} : ${file.name} : ${that.remoteMap[remoteId].nickName}`);
                                         continue
                                     }
 
@@ -3720,7 +3669,7 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
                                         upload : 'wait'
                                     });
 
-                                    that.addUserLogs(`生成文件发送记录 : ${file.name}, 大小 : ${that.getFileSizeStr(file.size)}, 类型 : ${file.type}, 发送给 : ${that.remoteMap[remoteId].nickName}`);
+                                    that.addUserLogs(`${that.lang.generate_send_file_record} : ${file.name}, ${that.lang.size} : ${that.getFileSizeStr(file.size)}, ${that.lang.type} : ${file.type}, : ${that.remoteMap[remoteId].nickName}`);
                                 }
                             }
                         }
@@ -3750,61 +3699,74 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             },            
         },
         mounted: function () {
-            this.addSysLogs("刷新随机房间号 初始化中...");
+            let langArgs = tlrtcfile.getRequestHashArgs("lang")
+            if (langArgs && ['zh','en'].includes(langArgs)) {
+                this.langMode = langArgs;
+            }
+            this.lang = window.local_lang[this.langMode];
+            this.addSysLogs(this.lang.init_language_done);
+
+            this.addSysLogs(this.lang.print_logo);
+            this.consoleLogo();
+
+            this.addSysLogs(this.lang.refresh_random_room_num_init);
             this.refleshRoom()
-            this.addSysLogs("刷新随机房间号完成");
+            this.addSysLogs(this.lang.refresh_random_room_num_init_done);
 
-            this.addSysLogs("滑动组件 初始化中...");
+            this.addSysLogs(this.lang.slider_init);
             this.initSwiper();
-            this.addSysLogs("滑动组件 初始化完成");
+            this.addSysLogs(this.lang.slider_init_done);
 
-            this.addSysLogs("SOCKET监听 初始化中...");
+            this.addSysLogs(this.lang.socket_init);
             this.socketListener();
-            this.addSysLogs("SOCKET监听 初始化完成");
+            this.addSysLogs(this.lang.socket_init_done);
 
-            this.addSysLogs("基础数据 获取中...");
+            this.addSysLogs(this.lang.basic_data_get);
             this.socket.emit('getCommData', {});
-            this.addSysLogs("基础数据 初始化完成");
+            this.addSysLogs(this.lang.basic_data_get_done);
 
-            this.addSysLogs("窗口事件监听 初始化中...");
-            this.addSysLogs("消息弹窗 初始化中...");
+            this.addSysLogs(this.lang.window_event_init);
             window.onresize = this.touchResize;
             setInterval(() => {
                 this.touchResize()
-                let msgData = this.popUpList.shift();
-                if(msgData){
-                    this.startPopUpMsg(msgData)
-                }
             }, 1000);
-            this.addSysLogs("消息弹窗 初始化完成");
-            this.addSysLogs("窗口事件监听 初始化完成");
+            this.addSysLogs(this.lang.window_event_init_done);
 
-            this.addSysLogs("分享组件 初始化中...");
+            this.addSysLogs(this.lang.message_box_init);
+            this.startPopUpMsg()
+            this.addSysLogs(this.lang.message_box_init_done);
+
+            this.addSysLogs(this.lang.share_init);
             this.handlerJoinShareRoom();
             this.handlerGetCodeFile();
-            this.addSysLogs("分享组件 初始化完成");
+            this.addSysLogs(this.lang.share_init_done);
 
-            this.addSysLogs("公共事件监听 初始化中...");
+            this.addSysLogs(this.lang.common_event_init);
             this.windowOnBusEvent();
-            this.addSysLogs("公共事件监听 初始化完成");
+            this.addSysLogs(this.lang.common_event_init_done);
 
             setTimeout(() => {
-                this.addSysLogs("文件选择组件 初始化中...");
+                this.addSysLogs(this.lang.file_select_init);
                 this.renderChooseFileComp();
-                this.addSysLogs("文件选择组件 初始化完成");
+                this.addSysLogs(this.lang.file_select_init_done);
+
+                this.addSysLogs(this.lang.language_select_init);
+                this.changeLanguage()
+                this.addSysLogs(this.lang.language_select_init_done);
             }, 2000);
 
-            this.addSysLogs("DEBUG组件 初始化中...");
+            this.addSysLogs(this.lang.debug_init);
             this.loadVConsoleJs();
-            this.addSysLogs("DEBUG组件 初始化中完成");
+            this.addSysLogs(this.lang.debug_init_done);
 
-            this.addSysLogs("当前中继服务状态 : " + (this.useTurn ? '启用中' : '已禁用'))
+            this.addSysLogs(this.lang.current_relay_status + (this.useTurn ? this.lang.on : this.lang.off))
+
+            // this.addSysLogs(this.lang.event_init);
+            // this.initOpEvent();
+            // this.addSysLogs(this.lang.event_init_done);
         }
     });
 
-    window.initDrawMousePath = function () {
-        window.Bus.$emit("initDrawMousePath")
-    }
     window.manageReload = function (data) {
         window.Bus.$emit("manageReload", data)
     }
@@ -3840,13 +3802,14 @@ axios.get(window.prefix + "/api/comm/initData", {}).then((initData) => {
             window.Bus.$emit("relaySetting", {})
         });
     }
-    window.notUseRelay = function () {
-        let notUseRelay = window.localStorage.getItem("tl-rtc-file-not-use-relay");
-        if (notUseRelay && notUseRelay === 'true') {
-            window.localStorage.setItem("tl-rtc-file-not-use-relay", false)
+    window.useTurn = function () {
+        if ((window.localStorage.getItem("tl-rtc-file-use-relay") || "") === 'true') {
+            window.localStorage.setItem("tl-rtc-file-use-relay", false)
         } else {
-            window.localStorage.setItem("tl-rtc-file-not-use-relay", true)
+            window.localStorage.setItem("tl-rtc-file-use-relay", true)
         }
         window.location.reload()
     }
 })
+
+

@@ -1,4 +1,33 @@
+// --------------------------- //
+// --       comm.js         -- //
+// --   version : 1.0.0     -- //
+// --   date : 2023-06-22   -- //
+// --------------------------- //
+
 window.tlrtcfile = {
+    addUrlHashParams : function(obj){
+        let redirect = window.location.protocol + "//" + window.location.host + "#"
+        let oldObj = this.getRequestHashArgsObj();
+        obj = Object.assign(oldObj,obj);
+        for(let key in obj){
+            redirect += key + "=" + obj[key] + "&";
+        }
+        return redirect;
+    },
+    getRequestHashArgsObj : function () {
+        let query = decodeURIComponent(window.location.hash.substring(1));
+        let args = query.split("&");
+        let obj = {};
+        for (let i = 0; i < args.length; i++) {
+            let pair = args[i].split("=");
+            const key = pair[0];
+            const val = pair[1];
+            if(key){
+                obj[key] = val
+            }
+        }
+        return obj;
+    },
     getRequestHashArgs : function (key) {
         let query = decodeURIComponent(window.location.hash.substring(1));
         let args = query.split("&");
@@ -48,48 +77,59 @@ window.tlrtcfile = {
         }
         return getRandomName(4);
     },
-    escapeHtml: function () {
-        var entityMap = {
-            escape: {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&apos;',
-            },
-            unescape: {
-                '&amp;': "&",
-                '&apos;': "'",
-                '&gt;': ">",
-                '&lt;': "<",
-                '&quot;': '"',
-            }
+    escapeStr: function (str) {
+        const entityMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '/': '&#x2F;',
+            '`': '&#x60;',
+            '=': '&#x3D;'
         };
-        var entityReg = {
-            escape: RegExp('[' + Object.keys(entityMap.escape).join('') + ']', 'g'),
-            unescape: RegExp('(' + Object.keys(entityMap.unescape).join('|') + ')', 'g')
-        }
-
-        // 将HTML转义为实体
-        function escape(html) {
-            if (typeof html !== 'string') return ''
-            return html.replace(entityReg.escape, function (match) {
-                return entityMap.escape[match]
-            })
-        }
-
-        // 将实体转回为HTML
-        function unescape(str) {
-            if (typeof str !== 'string') return ''
-            return str.replace(entityReg.unescape, function (match) {
-                return entityMap.unescape[match]
-            })
-        }
-
-        return {
-            escape: escape,
-            unescape: unescape
-        }
+        const encodedMap = {
+            '%': '%25',
+            '!': '%21',
+            "'": '%27',
+            '(': '%28',
+            ')': '%29',
+            '*': '%2A',
+            '-': '%2D',
+            '.': '%2E',
+            '_': '%5F',
+            '~': '%7E'
+        };
+        return String(str).replace(/[&<>"'`=\/%!'()*\-._~]/g, function (s) {
+            return entityMap[s] || encodedMap[s] || '';
+        });
+    },
+    unescapeStr: function (str) {
+        const entityMap = {
+            '&amp;': '&',
+            '&lt;': '<',
+            '&gt;': '>',
+            '&quot;': '"',
+            '&#39;': "'",
+            '&#x2F;': '/',
+            '&#x60;': '`',
+            '&#x3D;': '='
+        };
+        const encodedMap = {
+            '%25': '%',
+            '%21': '!',
+            '%27': "'",
+            '%28': '(',
+            '%29': ')',
+            '%2A': '*',
+            '%2D': '-',
+            '%2E': '.',
+            '%5F': '_',
+            '%7E': '~'
+        };
+        return String(str).replace(/&(amp|lt|gt|quot|#39|#x2F|#x60|#x3D);|%(25|21|27|28|29|2A|2D|2E|5F|7E)/g, function (s) {
+            return entityMap[s] || encodedMap[s] || '';
+        });
     },
     getNetWorkState: function () {
         let ua = navigator.userAgent;
@@ -147,6 +187,32 @@ window.tlrtcfile = {
         return navigator.userAgent.match(
             /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
         );
+    },
+    chatKeydown: function (dom, callback) {
+        if(dom){
+            dom.onkeydown = function (e) {
+                if (e.defaultPrevented) {
+                    return;
+                }
+
+                if (e.shiftKey) {
+                    // shift+enter 换行
+                    return;
+                }else if (e.key !== undefined) {
+                    if (e.key === "Enter") {
+                        // enter键执行
+                        callback && callback()
+                        e.preventDefault();
+                    }
+                } else if (e.keyCode !== undefined) {
+                    if (e.keyCode === 13) {
+                        // enter键执行
+                        callback && callback()
+                        e.preventDefault();
+                    }
+                }
+            }
+        }
     },
     closeFullVideo: function (node, type, from) {
         let stream = node.srcObject;
@@ -221,6 +287,37 @@ window.tlrtcfile = {
         }
     },
     getWebrtcStats: async function (peerConnection) {
+        // 候选者对
+        "candidate-pair" |
+        // 证书相关的统计信息
+        "certificate" | 
+        // 当前音视频编解码器的统计信息
+        "codec" | 
+        // CSRC相关的统计信息
+        "csrc" | 
+        // 数据通道的相关统计信息
+        "data-channel" | 
+        // 传入数据流的相关统计信息
+        "inbound-rtp" | 
+        // 本地候选连接的相关统计信息
+        "local-candidate" | 
+        // 媒体源的相关统计信息
+        "media-source" |
+        // 传出数据流的相关统计信息
+        "outbound-rtp" | 
+        // 对等连接的相关统计信息
+        "peer-connection" | 
+        // 对等连接的相关统计信息
+        "remote-candidate" | 
+        // 远程传入数据流的相关统计信息
+        "remote-inbound-rtp" | 
+        // 远程传出数据流的相关统计信息
+        "remote-outbound-rtp" | 
+        // 媒体轨道的相关统计信息
+        "track" | 
+        // 传输协议的相关统计信息
+        "transport";
+
         if (!peerConnection) {
             return "RTCPeerConnection is not available";
         }
@@ -293,42 +390,6 @@ window.tlrtcfile = {
         window.addEventListener('keyup', function (event) {
             callback("keyup", event)
         })
-    },
-    drawMousePath: function (coordinates) {
-        if (window.layer) {
-            layer.open({
-                type: 1,
-                area: ["80%", "80%"],
-                title: "鼠标路径绘制",
-                content: `  <div id="tl-rtc-file-mouse-draw" style="height: 100%;"> </div> `,
-                success: function (layero, index) {
-                    document.querySelector(".layui-layer-content").style.borderRadius = "15px"
-                    // 获取 canvas 元素
-                    const canvas = document.createElement('canvas');
-                    let dom = document.getElementById("tl-rtc-file-mouse-draw");
-                    canvas.setAttribute("style","height: 100%; width: 100%;")
-                    canvas.height = document.querySelector(".layui-layer-content").clientHeight;
-                    canvas.width = document.querySelector(".layui-layer-content").clientWidth;
-                    dom.appendChild(canvas);
-                    const context = canvas.getContext("2d");
-    
-                    // 设置画笔样式
-                    context.lineWidth = 1;
-                    context.strokeStyle = "red";
-                    context.fillStyle = "red";
-
-                    // 开始绘制路径
-                    context.beginPath();
-                    context.moveTo(coordinates[0].x, coordinates[0].y);
-    
-                    for (let i = 1; i < coordinates.length; i++) {
-                        context.lineTo(coordinates[i].x, coordinates[i].y);
-                    }
-                    // 完成路径绘制
-                    context.stroke();
-                }
-            });
-        }
     },
     scrollToBottom: function (dom, duration, timeout) {
         let start = dom.scrollTop;

@@ -81,6 +81,11 @@ async function getSettingPageHtml(data) {
                             </div>
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
+                                    <input type="checkbox" name="openRemoteDraw" title="开启远程画笔" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
                                     <input type="checkbox" name="openPasswordRoom" title="开启密码房间" lay-skin="primary">
                                 </div>
                             </div>
@@ -175,22 +180,29 @@ async function getSettingPageHtml(data) {
             <div class="layui-col-sm12">
                 <div class="layui-row layui-col-space15">
                     <div class="layui-col-sm12">
-                        <div class="room-recent-title">数据传输公告设置</div>
+                        <div class="room-recent-title">其他设置</div>
                         <form class="layui-form notice-form" lay-filter="notice-form"> 
                             <div class="layui-form-item" style="margin-top: 30px;">
                                 <div class="layui-block">
-                                    <div class="layui-input-block" style="display: flex;margin-left: 0;">
-                                        <input type="text" name="noticeMsg" placeholder="发布公告内容" autocomplete="off"
-                                            class="layui-input">
-                                        <button type="button" lay-submit lay-filter="notice" class="layui-btn">发布</button>
+                                    <div class="layui-input-block" style="margin-left: 0;">
+                                        <div style="padding: 5px;">数据传输公告设置: </div>
+                                        <textarea name="noticeMsg" placeholder="发布公告内容" class="layui-textarea" style="height: 200px;border-radius: 8px;"></textarea>
                                     </div>
                                 </div>
                             </div>
+                            <div class="layui-form-item" style="margin-top: 30px;">
+                                <div class="layui-block">
+                                    <div class="layui-input-block" style="margin-left: 0;">
+                                        <div style="padding: 5px;">公共聊天记录数量: </div>
+                                        <input type="number" name="chatingCommCount" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            <button style="margin-top: 10px;" type="button" lay-submit lay-filter="notice" class="layui-btn">更新其他设置</button>
                         </form>
                     </div>
                 </div>
             </div>
-    
         </div>
     </div>
     
@@ -209,7 +221,8 @@ async function getSettingPageHtml(data) {
                 noticeMsg = switchData.noticeMsgList[0].msg
             }
             form.val("notice-form",{
-                noticeMsg : noticeMsg
+                noticeMsg : noticeMsg,
+                chatingCommCount : switchData.chatingCommCount
             })
     
             form.on('checkbox()', function(data){
@@ -226,6 +239,7 @@ async function getSettingPageHtml(data) {
                 switchData.noticeMsgList = [{
                     msg : data.field.noticeMsg
                 }]
+                switchData.chatingCommCount = parseInt(data.field.chatingCommCount)
                 window.manageChange({
                     id : ${resData.id},
                     content : switchData

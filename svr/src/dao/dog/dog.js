@@ -98,7 +98,6 @@ async function getDogManageInfo(params, tables, dbClient) {
         })
         data.transferFileSizeTodady = parseInt(data.transferFileSizeTodady / 1024 / 1024)
 
-
         //发送文本内容
         let txtTransferList = transferListToday.filter(element => {
             return element.name === '发送文本内容'
@@ -108,7 +107,7 @@ async function getDogManageInfo(params, tables, dbClient) {
             let content = JSON.parse(element.content);
             data.txtList.push({
                 room: element.room_id || content.room,
-                content: decodeURIComponent(content.content),
+                content: utils.unescapeStr(content.content),
                 size: content.content.length,
                 createTime: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
             })
@@ -184,7 +183,7 @@ async function getDogManageInfo(params, tables, dbClient) {
  * @param {*} dbClient 
  * @returns 
  */
-async function getDogChating10Info(params, tables, dbClient) {
+async function getDogChatingCommInfo(params, tables, dbClient) {
     try{
         if(!tables || !dbClient){
             return [];
@@ -220,7 +219,7 @@ async function getDogChating10Info(params, tables, dbClient) {
 module.exports = dbOpen ? {
     addDogData,
     getDogManageInfo,
-    getDogChating10Info,
+    getDogChatingCommInfo,
 } : {
     addDogData : () => {
         return {}
@@ -228,7 +227,7 @@ module.exports = dbOpen ? {
     getDogManageInfo : () => {
         return {}
     },
-    getDogChating10Info : () => {
+    getDogChatingCommInfo : () => {
         return [];
     },
 }

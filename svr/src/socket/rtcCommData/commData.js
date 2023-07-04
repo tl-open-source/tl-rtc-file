@@ -3,6 +3,7 @@ const daoDog = require("./../../dao/dog/dog")
 const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
+const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 
 // 公共聊天数据缓存
 let chatingComm = null
@@ -20,7 +21,6 @@ let cacheSwitchData = null
  */
 async function getCommData(io, socket, tables, dbClient, data){
     try{
-        
         let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
         let manageInfo = await daoRoom.getOrCreateManageRoom({
@@ -34,8 +34,8 @@ async function getCommData(io, socket, tables, dbClient, data){
         }
 
         if(!chatingComm){
-            chatingComm = await daoDog.getDogChating10Info({
-                limit : 10
+            chatingComm = await daoDog.getDogChatingCommInfo({
+                limit : switchData.chatingCommCount || 10
             }, tables, dbClient);
         }
 
@@ -53,6 +53,7 @@ async function getCommData(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-commData",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

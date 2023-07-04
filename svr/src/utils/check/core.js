@@ -37,6 +37,16 @@ class Trie {
         }
         return null;
     }
+
+    toJson() {
+        //将树转换为json
+        return JSON.stringify(this.root, (key, value) => {
+            if (key === 'children') {
+                return [...value];
+            }
+            return value;
+        });
+    }
 }
 
 // 敏感词库

@@ -7,6 +7,7 @@ const cfg = require("./../../../conf/cfg.json")
 const manageConfig = cfg.manage
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
+const check = require("./../../utils/check/content");
 
 // 登陆token列表
 let tokens = [];
@@ -93,6 +94,7 @@ async function confirm(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-manage-confirm",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({

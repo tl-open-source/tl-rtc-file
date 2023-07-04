@@ -14,6 +14,7 @@ const defaultSwitchData = {
 	openGetCodeFile: true,
 	openVideoShare: true,
 	openLiveShare: true,
+	openRemoteDraw: true,
 	openPasswordRoom: true,
 	openScreenShare: true,
 	openFileTransfer: true,
@@ -28,6 +29,7 @@ const defaultSwitchData = {
 	allowChinese: true,
 	allowSymbol: true,
 	noticeMsgList: [],
+	chatingCommCount : 10,
 }
 
 

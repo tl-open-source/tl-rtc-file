@@ -4,7 +4,7 @@ const rtcCommData = require("../rtcCommData/commData");
 const utils = require("../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-
+const check = require("../../utils/check/content");
 /**
  * 公共聊天频道
  * @param {*} io socketio对象
@@ -16,6 +16,8 @@ const rtcClientEvent = rtcConstant.rtcClientEvent
  */
 async function chatingComm(io, socket, tables, dbClient, data){
     try {
+        data.msg = check.contentFilter(data.msg);
+
         let cacheSwitchData = rtcCommData.getCacheSwitchData()
         let chatingComm = rtcCommData.getChatingComm()
 
@@ -30,7 +32,7 @@ async function chatingComm(io, socket, tables, dbClient, data){
 
         data.time = new Date().toLocaleString()
 
-        if (chatingComm.length < 10) {
+        if (chatingComm.length < (cacheSwitchData.chatingCommCount || 10)) {
             chatingComm.push(data)
         } else {
             chatingComm.shift()
@@ -48,7 +50,7 @@ async function chatingComm(io, socket, tables, dbClient, data){
             socketId: data.socketId,
             device: userAgent,
             flag: 0,
-            content: decodeURIComponent(data.msg),
+            content: utils.unescapeStr(data.msg),
             handshake: JSON.stringify(handshake),
             ip: ip
         }, tables, dbClient);
@@ -59,7 +61,7 @@ async function chatingComm(io, socket, tables, dbClient, data){
             recoderId: recoderId,
             msgRecoderId: recoderId,
             socketId: data.socketId,
-            msg: decodeURIComponent(data.msg),
+            msg: utils.unescapeStr(data.msg),
             userAgent: userAgent,
             ip: ip
         })
@@ -72,6 +74,7 @@ async function chatingComm(io, socket, tables, dbClient, data){
         });
         bussinessNotify.sendSystemErrorMsg({
             title: "socket-chatingComm",
+            data: JSON.stringify(data),
             room: data.room,
             from : socket.id,
             msg : JSON.stringify({
