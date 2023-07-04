@@ -10,7 +10,7 @@ defineOptions({
 const router = useRouter();
 const { params } = useRoute();
 
-const { isValid } = useRoom(params.roomId as string);
+const { isValid } = useRoom((params.roomId as string) || '');
 
 const checkParams = () => {
   console.log(isValid.value);

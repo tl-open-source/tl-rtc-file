@@ -4,6 +4,7 @@ importers:
 
   packages/rtc-web:
     specifiers:
+      '@types/lodash': ^4.14.195
       '@types/node': ^20.3.1
       '@typescript-eslint/eslint-plugin': ^5.60.0
       '@typescript-eslint/parser': ^5.60.0
@@ -16,6 +17,7 @@ importers:
       eslint-config-prettier: ^8.8.0
       eslint-plugin-prettier: ^4.2.1
       eslint-plugin-vue: ^9.15.1
+      lodash: ^4.17.21
       nanoid: ^4.0.2
       postcss: ^8.4.24
       postcss-import: ^15.1.0
@@ -31,8 +33,10 @@ importers:
       vue-router: '4'
       vue-tsc: ^1.8.1
     dependencies:
+      '@types/lodash': 4.14.195
       '@vitejs/plugin-vue-jsx': 3.0.1_vite@4.3.9+vue@3.3.4
       '@vueuse/core': 10.2.0_vue@3.3.4
+      lodash: 4.17.21
       nanoid: 4.0.2
       vue: 3.3.4
       vue-router: 4.2.2_vue@3.3.4
@@ -676,6 +680,10 @@ packages:
   /@types/json-schema/7.0.12:
     resolution: {integrity: sha512-Hr5Jfhc9eYOQNPYO5WLDq/n4jqijdHNlDXjuAQkkt+mWdQR+XJToOHrsD4cPaMXpn6KO7y2+wM8AZEs8VpBLVA==}
     dev: true
+
+  /@types/lodash/4.14.195:
+    resolution: {integrity: sha512-Hwx9EUgdwf2GLarOjQp5ZH8ZmblzcbTBC2wtQWNKARBSxM9ezRIAUpeDTgoQRAFB0+8CNWXVA9+MaSOzOF3nPg==}
+    dev: false
 
   /@types/node/20.3.2:
     resolution: {integrity: sha512-vOBLVQeCQfIcF/2Y7eKFTqrMnizK5lRNQ7ykML/5RuwVXVWxYkgwS7xbt4B6fKCUPgbSL5FSsjHQpaGQP/dQmw==}
@@ -2428,7 +2436,6 @@ packages:
 
   /lodash/4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
-    dev: true
 
   /lru-cache/5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}

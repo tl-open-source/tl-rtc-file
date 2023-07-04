@@ -12,9 +12,7 @@ defineOptions({
 
 const router = useRouter();
 
-const RoomFormRef = shallowRef<Record<string, InstanceType<typeof FormRoom>>>(
-  {}
-);
+const RoomFormRef = shallowRef<InstanceType<typeof FormRoom> | null>(null);
 
 const menuListData = ref([
   {
@@ -37,18 +35,18 @@ const cancel = withBtnClickEvent(() => {
   modalVisible.value = false;
 });
 
-const confirm = withBtnClickEvent(() => {
-  const ref = RoomFormRef.value?.[currentCreateRoomByKey.value];
+const confirm = (formData: any) => {
+  router.push(`/${currentCreateRoomByKey.value}/${formData?.roomId}`);
+  currentCreateRoomByKey.value = '';
+  modalVisible.value = false;
+};
+
+const handleClose = () => {
+  const ref = RoomFormRef.value;
   if (ref) {
-    const formData = ref.onSubmit();
-    if (formData) {
-      router.push(`/${currentCreateRoomByKey.value}/${formData?.roomId}`);
-      currentCreateRoomByKey.value = '';
-      modalVisible.value = false;
-      ref.resetForm();
-    }
+    ref.resetForm();
   }
-});
+};
 </script>
 
 <template>
@@ -61,19 +59,24 @@ const confirm = withBtnClickEvent(() => {
     <button class="btn-circle btn bg-transparent" @click="createRoom(item.key)">
       <svg-icon :name="item.icon" class="h-5 w-5" />
     </button>
-
-    <Modal v-model:visible="modalVisible" :modal="true">
-      <template #content>
-        <FormRoom :ref="(ref: any) => (RoomFormRef[item.key] = ref)" />
-      </template>
-      <template #action>
-        <div class="flex justify-end">
-          <button class="btn-neutral btn mr-4" @click="cancel">取消</button>
-          <button class="btn-info btn" @click="confirm">确定</button>
-        </div>
-      </template>
-    </Modal>
   </div>
+
+  <Modal v-model:visible="modalVisible" :modal="false" @close="handleClose">
+    <template #content>
+      <FormRoom ref="RoomFormRef" />
+    </template>
+    <template #action>
+      <div class="flex justify-end">
+        <button class="btn-neutral btn mr-4" @click="cancel">取消</button>
+        <button
+          class="btn-info btn"
+          @click.prevent="(e) => RoomFormRef?.onSubmit(confirm)(e)"
+        >
+          确定
+        </button>
+      </div>
+    </template>
+  </Modal>
 </template>
 
 <style scoped></style>

@@ -23,6 +23,7 @@ type SlotsType = {
 
 type EmitEvents = {
   (e: 'update:visible', visible: boolean): void;
+  (e: 'close'): void;
 };
 
 defineSlots<Partial<SlotsType>>();
@@ -35,7 +36,10 @@ const visibleModel = useVModel(props, 'visible', emits);
 const dialog = shallowRef<any>(null);
 
 const openDialog = () => dialog.value?.showModal?.();
-const closeDialog = () => dialog.value?.close?.();
+const closeDialog = () => {
+  emits('close');
+  dialog.value?.close?.();
+};
 
 const closeModal = withBtnClickEvent(() => {
   if (dialog.value) {

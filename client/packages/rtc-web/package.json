@@ -8,8 +8,10 @@
     "build": "vue-tsc && vite build"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.195",
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "@vueuse/core": "^10.2.0",
+    "lodash": "^4.17.21",
     "nanoid": "^4.0.2",
     "vue": "^3.3.4",
     "vue-router": "4"

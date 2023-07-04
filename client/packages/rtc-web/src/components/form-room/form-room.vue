@@ -1,33 +1,31 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
 import { useRoom } from '@/hooks';
+import { useForm } from '../form-base';
+import { computed } from 'vue';
+import { watch } from 'vue';
 
 defineOptions({
   name: 'FormRoom',
 });
 
-const formData = ref<{ roomId: string }>({ roomId: '' });
+const { formData, handleSubmit, register, resetFields, formErrors } = useForm<{
+  roomId: string;
+}>();
 
-const { isValid } = useRoom(() => formData.value.roomId);
+const { validateRoomId } = useRoom(() => formData.value.roomId || '');
 
-const onSubmit = () => {
-  if (isValid.value) {
-    return formData.value;
+const roomIdValid = computed(() => !formErrors.value['roomId']);
+
+watch(
+  () => roomIdValid.value,
+  (v) => {
+    console.log(v);
   }
-};
-
-const resetForm = () => {
-  formData.value.roomId = '';
-};
-
-const roomIdChange = (e: Event) => {
-  const value = (e.target as HTMLInputElement).value;
-  formData.value.roomId = value;
-};
+);
 
 defineExpose({
-  onSubmit,
-  resetForm,
+  onSubmit: handleSubmit,
+  resetForm: resetFields,
 });
 </script>
 
@@ -36,7 +34,6 @@ defineExpose({
     <h3 class="text-lg font-bold">创建/加入房间</h3>
     <div class="flex flex-col py-4">
       <input
-        :value="formData.roomId"
         type="text"
         placeholder="请输入创建/加入房间的ID"
         :class="[
@@ -44,16 +41,23 @@ defineExpose({
           'input',
           'w-full',
           'max-w-xs',
-          isValid ? 'input-info' : 'input-error',
+          roomIdValid ? 'input-info' : 'input-error',
         ]"
-        @input="roomIdChange"
+        v-bind="{
+          ...register('roomId', {
+            validate: () => ({
+              message: '房间ID在4-32个数字/英文字母之间',
+              valid: validateRoomId(),
+            }),
+          }),
+        }"
       />
       <div
-        v-show="!isValid"
+        v-show="!roomIdValid"
         class="mt-4 leading-[20px]"
-        :class="isValid ? 'text-info' : 'text-error'"
+        :class="roomIdValid ? 'text-info' : 'text-error'"
       >
-        房间ID在4-32个数字/英文字母之间
+        {{ formErrors['roomId']?.message }}
       </div>
     </div>
   </div>
