@@ -45,4 +45,13 @@ hs_err_pid*
 svr/res/js/*.min.*
 svr/res/css/*.min.*
 
-svr/test/*
+dist/
+
+svr/res/dist
+
+svr/dist
+
+client/dist
+
+package-lock.json
+

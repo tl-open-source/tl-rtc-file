@@ -5,9 +5,8 @@ WORKDIR /home/tlrtcfile
 ADD . .
 
 RUN npm conf set registry https://registry.npm.taobao.org; \
-    npm install; \
     npm install -g pm2; \
-    cd /home/tlrtcfile/svr/build/webpack/ \
+    cd /home/tlrtcfile/svr/ \
     npm install;
 
 EXPOSE 9092 8444

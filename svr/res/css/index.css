@@ -1041,63 +1041,63 @@ body {
 }
 
 .tl-rtc-file-mouse-draw-canvas-line{
-    cursor: url("/image/drawline.png") 5 24, auto;
+    cursor: url("./../image/drawline.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-delete{
-    cursor: url("/image/drawdelete.png") 15 20, auto;
+    cursor: url("./../image/drawdelete.png") 15 20, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-circle{
-    cursor: url("/image/drawcircle.png") 5 24, auto;
+    cursor: url("./../image/drawcircle.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-circle-fill{
-    cursor: url("/image/drawcirclefill.png") 5 24, auto;
+    cursor: url("./../image/drawcirclefill.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-rectangle{
-    cursor: url("/image/drawrectangle.png") 5 24, auto;
+    cursor: url("./../image/drawrectangle.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-rectangle-fill{
-    cursor: url("/image/drawrectanglefill.png") 5 24, auto;
+    cursor: url("./../image/drawrectanglefill.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-hexagon{
-    cursor: url("/image/drawhexagon.png") 5 24, auto;
+    cursor: url("./../image/drawhexagon.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-hexagon-fill{
-    cursor: url("/image/drawhexagonfill.png") 5 24, auto;
+    cursor: url("./../image/drawhexagonfill.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-triangle{
-    cursor: url("/image/drawtriangle.png") 5 24, auto;
+    cursor: url("./../image/drawtriangle.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-triangle-fill{
-    cursor: url("/image/drawtrianglefill.png") 5 24, auto;
+    cursor: url("./../image/drawtrianglefill.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-rhomboid{
-    cursor: url("/image/drawrhomboid.png") 5 24, auto;
+    cursor: url("./../image/drawrhomboid.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-rhomboid-fill{
-    cursor: url("/image/drawrhomboidfill.png") 5 24, auto;
+    cursor: url("./../image/drawrhomboidfill.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-star{
-    cursor: url("/image/drawstar.png") 5 24, auto;
+    cursor: url("./../image/drawstar.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-star-fill{
-    cursor: url("/image/drawstarfill.png") 5 24, auto;
+    cursor: url("./../image/drawstarfill.png") 5 24, auto;
 }
 
 .tl-rtc-file-mouse-draw-canvas-text{
-    cursor: url("/image/drawtext.png") 5 24, auto;
+    cursor: url("./../image/drawtext.png") 5 24, auto;
 }
 
 .layui-layer-title{

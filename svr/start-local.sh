@@ -6,6 +6,4 @@ pm2 start npm --name=tl-rtc-file-socket-local -- run lsocket
 
 sleep 1
 
-cd build/webpack
-
-pm2 start npm --name=tl-rtc-file-build-local -- run dev
+pm2 start npm --name=tl-rtc-file-build-local -- run build:dev

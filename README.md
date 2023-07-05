@@ -23,21 +23,15 @@
 
 ## 准备 (必须步骤)
 
-安装node-14.x，npm后进入项目目录运行下面命令
+安装node-14.x或14.x以上，npm后进入项目目录运行下面命令
 
     `cd svr/`
 
     `npm install`
 
-    `cd build/webpack/`
+    首次运行/自行开发页面，需要启动下面两个命令之一
 
-    `npm install`
-
-    首次运行/自行开发页面，需要启动下面两个命令
-
-    `cd build/webpack/`
-
-    `npm run dev` (打包开发环境min) 或者  `npm run pro` 打包生产环境min
+    `npm run build:dev` (打包监听文件改动打包min) 或者  `npm run build:pro` 打包min
 
 
 ## 启动 (必须步骤)
