@@ -34,8 +34,6 @@ const rtcServerEvent = {
     chatingComm : "chatingComm",
     //chatgpt
     openai : "openai",
-    //远程控制
-    control : "control",
     //canvas画图
     draw : "draw",
     //房间内聊天, 群聊/私聊
@@ -112,8 +110,6 @@ let rtcClientEvent = {
     manageCheck : "manageCheck",
     //管理员页面
     manage : "manage",
-    //远程控制
-    control : "control",
     //画图
     draw : "draw",
     //房间内聊天, 群聊/私聊

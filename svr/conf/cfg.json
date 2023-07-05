@@ -1,16 +1,12 @@
 {
-	"version": "10.2.0",
+	"version": "10.2.1",
 	"ws": {
 		"port": 8444,
-		"host": "ws://127.0.0.1:8444",
-		"control_port": 8445,
-		"control_host": "ws://127.0.0.1:8445"
+		"host": "ws://127.0.0.1:8444"
 	},
 	"wss": {
 		"port": 8444,
-		"host": "wss://域名 || wss://ip:8444",
-		"control_port": 8445,
-		"control_host": "wss://域名 || wss://ip:8445"
+		"host": "wss://域名 || wss://ip:8444"
 	},
 	"api": {
 		"port": 9092,

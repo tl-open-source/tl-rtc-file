@@ -32,7 +32,7 @@ async function chatingComm(io, socket, tables, dbClient, data){
 
         data.time = new Date().toLocaleString()
 
-        if (chatingComm.length < (cacheSwitchData.chatingCommCount || 10)) {
+        if (chatingComm.length < 10) {
             chatingComm.push(data)
         } else {
             chatingComm.shift()

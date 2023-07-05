@@ -62,14 +62,10 @@ http形式启动以下两个服务, 选一种模式启动即可
     "ws": {
           "port": 8444,                         #socket 端口
           "host": "ws://127.0.0.1:8444",        #socket ip
-          "control_port": 8445,                 #远程控制socket 端口
-          "control_host": "ws://127.0.0.1:8445" #远程控制socket ip
      },
      "wss" : {
           "port": 8444,
           "host": "wss://域名||ip:port",
-          "control_port": 8445,
-          "control_host": "wss://域名||ip:port"
      },
 
 ## 配置数据库 (非必须步骤)
@@ -123,7 +119,7 @@ ubuntu示例:
 示例用户和密码: tlrtcfile
 
     生成用户 (turnadmin生成密码)  `turnadmin -k -u tlrtcfile -r 你的域名`
-    或者 (自定义密码)  `turnadmin -a -u tlrtcfile -p tlrtcfile -r 你的域名`    
+    或者 (自定义密码)  `turnadmin -a -u tlrtcfile -p tlrtcfile -r 你的域名`
     启动turnserver  `turnserver -c /etc/turnserver.conf`
 
     可参考示例模板 : `bin/turnStart.sh`

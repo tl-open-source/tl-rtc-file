@@ -13,7 +13,6 @@ const rtcMessage = require("./rtcMessage/message");
 const rtcChatingComm = require("./rtcChatingComm/chatingComm");
 const rtcChatingRoom = require("./rtcChatingRoom/chatingRoom");
 const rtcOpenai = require("./rtcOpenai/openai");
-const rtcControl = require("./rtcControl/control");
 const rtcDraw = require("./rtcDraw/draw");
 const rtcPrepareCodeFile = require("./rtcCodeFile/prepareCodeFile");
 const rtcAddCodeFile = require("./rtcCodeFile/addCodeFile");
@@ -98,11 +97,6 @@ module.exports = (io, socket, tables, dbClient) => {
     // openai聊天
     socket.on(rtcServerEvent.openai, (data) => {
         rtcOpenai.openai(io, socket, tables, dbClient, data)
-    });
-
-    // 远程控制
-    socket.on(rtcServerEvent.control, (data) => {
-        rtcControl.control(io, socket, tables, dbClient, data)
     });
 
     // canvas画图

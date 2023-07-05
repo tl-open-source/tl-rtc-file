@@ -6,10 +6,8 @@
 	"scripts": {
 		"lapi": "cross-env ENV_MODE=local node localapi",
 		"lsocket": "cross-env ENV_MODE=local node localsocket",
-		"lcsocket": "cross-env ENV_MODE=local node localcontrolsocket",
 		"sapi": "cross-env ENV_MODE=server node serverapi",
 		"ssocket": "cross-env ENV_MODE=server node serversocket",
-		"scsocket": "cross-env ENV_MODE=server node servercontrolsocket",
 		"test": "cross-env mocha ./test/test.js"
 	},
 	"repository": {
@@ -30,9 +28,7 @@
 		"request": "^2.88.2",
 		"sequelize": "^6.1.0",
 		"sequelize-pool": "^6.0.0",
-		"socket.io": "^2.3.0",
-		"pngjs": "^7.0.0",
-		"robotjs": "^0.6.0"
+		"socket.io": "^2.3.0"	
 	},
 	"devDependencies": {}
 }

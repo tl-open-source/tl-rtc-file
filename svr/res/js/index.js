@@ -57,7 +57,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 isMouseDrag : false, //是否正在拖拽鼠标
                 isSendAllWaiting : false, //一键发送文件时，有1秒时间间隔，这个记录当前是否是一键发送文件等待中
                 isShareJoin : false, //是否是分享加入房间
-                isRemoteControl : false, // 是否正在进行远程控制
 
                 sendFileMaskHeightNum: 150, // 用于控制发送文件列表面板展示
                 chooseFileMaskHeightNum: 150, // 用于控制选择文件列表面板展示
@@ -95,8 +94,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 uploadCodeFileProgress: 0, // 上传暂存文件的进度
                 previewFileMaxSize : 1024 * 1024 * 5, // 5M以内允许预览
                 uploadCodeFileMaxSize : 1024 * 1024 * 10, // 10M以内允许暂存
-                controlListMaxSize : 20, // 100条控制指令以内，发送到socket
-                mouseMoveUnit : 1, //鼠标移动的最小单位
 
                 currentChooseFileRecoder : null, //当前进行发送的文件记录
                 currentChooseFile: null, //当前发送中的文件
@@ -111,7 +108,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 logs: [],  //记录日志
                 popUpList: [], //消息数据
                 preMouseMove : {}, //上一次鼠标移动的事件
-                controlList : [], // 远程控制操作列表
                 ips: [], // 记录ip列表，检测是否支持p2p
                 popUpMsgDom : [], // 消息弹窗dom
 
@@ -197,11 +193,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 immediate: true
             },
             receiveChatCommList: {
-                handler: function (newV, oldV) { },
-                deep: true,
-                immediate: true
-            },
-            controlList: {
                 handler: function (newV, oldV) { },
                 deep: true,
                 immediate: true
@@ -3377,67 +3368,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     that.addUserLogs(`${that.lang.your_ip_list} : ${JSON.stringify(this.ips)}`)
                 }, 50)
             },
-            initOpEvent : function(){
-                let that = this;
-                if (window.tlrtcfile) {
-                    tlrtcfile.getOpEventData((type, event) => {
-                        if(type === 'click'){
-                            if(that.isRemoteControl){
-                                // that.controlList.push({type : 'click', x : event.x * 0.8, y : event.y * 0.7})
-                            }
-                        }else if(type === 'contextmenu'){
-                            if(that.isRemoteControl){
-                                // that.controlList.push({type : 'rightclick', x : event.x * 0.8, y : event.y * 0.7})
-                            }
-                        }else if(type === 'mousemove'){
-                            //移动距离太小
-                            if (Math.abs(that.preMouseMove.clientX - event.clientX) < that.mouseMoveUnit && 
-                                Math.abs(that.preMouseMove.clientY - event.clientY) < that.mouseMoveUnit){
-                                return;
-                            }
-                            
-                            if(that.isMouseDrag){ //鼠标拖拽
-                                if(that.isRemoteControl){
-                                    // that.controlList.push({type : 'mousedrag', x : event.x * 0.8, y : event.y * 0.7})
-                                }
-                            }else{//鼠标移动
-                                if(that.isRemoteControl){
-                                    // that.controlList.push({type : 'mousemove', x : event.x * 0.8, y : event.y * 0.7})
-                                }
-                            }
-
-                            //记录上一次移动的位置
-                            that.preMouseMove = {
-                                clientX : event.clientX,
-                                clientY : event.clientY,
-                                time : Date.now()
-                            }
-                        }else if(type === 'mousedown'){
-                            that.isMouseDrag = true;
-                            if(that.isRemoteControl){
-                                // that.controlList.push({type : 'mousedown'})
-                            }
-                        }else if(type === 'mouseup'){
-                            that.isMouseDrag = false;
-                            if(that.isRemoteControl){
-                                // that.controlList.push({type : 'mouseup'})
-                            }
-                        }else if(type === 'wheel'){
-                            if(that.isRemoteControl){
-                                // that.controlList.push({type : 'wheel', x : event.x * 0.8, y : event.y * 0.7, deltaY : event.deltaY})
-                            }
-                        }else if(type === 'keydown'){
-                            if(that.isRemoteControl){
-                                // that.controlList.push({type : 'keydown', key : event.key})
-                            }
-                        }else if(type === 'keyup'){
-                            if(that.isRemoteControl){
-                                // that.controlList.push({type : 'keyup', key : event.key})
-                            }
-                        }
-                    })
-                }
-            },
             // 自动监听窗口变化，更新css
             reCaculateWindowSize: function () {
                 this.clientWidth = document.body.clientWidth;
@@ -3760,10 +3690,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             this.addSysLogs(this.lang.debug_init_done);
 
             this.addSysLogs(this.lang.current_relay_status + (this.useTurn ? this.lang.on : this.lang.off))
-
-            // this.addSysLogs(this.lang.event_init);
-            // this.initOpEvent();
-            // this.addSysLogs(this.lang.event_init_done);
         }
     });
 
