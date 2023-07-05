@@ -115,14 +115,6 @@ var liveShare = new Vue({
                     $("#liveShareIcon").css("color", "#000000")
                     $("#liveShareTimes").css("color", "#000000")
                 }, 500)
-
-                if(that.times >= 15){
-                    that.stopLiveShare();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                    return
-                }
             }, 1000);
 
             if (window.layer) {

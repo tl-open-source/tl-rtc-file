@@ -115,14 +115,6 @@ var videoShare = new Vue({
                     $("#videoShareIcon").css("color", "#000000")
                     $("#videoShareTimes").css("color", "#000000")
                 }, 500)
-                
-                if(that.times >= 15){
-                    that.stopVideoShare();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                    return
-                }
             }, 1000);
 
             if (window.layer) {

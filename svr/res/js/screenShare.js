@@ -85,14 +85,6 @@ var screenShare = new Vue({
                     $("#screenShareIcon").css("color","#000000")
                     $("#screenShareTimes").css("color","#000000")
                 }, 500)
-
-                if(that.times >= 15){
-                    that.stopScreenShare();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                    return
-                }
             }, 1000);
 
             if (window.layer) {
