@@ -1,12 +1,12 @@
 {
-	"version": "10.2.3",
+	"version": "10.2.5",
 	"ws": {
 		"port": 8444,
 		"host": "ws://127.0.0.1:8444"
 	},
 	"wss": {
 		"port": 8444,
-		"host": "wss://域名 || wss://ip:8444"
+		"host": "wss://域名 或者 wss://ip:8444"
 	},
 	"api": {
 		"port": 9092,

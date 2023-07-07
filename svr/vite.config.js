@@ -1,16 +1,18 @@
-const path = require("path");
-const glob = require("glob");
-const { fileURLToPath } = require("url");
-const copy = require("rollup-plugin-copy");
+import path from "path";
+import * as glob from "glob";
+import { fileURLToPath } from 'url';
+import copy from "rollup-plugin-copy";
 const url = import.meta.url;
 
-module.exports = {
+export default {
     plugins: [
         copy({
             targets: [
-              { src: 'res/*.html', dest: 'res/dist' },
-              { src: 'res/image/*', dest: 'res/dist/image' }
-            ]
+                { src: 'res/*.html', dest: 'res/dist' },
+                { src: 'res/image/*', dest: 'res/dist/image' }
+            ],
+            hook: 'writeBundle',
+            verbose: true
         })
     ],
     build: {
@@ -25,7 +27,7 @@ module.exports = {
                 ])
             ),
             output: {
-                dir : "./res/dist/",
+                dir: "./res/dist/",
                 entryFileNames: "[name].min.js",
                 assetFileNames: "css/[name].min[extname]"
             },
@@ -33,9 +35,9 @@ module.exports = {
         minify: "terser",
         terserOptions: {
             compress: true,
-            mangle:true,
-            toplevel:false,
-            keep_classnames:false
+            mangle: true,
+            toplevel: false,
+            keep_classnames: false
         },
         reportCompressedSize: false,
         sourcemap: false,
