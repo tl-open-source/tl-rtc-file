@@ -204,8 +204,102 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             }
         },
         methods: {
+            updateRemoteRtcState : async function(){
+                for(let id in this.remoteMap){
+                    let stat = await window.tlrtcfile.getWebrtcStats(
+                        this.getOrCreateRtcConnect(id)
+                    );
+                    let remoteCandidate = stat.get("remote-candidate") || [];
+                    let p2pModes = remoteCandidate.map(item => {
+                        if(['host','srflx','prflx'].includes(item.report.candidateType)){
+                            return "直连"
+                        }else if(item.report.candidateType === 'relay'){
+                            return "中继"
+                        }else{
+                            return "未知"
+                        }
+                    })
+                    this.setRemoteInfo(id, {
+                        //p2p连接模式: host, srflx, prflx, relay
+                        p2pMode : Array.from(new Set(p2pModes)).join(",") 
+                    })
+                }
+                this.$forceUpdate()
+            },
+            showRemoteUser : async function(remote){
+                let stat = await window.tlrtcfile.getWebrtcStats(this.getOrCreateRtcConnect(remote.id));
+                const rtcStatList = [];
+                stat.forEach((value, key)=>{
+                    rtcStatList.push(
+                        ...value.map(item => {
+                            return Object.assign(item.report, {
+                                description_zh: item.description
+                            })
+                        })
+                    )
+                })
+                let rtcStatDomList = '';
+                rtcStatList.forEach(statItem => {
+                    let rtcStatDomVal = ` <div> description_zh: <b>${statItem.description_zh}</b> </div> `;
+                    for(let key in statItem){
+                        if(key === 'description_zh'){
+                            continue
+                        }
+                        rtcStatDomVal += ` <div> ${key}: <b>${statItem[key]}</b> </div> `;
+                    }
+                    rtcStatDomList += ` <div> ${rtcStatDomVal} </div> `;
+                })
+
+                let that = this;
+                layer.closeAll(function () {
+                    layer.open({
+                        type: 1,
+                        closeBtn: 0,
+                        fixed: true,
+                        maxmin: false,
+                        shadeClose: true,
+                        area: ['350px', '380px'],
+                        title: `rtc连接实时统计信息`,
+                        success: function (layero, index) {
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                            document.querySelector(".layui-layer").style.borderRadius = "8px";
+                            document.querySelector(".layui-layer").style.background = "#f8f8f8";
+
+                            carousel.render({
+                                elem: '#tl-rtc-file-rtcinfo',
+                                width: '100%',
+                                autoplay : false,
+                                indicator: 'outside'
+                            });
+                        },
+                        content: `
+                            <div class="remote_user_info layui-carousel" id="tl-rtc-file-rtcinfo">
+                                <div carousel-item> 
+                                    <div> 
+                                        <div> ${that.lang.userid}: <b>${remote.id}</b> </div>
+                                        <div> ${that.lang.nickname}: <b>${remote.nickName}</b> </div>
+                                        <div> ${that.lang.room_channel}: <b>${that.roomId}</b> </div>
+                                        <div> ${that.lang.website_language}: <b>${remote.langMode}</b> </div>
+                                        <div> ${that.lang.network_status}: <b>${remote.network}</b> </div>
+                                        <div> ${that.lang.join_time}: <b>${remote.joinTime}</b> </div>
+                                        <div> ${that.lang.public_ip}: <b>${remote.ip}</b> </div>
+                                        <div> ${that.lang.webrtc_ice_state}: <b>${remote.iceConnectionState}</b> </div>
+                                        <div> ${that.lang.device_classification}: <b>${remote.ua}</b> </div>
+                                        <div> ${that.lang.terminal_equipment}: <b>${remote.userAgent}</b> </div>
+                                    </div>
+                                    ${rtcStatDomList}
+                                </div>
+                            </div>
+                        `
+                    })
+                })
+            },
+            iceOk : function(state){
+                return ['completed', 'connected', 'checking', 'new'].includes(state);
+            },
             consoleLogo : function(){
-                window.console.log(`%c____ TL-RTC-FILE-V10.1.5 ____ \n____ FORK ME IN GITHUB ____ \n____ https://github.com/tl-open-source/tl-rtc-file ____`, this.logo)
+                window.console.log(`%c____ TL-RTC-FILE-V${this.version} ____ \n____ FORK ME IN GITHUB ____ \n____ https://github.com/tl-open-source/tl-rtc-file ____`, this.logo)
             },
             changeLanguage: function () {
                 let that = this;
@@ -291,9 +385,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 let file = filterFile[0]
 
                 if (file.size > this.uploadCodeFileMaxSize) {
-                    if(window.layer){
-                        layer.msg(`${this.lang.max_saved} ${this.uploadCodeFileMaxSize / 1024 / 1024} ${this.lang.mb_file}`);
-                    }
+                    layer.msg(`${this.lang.max_saved} ${this.uploadCodeFileMaxSize / 1024 / 1024} ${this.lang.mb_file}`);
                     return
                 }
 
@@ -363,7 +455,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 this.initSendFile(recoder);
             },
             // 私聊弹窗
-            startChatRoomSingle: function(remote){
+            startChatRoomSingle: function(event, remote){
+                event.stopPropagation(); 
                 this.chatRoomSingleSocketId = remote.id;
                 let that = this;
                 let options = {
@@ -433,7 +526,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         </div>
                         <div class="chating_input_body">
                             <textarea maxlength="50000" id="chating_room_single_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
-                            <span class="chating_send_body chating_send_body_span">shift+enter ${this.lang.enter_send} </span>
+                            <span class="chating_send_body chating_send_body_span">shift+enter | ${this.lang.enter_send} </span>
                             <button onclick="sendChatingRoomSingle()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                         </div>
                     `
@@ -626,7 +719,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                 let fileRecorde = filterFile[0];
                 if (fileRecorde.size > this.previewFileMaxSize) {
-                    layer.msg(`${this.lang.max_previewed} ${this.previewFileMaxSize / 1024 / 1024} ${mb_file}`);
+                    layer.msg(`${this.lang.max_previewed} ${this.previewFileMaxSize / 1024 / 1024} ${this.lang.mb_file}`);
                     return
                 }
 
@@ -853,7 +946,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                         <div class="chating_input_body">
                             <textarea maxlength="50000" id="openaiChat_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
-                            <span class="chating_send_body chating_send_body_span">shift+enter ${this.lang.enter_send} </span>
+                            <span class="chating_send_body chating_send_body_span">shift+enter | ${this.lang.enter_send} </span>
                             <button onclick="sendOpenaiChat()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                         </div>
                     `
@@ -1007,11 +1100,11 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                         layer.prompt({
                             formType: 1,
-                            title: this.lang.please_enter_password
+                            title: that.lang.please_enter_password
                         }, function (value, index, elem) {
                             that.createPasswordRoom(value);
                             layer.close(index);
-                            that.addUserLogs(this.lang.enter_password_room + that.roomId + `,${this.lang.password}:` + value);
+                            that.addUserLogs(that.lang.enter_password_room + that.roomId + `,${that.lang.password}:` + value);
                         });
                     });
                 }
@@ -1124,12 +1217,12 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     <div class="setting-main">
                         <div class="setting-main-body">
                             <div class="relayDoc" style="padding: 15px; position: absolute; width: 100%; height: 100%;">
-                                <p style="text-align: center; font-weight: bold; position: relative; top: 2px; display: block; font-size: 17px;"> ${this.lang.relay_server_current} ${useTurn ? this.lang.on : this.lang.off} </p>
-                                <p style="font-weight: bold; position: relative;  top: 15px; display: block; font-size: 14px;"> ${this.lang.relay_server_current_detail} </p>
-                                <div style="position: relative; margin-top: 140px;">
+                                <p style="text-align: center; font-weight: bold; position: relative; top: 2px; display: block; font-size: 17px;"> ${this.lang.relay_server_current} '${useTurn ? this.lang.on : this.lang.off}' </p>
+                                <p style="font-weight: bold; position: relative;  top: 15px; display: block; font-size: 14px;height: 80%;"> ${this.lang.relay_server_current_detail} </p>
+                                <div>
                                     <div style="text-align: center;">
-                                        <button onclick="useTurn()" type="button" class="layui-btn layui-btn-sm layui-btn-normal" style="margin-right: 45px;"> ${this.lang.on} </button>
-                                        <button onclick="useTurn()" type="button" class="layui-btn layui-btn-sm layui-btn-danger"> ${this.lang.off} </button>
+                                        <button onclick="useTurn()" type="button" class="layui-btn layui-btn-sm layui-btn-primary  layui-border-blue" style="margin-right: 45px;"> ${this.lang.on} </button>
+                                        <button onclick="useTurn()" type="button" class="layui-btn layui-btn-sm layui-btn-primary  layui-border-red"> ${this.lang.off} </button>
                                     </div>
                                 </div>
                             </div>
@@ -1180,11 +1273,11 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     });
                     that.clickMediaVideo();
                     that.isVideoShare = !that.isVideoShare;
-                    that.addUserLogs(this.lang.start_video_call);
+                    that.addUserLogs(that.lang.start_video_call);
                 }else{
                     layer.prompt({
                         formType: 1,
-                        title: this.lang.please_enter_video_call_room_num
+                        title: that.lang.please_enter_video_call_room_num
                     }, function (value, index, elem) {
                         that.roomId = value;
                         that.createMediaRoom("video");
@@ -1197,7 +1290,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         });
                         that.clickMediaVideo();
                         that.isVideoShare = !that.isVideoShare;
-                        that.addUserLogs(this.lang.start_video_call);
+                        that.addUserLogs(that.lang.start_video_call);
                     });
                 }
             },
@@ -1239,7 +1332,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     });
                     that.clickMediaScreen();
                     that.isScreenShare = !that.isScreenShare;
-                    that.addUserLogs(this.lang.start_screen_sharing);
+                    that.addUserLogs(that.lang.start_screen_sharing);
                 }else{
                     layer.prompt({
                         formType: 1,
@@ -1256,7 +1349,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         });
                         that.clickMediaScreen();
                         that.isScreenShare = !that.isScreenShare;
-                        that.addUserLogs(this.lang.this.lang.start_screen_sharing);
+                        that.addUserLogs(that.lang.start_screen_sharing);
                     });
                 }
             },
@@ -1289,9 +1382,25 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     return
                 }
                 let that = this;
-                if (window.layer) {
-                    if(that.isShareJoin){ //分享进入
+                if(that.isShareJoin){ //分享进入
+                    that.createMediaRoom("live");
+                    that.socket.emit('message', {
+                        emitType: "startLiveShare",
+                        room: that.roomId,
+                        to : that.socketId
+                    });
+                    that.clickMediaLive();
+                    that.isLiveShare = !that.isLiveShare;
+                    that.addUserLogs(that.lang.start_live);
+                }else{
+                    layer.prompt({
+                        formType: 1,
+                        title: this.lang.please_enter_live_room_num,
+                    }, function (value, index, elem) {
+                        that.roomId = value;
                         that.createMediaRoom("live");
+                        layer.close(index)
+
                         that.socket.emit('message', {
                             emitType: "startLiveShare",
                             room: that.roomId,
@@ -1299,30 +1408,13 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         });
                         that.clickMediaLive();
                         that.isLiveShare = !that.isLiveShare;
-                        that.addUserLogs(this.lang.start_live);
-                    }else{
-                        layer.prompt({
-                            formType: 1,
-                            title: this.lang.please_enter_live_room_num,
-                        }, function (value, index, elem) {
-                            that.roomId = value;
-                            that.createMediaRoom("live");
-                            layer.close(index)
-    
-                            that.socket.emit('message', {
-                                emitType: "startLiveShare",
-                                room: that.roomId,
-                                to : that.socketId
-                            });
-                            that.clickMediaLive();
-                            that.isLiveShare = !that.isLiveShare;
-                            that.addUserLogs(this.lang.start_live);
-                        });
-                    }
+                        that.addUserLogs(that.lang.start_live);
+                    });
                 }
             },
             // 打开画笔
             openRemoteDraw : function(){
+                let that = this;
                 if (!this.switchData.openRemoteDraw) {
                     layer.msg(this.lang.feature_close)
                     this.addUserLogs(this.lang.feature_close)
@@ -1338,26 +1430,26 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 // 触发draw.js中的方法
                 window.Bus.$emit("openDraw", {
                     openCallback: () => {
-                        this.socket.emit('message', {
+                        that.socket.emit('message', {
                             emitType: "startRemoteDraw",
-                            room: this.roomId,
-                            to: this.socketId
+                            room: that.roomId,
+                            to: that.socketId
                         });
                     },
                     closeCallback: (drawCount) => {
-                        this.socket.emit('message', {
+                        that.socket.emit('message', {
                             emitType: "stopRemoteDraw",
-                            room: this.roomId,
-                            to: this.socketId,
+                            room: that.roomId,
+                            to: that.socketId,
                             drawCount : drawCount
                         });
                     },
                     localDrawCallback : (data) => {
-                        Object.entries(this.remoteMap).forEach(([id, remote]) => {
+                        Object.entries(that.remoteMap).forEach(([id, remote]) => {
                             if(remote && remote.sendDataChannel){
                                 const sendDataChannel = remote.sendDataChannel;
                                 if (!sendDataChannel || sendDataChannel.readyState !== 'open') {
-                                    this.addSysLogs("sendDataChannel error in draw")
+                                    that.addSysLogs("sendDataChannel error in draw")
                                     return;
                                 }
                                 sendDataChannel.send(JSON.stringify(data));
@@ -1387,15 +1479,15 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     openCallback : () => {
                         that.socket.emit('message', {
                             emitType: "startScreen",
-                            room: this.roomId,
-                            to : this.socketId
+                            room: that.roomId,
+                            to : that.socketId
                         });
-                        that.addUserLogs(this.lang.start_local_screen_recording);
+                        that.addUserLogs(that.lang.start_local_screen_recording);
                     },
                     closeCallback : (res) => {
-                        this.receiveFileRecoderList.push({
-                            id: this.lang.web_screen_recording,
-                            nickName : this.nickName,
+                        that.receiveFileRecoderList.push({
+                            id: that.lang.web_screen_recording,
+                            nickName : that.nickName,
                             href: res.src,
                             style: 'color: #ff5722;text-decoration: underline;',
                             name: 'screen-recording-' + res.donwId + '.mp4',
@@ -1406,14 +1498,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             start: 0,
                             cost: res.times
                         })
-                        this.socket.emit('message', {
+                        that.socket.emit('message', {
                             emitType: "stopScreen",
-                            to : this.socketId,
-                            room: this.roomId,
+                            to : that.socketId,
+                            room: that.roomId,
                             size: res.size,
                             cost: res.times
                         });
-                        this.addUserLogs(this.lang.end_local_screen_recording);
+                        that.addUserLogs(that.lang.end_local_screen_recording);
                     }
                 });
             },
@@ -1461,7 +1553,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         </div>
                         <div class="chating_input_body">
                             <textarea maxlength="50000" id="chating_comm_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
-                            <span class="chating_send_body chating_send_body_span">shift+enter ${this.lang.enter_send} </span>
+                            <span class="chating_send_body chating_send_body_span">shift+enter | ${this.lang.enter_send} </span>
                             <button onclick="sendChatingComm()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                         </div>
                     `
@@ -1617,7 +1709,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             </div>
                             <div class="chating_input_body">
                                 <textarea maxlength="50000" id="chating_room_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
-                                <span class="chating_send_body chating_send_body_span">shift+enter ${this.lang.enter_send} </span>
+                                <span class="chating_send_body chating_send_body_span">shift+enter | ${this.lang.enter_send} </span>
                                 <button onclick="sendChatingRoom()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                             </div>
                         `
@@ -2118,7 +2210,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         type : 'password',
                         password : '',
                         nickName : this.nickName,
-                        langMode : this.langMode
+                        langMode : this.langMode,
+                        ua: this.isMobile ? 'mobile' : 'pc',
+                        network : this.network
                     });
                     this.isJoined = true;
                     this.addPopup({
@@ -2147,7 +2241,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         room: this.roomId, 
                         type: type, 
                         nickName : this.nickName,
-                        langMode : this.langMode
+                        langMode : this.langMode,
+                        ua: this.isMobile ? 'mobile' : 'pc',
+                        network : this.network
                     });
                     this.isJoined = true;
                     this.roomType = type;
@@ -2183,7 +2279,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         type : 'password', 
                         password: password, 
                         nickName : this.nickName,
-                        langMode : this.langMode
+                        langMode : this.langMode,
+                        ua: this.isMobile ? 'mobile' : 'pc',
+                        network : this.network
                     });
                     this.isJoined = true;
                     this.addPopup({
@@ -2225,12 +2323,19 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                 rtcConnect.oniceconnectionstatechange = (e) => {
                     that.addSysLogs("iceConnectionState: " + rtcConnect.iceConnectionState);
+                    that.setRemoteInfo(id, {
+                        iceConnectionState : rtcConnect.iceConnectionState
+                    })
                 }
 
                 //保存peer连接
                 this.rtcConns[id] = rtcConnect;
                 if (!this.remoteMap[id]) {
-                    Vue.set(this.remoteMap, id, { id: id, receiveChatRoomSingleList : [] })
+                    Vue.set(this.remoteMap, id, { 
+                        id: id, 
+                        receiveChatRoomSingleList : [],
+                        p2pMode : '识别中...'
+                    })
                 }
 
                 //数据通道
@@ -2467,11 +2572,20 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     })
                 }
 
-                // 缓冲区満了
+                //缓冲区暂定 256kb
+                sendFileDataChannel.bufferedAmountLowThreshold = 16 * 1024 * 16;
+                //局域网一般不会走缓冲区，所以bufferedAmount一般为0，公网部分情况受限于带宽，bufferedAmount可能会逐渐堆积，从而进行排队
                 if (sendFileDataChannel.bufferedAmount > sendFileDataChannel.bufferedAmountLowThreshold) {
-                    this.addSysLogs(this.lang.file_send_channel_buffer_full)
+                    this.addSysLogs(
+                        that.lang.file_send_channel_buffer_full + ",bufferedAmount=" + 
+                        sendFileDataChannel.bufferedAmount + ",bufferedAmountLowThreshold=" + 
+                        sendFileDataChannel.bufferedAmountLowThreshold
+                    )
                     sendFileDataChannel.onbufferedamountlow = () => {
-                        this.addSysLogs(this.lang.file_send_channel_buffer_recover)
+                        that.addSysLogs(
+                            that.lang.file_send_channel_buffer_recover + ",bufferedAmount=" + 
+                            sendFileDataChannel.bufferedAmount
+                        )
                         sendFileDataChannel.onbufferedamountlow = null;
                         that.sendFileToRemoteByLoop(event);
                     }
@@ -2844,15 +2958,17 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                     for (let i = 0; i < data.peers.length; i++) {
                         let otherSocketId = data.peers[i].id;
-                        let otherSocketIdNickName = data.peers[i].nickName;
-                        let otherSocketIdLangMode = data.peers[i].langMode;
-                        let otherSocketIdOwner = data.peers[i].owner;
                         let rtcConnect = that.getOrCreateRtcConnect(otherSocketId);
                         // 处理完连接后，更新下昵称
                         that.setRemoteInfo(otherSocketId, { 
-                            nickName : otherSocketIdNickName,
-                            langMode : otherSocketIdLangMode,
-                            owner : otherSocketIdOwner
+                            nickName : data.peers[i].nickName,
+                            langMode : data.peers[i].langMode,
+                            owner : data.peers[i].owner,
+                            ua : data.peers[i].ua,
+                            joinTime : data.peers[i].joinTime,
+                            userAgent : data.peers[i].userAgent,
+                            ip : data.peers[i].ip,
+                            network : data.peers[i].network,
                         })
 
                         await new Promise(resolve => {
@@ -2895,7 +3011,11 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         nickName : data.nickName, 
                         owner : data.owner,
                         langMode : data.langMode,
-                        owner : false
+                        ua : data.ua,
+                        network : data.network,
+                        joinTime : data.joinTime,
+                        userAgent : data.userAgent,
+                        ip : data.ip,
                     })
                     // 处理音视频逻辑
                     if (data.type === 'screen') {
@@ -3656,10 +3776,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             this.addSysLogs(this.lang.basic_data_get_done);
 
             this.addSysLogs(this.lang.window_event_init);
-            window.onresize = this.touchResize;
+            window.onresize = this.touchResize; 
             setInterval(() => {
                 this.touchResize()
             }, 1000);
+
+            setInterval(async () => {
+                await this.updateRemoteRtcState()
+            }, 5000);
             this.addSysLogs(this.lang.window_event_init_done);
 
             this.addSysLogs(this.lang.message_box_init);

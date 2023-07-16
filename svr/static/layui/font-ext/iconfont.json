@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "3494344",
+      "name": "数据汇总",
+      "font_class": "daohang-shujufenxi",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "25071396",
+      "name": "控桩终端",
+      "font_class": "kongzhuangzhongduan",
+      "unicode": "e6bb",
+      "unicode_decimal": 59067
+    },
+    {
+      "icon_id": "25853325",
+      "name": "浏览器",
+      "font_class": "liulanqi",
+      "unicode": "e6e8",
+      "unicode_decimal": 59112
+    },
+    {
+      "icon_id": "5961312",
+      "name": "连接流",
+      "font_class": "lianjieliu",
+      "unicode": "ec57",
+      "unicode_decimal": 60503
+    },
+    {
       "icon_id": "3101162",
       "name": "三角形",
       "font_class": "sanjiaoxing",

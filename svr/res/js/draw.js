@@ -17,6 +17,8 @@ const draw = new Vue({
             drawHistoryList: [], // 绘制历史操作列表, 用于回退
             drawRollbackPoint: 0, // 绘制回退点
             lineWidth: 1, // 画笔线宽
+            lineCap : "round",
+            lineJoin : "round",
             strokeStyle: "#000000", // 画笔颜色
             //line: 线条, circle: 圆形, rectangle: 矩形, text: 文字, delete: 擦除
             drawMode: "line", // 画笔模式
@@ -26,7 +28,7 @@ const draw = new Vue({
             starFill : false, //填充星星
             rhomboidFill : false, //填充平行四边形
             hexagonFill : false, //填充六边形
-            circleStarPoint: { x: 0, y: 0 }, //圆形开始点
+            circleStartPoint: { x: 0, y: 0 }, //圆形开始点
             triangleStartPoint : { x: 0, y: 0 }, //三角形开始点
             starStartPoint : { x: 0, y: 0 }, //星星开始点
             rhomboidStartPoint : { x: 0, y: 0 }, //平行四边形开始点
@@ -106,39 +108,66 @@ const draw = new Vue({
             if (!this.isOpenDraw) {
                 return
             }
+            const { drawMode, event } = options;
             const canvas = document.getElementById('tl-rtc-file-mouse-draw-canvas');
-            options.canvas = canvas;
-            options.context = canvas.getContext('2d');
-            options.fromRemote = true;
-
-            const { drawMode } = options;
+            const context = canvas.getContext('2d');
+            options.remote.canvas = canvas;
+            options.remote.context = context;
 
             //收到结束标识，保存当前画板到缓存数据中
-            if(options.event === 'end'){
-                this.endDrawHandler(options)
+            if(event === 'end'){
+                this.endDrawHandler({canvas, context})
                 return
             }
 
+            let { 
+                width : remoteWidth,  height : remoteHeight, lineWidth,
+                curPoint, prePoint, starStartPoint, circleStartPoint, triangleStartPoint, rectangleStartPoint
+            } = options.remote;
+            
+            //计算双方画布比例，按比例进行坐标放大/缩小
+            const ratioWidth = canvas.width / remoteWidth;
+            const ratioHeight = canvas.height / remoteHeight;
+
+            //调整画笔
+            options.remote.lineWidth = lineWidth * (ratioWidth + ratioHeight) / 2
+            curPoint.x = curPoint.x * ratioWidth;
+            curPoint.y = curPoint.y * ratioHeight;
+            options.remote.curPoint = curPoint;
+
             if (drawMode === 'line') {
+                prePoint.x = prePoint.x * ratioWidth;
+                prePoint.y = prePoint.y * ratioHeight;
+                options.remote.prePoint = prePoint;
                 this.drawLine(options);
             } else if (drawMode === 'circle') {
+                circleStartPoint.x = circleStartPoint.x * ratioWidth;
+                circleStartPoint.y = circleStartPoint.y * ratioHeight;
+                options.remote.circleStartPoint = circleStartPoint;
                 this.drawCircle(options);
             } else if (drawMode === 'rectangle') {
+                rectangleStartPoint.x = rectangleStartPoint.x * ratioWidth;
+                rectangleStartPoint.y = rectangleStartPoint.y * ratioHeight;
+                options.remote.rectangleStartPoint = rectangleStartPoint;
                 this.drawRectangle(options);
             } else if (drawMode === 'text') {
                 this.drawText(options);
             } else if(drawMode === 'triangle'){
+                triangleStartPoint.x = triangleStartPoint.x * ratioWidth;
+                triangleStartPoint.y = triangleStartPoint.y * ratioHeight;
+                options.remote.triangleStartPoint = triangleStartPoint;
                 this.drawTriangle(options);
             } else if(drawMode === 'star'){
+                starStartPoint.x = starStartPoint.x * ratioWidth;
+                starStartPoint.y = starStartPoint.y * ratioHeight;
+                options.remote.starStartPoint = starStartPoint;
                 this.drawStar(options);
             } else {
                 console.log("收到远程未知的绘制模式")
             }
         },
         // 打开/关闭本地画笔
-        openDraw: function ({
-            openCallback, closeCallback, localDrawCallback
-        }) {
+        openDraw: function ({ openCallback, closeCallback, localDrawCallback }) {
             let that = this;
 
             if (this.isOpenDraw) {
@@ -466,126 +495,185 @@ const draw = new Vue({
                 that.drawing = false;
             };
         },
+        // 开始绘制
         startDrawHandler: function ({ canvas, context, localDrawCallback }) {
             //公共参数
-            let commOptions = {
-                event : "start",
+            let localCommOptions = {
                 canvas,
                 context,
                 localDrawCallback,
-                drawMode: this.drawMode,
+                devicePixelRatio : this.devicePixelRatio,
+                width : canvas.width,
+                height: canvas.height,
+                lineCap: this.lineCap,
+                lineJoin: this.lineJoin,
                 lineWidth: this.lineWidth,
                 strokeStyle: this.strokeStyle,
                 fillStyle: this.strokeStyle,
-                lineCap: "round",
-                lineJoin: "round"
             }
-
+            
             if (this.drawMode === 'delete') {
-                this.drawDelete(Object.assign(commOptions, {
-                    prePoint: this.prePoint,
-                    curPoint : this.prePoint
-                }))
+                this.drawDelete({
+                    event : "start",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        prePoint: this.prePoint,
+                        curPoint : this.prePoint
+                    }),
+                })
             } else if (this.drawMode === 'rectangle') {
                 //开始的时候固定好矩形的起点
                 this.rectangleStartPoint = this.prePoint;
-                this.drawRectangle(Object.assign(commOptions, {
-                    rectangleStartPoint: this.rectangleStartPoint,
-                    curPoint: this.prePoint,
-                    rectangleFill : this.rectangleFill
-                }))
+                this.drawRectangle({
+                    event : "start",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        rectangleStartPoint: this.rectangleStartPoint,
+                        curPoint: this.prePoint,
+                        rectangleFill : this.rectangleFill
+                    }),
+                })
             } else if (this.drawMode === 'circle') {
                 //开始的时候固定好圆的起点
                 this.circleStartPoint = this.prePoint;
-                this.drawCircle(Object.assign(commOptions, {
-                    circleStartPoint: this.circleStartPoint,
-                    curPoint: this.prePoint,
-                    circleFill : this.circleFill,
-                }))
+                this.drawCircle({
+                    event : "start",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        circleStartPoint: this.circleStartPoint,
+                        curPoint: this.prePoint,
+                        circleFill : this.circleFill,
+                    }),
+                })
             } else if(this.drawMode === 'triangle'){
                 //开始的时候固定好三角形的起点
                 this.triangleStartPoint = this.prePoint;
-                this.drawTriangle(Object.assign(commOptions, {
-                    triangleStartPoint: this.triangleStartPoint,
-                    curPoint: this.prePoint,
-                    triangleFill : this.triangleFill
-                }));
+                this.drawTriangle({
+                    event : "start",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        triangleStartPoint: this.triangleStartPoint,
+                        curPoint: this.prePoint,
+                        triangleFill : this.triangleFill
+                    }),
+                })
             } else if(this.drawMode === 'star'){
                 //开始的时候固定好星星的起点
                 this.starStartPoint = this.prePoint;
-                this.drawStar(Object.assign(commOptions, {
-                    starStartPoint: this.starStartPoint,
-                    curPoint: this.prePoint,
-                    starFill : this.starFill
-                }));
+                this.drawStar({
+                    event : "start",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        starStartPoint: this.starStartPoint,
+                        curPoint: this.prePoint,
+                        starFill : this.starFill
+                    }),
+                })
             } else if (this.drawMode === 'text') {
-                this.drawText(Object.assign(commOptions, {
-                    curPoint: this.prePoint,
-                }))
-                this.endDrawHandler(Object.assign(commOptions, {
+                this.drawText({
+                    event : "start",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        curPoint: this.prePoint,
+                    }),
+                })
+                this.endDrawHandler(Object.assign(localCommOptions, {
                     curPoint: this.prePoint,
                 }))
             } else if(this.drawMode === 'line'){
-                this.drawLine(Object.assign(commOptions, {
-                    prePoint: this.prePoint,
-                    curPoint: this.prePoint,
-                }));
+                this.drawLine({
+                    event : "start",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        prePoint: this.prePoint,
+                        curPoint: this.prePoint,
+                    }),
+                })
             }
         },
+        // 绘制中
         drawingHandler: function ({ canvas, curPoint, context, localDrawCallback }) {
             if (!this.drawing) {
                 return
             }
+
             //公共参数
-            let commOptions = {
-                event : "move",
+            let localCommOptions = {
                 canvas,
                 context,
                 localDrawCallback,
-                drawMode: this.drawMode,
+                devicePixelRatio : this.devicePixelRatio,
+                width : canvas.width,
+                height: canvas.height,
+                lineCap: this.lineCap,
+                lineJoin: this.lineJoin,
                 lineWidth: this.lineWidth,
                 strokeStyle: this.strokeStyle,
                 fillStyle: this.strokeStyle,
-                lineCap: "round",
-                lineJoin: "round"
             }
 
             if (this.drawMode === 'delete') {
-                this.drawDelete(Object.assign(commOptions, {
-                    prePoint: this.prePoint,
-                    curPoint
-                }))
+                this.drawDelete({
+                    event : "move",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        prePoint: this.prePoint,
+                        curPoint
+                    }),
+                })
             } else if (this.drawMode === 'rectangle') {
-                this.drawRectangle(Object.assign(commOptions, {
-                    rectangleStartPoint: this.rectangleStartPoint,
-                    curPoint,
-                    rectangleFill : this.rectangleFill
-                }));
+                this.drawRectangle({
+                    event : "move",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        rectangleStartPoint: this.rectangleStartPoint,
+                        curPoint,
+                        rectangleFill : this.rectangleFill
+                    }),
+                })
             } else if (this.drawMode === 'circle') {
-                this.drawCircle(Object.assign(commOptions, {
-                    circleStartPoint: this.circleStartPoint,
-                    curPoint,
-                    circleFill : this.circleFill,
-                }))
+                this.drawCircle({
+                    event : "move",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        circleStartPoint: this.circleStartPoint,
+                        curPoint,
+                        circleFill : this.circleFill,
+                    }),
+                })
             } else if(this.drawMode === 'triangle'){
-                this.drawTriangle(Object.assign(commOptions, {
-                    triangleStartPoint: this.triangleStartPoint,
-                    curPoint,
-                    triangleFill : this.triangleFill
-                }));
+                this.drawTriangle({
+                    event : "move",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        triangleStartPoint: this.triangleStartPoint,
+                        curPoint,
+                        triangleFill : this.triangleFill
+                    }),
+
+                })
             } else if(this.drawMode === 'star'){
-                this.drawStar(Object.assign(commOptions, {
-                    starStartPoint: this.starStartPoint,
-                    curPoint,
-                    starFill : this.starFill
-                }));
+                this.drawStar({
+                    event : "move",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        starStartPoint: this.starStartPoint,
+                        curPoint,
+                        starFill : this.starFill
+                    }),
+                })
             } else if(this.drawMode === 'line'){
-                this.drawLine(Object.assign(commOptions, {
-                    prePoint: this.prePoint,
-                    curPoint,
-                }));
+                this.drawLine({
+                    event : "move",
+                    drawMode: this.drawMode,
+                    local : Object.assign(localCommOptions, {
+                        prePoint: this.prePoint,
+                        curPoint,
+                    }),
+                })
             }
         },
+        // 结束绘制
         endDrawHandler: function ({ canvas, curPoint, context, localDrawCallback }) {
             //图像记录，用于回滚撤销操作
             if ( 
@@ -600,13 +688,12 @@ const draw = new Vue({
             //结束的时候通知下远程，可以保存画布到缓存列表中
             localDrawCallback && localDrawCallback({
                 event : "end",
-                drawMode : this.drawMode
+                drawMode : this.drawMode,
+                remote : {}
             })
         },
-        //下载画布图片
-        drawDownload: function ( options ) {
-            const { canvas, context, localDrawCallback } = options;
-
+        // 下载画布图片
+        drawDownload: function ({ canvas, context, localDrawCallback }) {
             let image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
             let link = document.createElement('a');
             link.href = image;
@@ -614,16 +701,13 @@ const draw = new Vue({
             link.click();
         },
         // 画布重置
-        drawReset: function (options) {
-            const { canvas, context, localDrawCallback } = options;
-
+        drawReset: function ({ canvas, context, localDrawCallback }) {
             context.clearRect(0, 0, canvas.width, canvas.height);
             this.drawHistoryList = [];
             this.drawRollbackPoint = 0;
         },
         // 回退回滚的绘制
-        drawUndoRollback: function (options) {
-            const { canvas, context, localDrawCallback } = options;
+        drawUndoRollback: function ({ canvas, context, localDrawCallback }) {
             //最多前进到最后一条记录
             if (this.drawRollbackPoint < this.drawHistoryList.length - 1) {
                 this.drawRollbackPoint = this.drawRollbackPoint + 1;
@@ -637,8 +721,7 @@ const draw = new Vue({
             }
         },
         // 画布回退
-        drawRollback: async function (options) {
-            const { canvas, context, localDrawCallback } = options;
+        drawRollback: async function ({ canvas, context, localDrawCallback }) {
             //最多回退到原点
             if (this.drawRollbackPoint > 0) {
                 this.drawRollbackPoint = this.drawRollbackPoint - 1;
@@ -651,9 +734,17 @@ const draw = new Vue({
             }
         },
         // 画笔擦除
-        drawDelete: function (options) {
-            const { canvas, context, prePoint, curPoint, localDrawCallback } = options;
-            context.lineWidth = this.lineWidth;
+        drawDelete: function ({ event, drawMode, local : { 
+            canvas, context, lineWidth, curPoint, prePoint, lineCap, 
+            width, height, devicePixelRatio,
+            lineJoin, strokeStyle, fillStyle
+        }}) {
+            context.lineWidth = lineWidth;
+            context.lineCap = lineCap;
+            context.lineJoin = lineJoin;
+            context.strokeStyle = strokeStyle;
+            context.fillStyle = fillStyle;
+
             //防止移动过快，canvas渲染存在间隔，导致线条断层，在这里补充绘制间隔的点
             let x = prePoint.x;
             let y = prePoint.y;
@@ -666,14 +757,17 @@ const draw = new Vue({
             while (i < distance) {
                 x += xUnit;
                 y += yUnit;
-                context.clearRect(x - 20, y - 20, this.lineWidth, this.lineWidth);
+                context.clearRect(x - 20, y - 20, lineWidth, lineWidth);
                 i++;
             }
         },
         // 图片渲染处理
-        drawImage: function (options) {
+        drawImage: function ({ event, drawMode, local : { 
+            canvas, context, lineWidth, curPoint, prePoint, lineCap, 
+            width, height, devicePixelRatio,
+            lineJoin, strokeStyle, fillStyle, localDrawCallback
+        }}) {
             let that = this;
-            const { canvas, context, localDrawCallback } = options;
             let input = document.createElement("input");
             input.setAttribute("type", "file");
             input.setAttribute("accept", "image/*");
@@ -695,11 +789,14 @@ const draw = new Vue({
             }
         },
         // 画笔渲染处理, 两点式绘制
-        drawLine: function (options) {
-            const {
-                canvas, context, localDrawCallback,  prePoint, curPoint, 
-                lineWidth, strokeStyle, fillStyle, lineCap, lineJoin, fromRemote, 
-            } = options;
+        drawLine: function ({ event, drawMode, fromRemote, local, remote}) {
+            if(fromRemote){
+                local = remote;
+            }
+            let { 
+                canvas, context, lineWidth, curPoint, prePoint, lineCap, 
+                width, height, devicePixelRatio, lineJoin, strokeStyle, fillStyle, localDrawCallback
+            } = local;
 
             // 设置画笔样式
             context.lineWidth = lineWidth;
@@ -728,16 +825,23 @@ const draw = new Vue({
                 i++;
             }
 
-            if (!fromRemote) { //本地的绘制数据回调给远端
-                localDrawCallback && localDrawCallback(options);
+            //如果是本地绘制，完成绘制后数据回调给远端
+            if (!fromRemote) {
+                localDrawCallback && localDrawCallback({ event, drawMode, fromRemote : true, remote : {
+                    lineWidth, curPoint, prePoint, lineCap, width, height, devicePixelRatio,
+                    lineJoin, strokeStyle, fillStyle,
+                }});
             }
         },
         // 星星渲染处理
-        drawStar: function (options) {
-            const {
-                canvas, context, localDrawCallback, starStartPoint, curPoint, 
-                lineWidth, strokeStyle, fillStyle, lineCap, lineJoin, fromRemote, starFill
-            } = options;
+        drawStar: function ({ event, drawMode, fromRemote, local, remote}) {
+            if(fromRemote){
+                local = remote;
+            }
+            let { 
+                canvas, context, lineWidth, curPoint, starStartPoint, lineCap, starFill,
+                width, height, devicePixelRatio, lineJoin, strokeStyle, fillStyle, localDrawCallback
+            } = local;
 
             // 设置画笔样式
             context.lineWidth = lineWidth;
@@ -778,16 +882,23 @@ const draw = new Vue({
                 }
             }
 
-            if (!fromRemote) { //本地的绘制数据回调给远端
-                localDrawCallback && localDrawCallback(options);
+            //如果是本地绘制，完成绘制后数据回调给远端
+            if (!fromRemote) {
+                localDrawCallback && localDrawCallback({ event, drawMode, fromRemote : true, remote : {
+                    lineWidth, curPoint, starStartPoint, lineCap, width, height, devicePixelRatio,
+                    lineJoin, strokeStyle, fillStyle, starFill
+                }});
             }
         },
         // 三角形渲染处理
-        drawTriangle: function (options) {
-            const {
-                canvas, context, localDrawCallback, triangleStartPoint, curPoint, 
-                lineWidth, strokeStyle, fillStyle, lineCap, lineJoin, fromRemote, triangleFill
-            } = options;
+        drawTriangle: function ({ event, drawMode, fromRemote, local, remote }) {
+            if(fromRemote){
+                local = remote;
+            }
+            let { 
+                canvas, context, lineWidth, curPoint, triangleStartPoint, lineCap, triangleFill,
+                width, height, devicePixelRatio, lineJoin, strokeStyle, fillStyle, localDrawCallback
+            } = local;
 
             // 设置画笔样式
             context.lineWidth = lineWidth;
@@ -827,16 +938,23 @@ const draw = new Vue({
                 }
             }
 
-            if (!fromRemote) { //本地的绘制数据回调给远端
-                localDrawCallback && localDrawCallback(options);
+            //如果是本地绘制，完成绘制后数据回调给远端
+            if (!fromRemote) {
+                localDrawCallback && localDrawCallback({ event, drawMode, fromRemote : true, remote : {
+                    lineWidth, curPoint, triangleStartPoint, lineCap, width, height, devicePixelRatio,
+                    lineJoin, strokeStyle, fillStyle, triangleFill
+                }});
             }
         },
         // 圆形渲染处理
-        drawCircle: function (options) {
-            const {
-                canvas, context, localDrawCallback, circleStartPoint, curPoint, 
-                lineWidth, strokeStyle, fillStyle, lineCap, lineJoin, fromRemote, circleFill
-            } = options;
+        drawCircle: function ({ event, drawMode, fromRemote, local, remote }) {
+            if(fromRemote){
+                local = remote;
+            }
+            let { 
+                canvas, context, lineWidth, curPoint, circleStartPoint, lineCap, circleFill,
+                width, height, devicePixelRatio, lineJoin, strokeStyle, fillStyle, localDrawCallback
+            } = local;
 
             // 设置画笔样式
             context.lineWidth = lineWidth;
@@ -869,16 +987,23 @@ const draw = new Vue({
                 }
             }
 
-            if (!fromRemote) { //本地的绘制数据回调给远端
-                localDrawCallback && localDrawCallback(options);
+            //如果是本地绘制，完成绘制后数据回调给远端
+            if (!fromRemote) {
+                localDrawCallback && localDrawCallback({ event, drawMode, fromRemote : true, remote : {
+                    lineWidth, curPoint, circleStartPoint, lineCap, width, height, devicePixelRatio,
+                    lineJoin, strokeStyle, fillStyle, circleFill
+                }});
             }
         },
         // 矩形渲染处理
-        drawRectangle: function (options) {
-            const {
-                canvas, context, localDrawCallback, rectangleStartPoint, curPoint, 
-                lineWidth, strokeStyle, fillStyle, lineCap, lineJoin, fromRemote, rectangleFill
-            } = options;
+        drawRectangle: function ({ event, drawMode, fromRemote, local, remote }) {
+            if(fromRemote){
+                local = remote;
+            }
+            let { 
+                canvas, context, lineWidth, curPoint, rectangleStartPoint, lineCap, rectangleFill,
+                width, height, devicePixelRatio, lineJoin, strokeStyle, fillStyle, localDrawCallback
+            } = local;
 
             // 设置画笔样式
             context.lineWidth = lineWidth;
@@ -890,8 +1015,8 @@ const draw = new Vue({
             // 计算矩形的位置和尺寸
             const x = Math.min(rectangleStartPoint.x, curPoint.x);
             const y = Math.min(rectangleStartPoint.y, curPoint.y);
-            const width = Math.abs(curPoint.x - rectangleStartPoint.x);
-            const height = Math.abs(curPoint.y - rectangleStartPoint.y);
+            const rwidth = Math.abs(curPoint.x - rectangleStartPoint.x);
+            const rheight = Math.abs(curPoint.y - rectangleStartPoint.y);
 
             if (this.drawRollbackPoint >= 0) {
                 const img = new Image();
@@ -903,7 +1028,7 @@ const draw = new Vue({
                     context.drawImage(img, 0, 0, canvas.width, canvas.height);
                     //绘制新矩形
                     context.beginPath();
-                    context.rect(x, y, width, height);
+                    context.rect(x, y, rwidth, rheight);
                     if(rectangleFill){
                         context.fill();
                     }
@@ -911,43 +1036,58 @@ const draw = new Vue({
                 }
             }
 
-            if (!fromRemote) { //本地的绘制数据回调给远端
-                localDrawCallback && localDrawCallback(options);
+            //如果是本地绘制，完成绘制后数据回调给远端
+            if (!fromRemote) {
+                localDrawCallback && localDrawCallback({ event, drawMode, fromRemote : true, remote : {
+                    lineWidth, curPoint, rectangleStartPoint, lineCap, width, height, devicePixelRatio,
+                    lineJoin, strokeStyle, fillStyle, rectangleFill
+                }});
             }
         },
         // 文字渲染处理
-        drawText: function (options) {
-            let {
-                canvas, context, localDrawCallback, curPoint, text, lineWidth, strokeStyle,
-                fillStyle, lineCap, lineJoin, fromRemote,
-            } = options;
+        drawText: function ({ event, drawMode, fromRemote, local, remote }) {
+            if(fromRemote){
+                local = remote;
+            }
+            let { 
+                canvas, context, lineWidth, curPoint, text, lineCap, 
+                width, height, devicePixelRatio, lineJoin, strokeStyle, fillStyle, localDrawCallback
+            } = local;
 
             curPoint = {
-                x : curPoint.x / window.devicePixelRatio,
-                y : curPoint.y / window.devicePixelRatio
+                x : curPoint.x / devicePixelRatio,
+                y : curPoint.y / devicePixelRatio
             }
 
             // 设置字体样式
             context.strokeStyle = strokeStyle;
-            context.font = "28px orbitron";
+            context.font = Math.min(lineWidth * 7, 28) + "px orbitron";
             context.textBaseline = "middle";
             context.lineCap = lineCap;
             context.lineJoin = lineJoin;
-            context.lineWidth = 3;
+            context.lineWidth = 1;
 
             const canvasWidth = parseInt(canvas.style.width);
             const canvasHeight = parseInt(canvas.style.height);
 
             //文字渲染处理
             function drawTextHandler(content){
-                const textWidth = context.measureText(content).width;
-                // 如果文字超出画布宽度，将文字绘制到画布最右边
-                let fixPointX = canvasWidth - textWidth > curPoint.x ? curPoint.x : canvasWidth - textWidth;
-                fixPointX = fixPointX < 10 ? 10 : fixPointX;
-                // 如果文字超出画布高度，将文字绘制到画布最下边
-                let fixPointY = canvasHeight - 20 > curPoint.y ? curPoint.y : canvasHeight - 20;
-                fixPointY = fixPointY < 10 ? 10 : fixPointY;
-                context.strokeText(content, fixPointX * window.devicePixelRatio, fixPointY * window.devicePixelRatio);
+                let words = content.split("");
+                let subWords = "";
+                let wordHeight = 40;
+                for(let i = 0; i < words.length; i++){
+                    let curSubWords = subWords + words[i];
+                    const curSubWordsWidth = context.measureText(curSubWords).width;
+
+                    if(curPoint.x + curSubWordsWidth > canvasWidth && i > 0){
+                        context.fillText(subWords, curPoint.x * devicePixelRatio, curPoint.y * devicePixelRatio);
+                        subWords = words[i];
+                        curPoint.y += wordHeight;
+                    }else{
+                        subWords = curSubWords;
+                    }
+                }
+                context.fillText(subWords, curPoint.x * devicePixelRatio, curPoint.y * devicePixelRatio);
             }
 
             if(fromRemote){
@@ -983,7 +1123,7 @@ const draw = new Vue({
             } else if (curPoint.y < 100) {
                 textarea.style.bottom = (canvasHeight - 100) + 'px';
             } else {
-                textarea.style.top = (curPoint.y + 70)+ 'px';
+                textarea.style.top = (curPoint.y + 170)+ 'px';
             }
             parentDom.appendChild(textarea);
             textarea.focus();
@@ -992,8 +1132,11 @@ const draw = new Vue({
                 if (textarea.value !== '') {
                     drawTextHandler(textarea.value);
                     document.getElementById("drawLine").click()
-                    options.text = textarea.value;
-                    localDrawCallback && localDrawCallback(options);
+
+                    localDrawCallback && localDrawCallback({ event, drawMode, fromRemote : true, remote : {
+                        lineWidth, curPoint, lineCap, width, height, devicePixelRatio, text : textarea.value,
+                        lineJoin, strokeStyle, fillStyle,
+                    }});
                 }
             })
         }

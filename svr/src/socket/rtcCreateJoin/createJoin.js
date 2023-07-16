@@ -19,7 +19,10 @@ const check = require("./../../utils/check/content");
 async function userCreateAndJoin(io, socket, tables, dbClient, data){
     let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
-    let {room, type, nickName, password = '', langMode = 'zh'} = data;
+    let {
+        room, type = 'file', nickName = '', password = '', 
+        langMode = 'zh', ua = '', network = ''
+    } = data;
 
     if (room && room.length > 15) {
         room = room.toString().substr(0, 14);
@@ -28,13 +31,36 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
     if(nickName && nickName.length > 20){
         nickName = nickName.substr(0, 20);
     }
-    //设置昵称
-    io.sockets.connected[socket.id].nickName = nickName;
-    io.sockets.connected[socket.id].langMode = langMode;
+
+    if(['zh', 'en'].indexOf(langMode) === -1){
+        langMode = 'zh'
+    }
+
+    if(['file', 'screen', 'video', 'password', 'live'].indexOf(type) === -1){
+        type = 'file'
+    }
+
+    if(['pc', 'mobile'].indexOf(ua) === -1){
+        ua = 'pc';
+    }
+
+    if(['wifi', '4g', '3g', '2g', '5g'].indexOf(network) === -1){
+        network = '2g';
+    }
 
     if(password && password.length > 6){
         password = password.toString().substr(0,6);
     }
+
+    //设置连接信息
+    io.sockets.connected[socket.id].nickName = nickName;
+    io.sockets.connected[socket.id].langMode = langMode;
+    io.sockets.connected[socket.id].ua = ua;
+    io.sockets.connected[socket.id].network = network;
+    io.sockets.connected[socket.id].ip = ip;
+    const joinTime = utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")
+    io.sockets.connected[socket.id].joinTime = joinTime;
+    io.sockets.connected[socket.id].userAgent = userAgent;
 
     let recoderId = await daoRoom.createJoinRoom({
         uid: "1",
@@ -105,6 +131,11 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             type: type,
             recoderId : recoderId,
             langMode : langMode,
+            ua : ua,
+            network : network,
+            joinTime : joinTime,
+            ip : ip,
+            userAgent : userAgent
         });
 
         let peers = new Array();
@@ -114,11 +145,22 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             let peerNickName = io.sockets.connected[otherSocketId].nickName
             let peerOwner = io.sockets.connected[otherSocketId].owner
             let peerLangMode = io.sockets.connected[otherSocketId].langMode
+            let peerUa = io.sockets.connected[otherSocketId].ua
+            let peerNetwork = io.sockets.connected[otherSocketId].network
+            let peerJoinTime = io.sockets.connected[otherSocketId].joinTime
+            let peerIp = io.sockets.connected[otherSocketId].ip
+            let peerUserAgent = io.sockets.connected[otherSocketId].userAgent
+
             peers.push({
                 id: otherSocketId,
                 nickName: peerNickName,
                 owner : peerOwner,
-                langMode : peerLangMode
+                langMode : peerLangMode,
+                ua : peerUa,
+                network : peerNetwork,
+                joinTime : peerJoinTime,
+                ip : peerIp,
+                userAgent : peerUserAgent
             });
         }
 

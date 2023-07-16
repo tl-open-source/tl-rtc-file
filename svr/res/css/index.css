@@ -284,7 +284,7 @@ body {
 }
 
 .tl-rtc-file-user-body {
-    display: flex;
+    display: -webkit-box;
     padding-top: 10px;
 }
 
@@ -1134,3 +1134,28 @@ body {
     border-radius: 5px;
 }
 
+
+.remote_user_info{
+    text-align: left;
+    padding: 20px 20px 0 20px;
+}
+
+.remote_user_info div{
+    padding-bottom: 5px;
+    font-weight: 200;
+    word-break: break-all;
+}
+
+.remote_user_info div b{
+    color: #548726;
+    margin-left: 5px;
+}
+
+.layui-carousel[lay-indicator=outside] .layui-carousel-ind{
+    top: 10px;
+}
+
+.layui-carousel>[carousel-item]{
+    overflow-y: auto;
+    overflow-x: hidden;
+}

@@ -286,38 +286,8 @@ window.tlrtcfile = {
             return false;
         }
     },
+    
     getWebrtcStats: async function (peerConnection) {
-        // 候选者对
-        "candidate-pair" |
-        // 证书相关的统计信息
-        "certificate" | 
-        // 当前音视频编解码器的统计信息
-        "codec" | 
-        // CSRC相关的统计信息
-        "csrc" | 
-        // 数据通道的相关统计信息
-        "data-channel" | 
-        // 传入数据流的相关统计信息
-        "inbound-rtp" | 
-        // 本地候选连接的相关统计信息
-        "local-candidate" | 
-        // 媒体源的相关统计信息
-        "media-source" |
-        // 传出数据流的相关统计信息
-        "outbound-rtp" | 
-        // 对等连接的相关统计信息
-        "peer-connection" | 
-        // 对等连接的相关统计信息
-        "remote-candidate" | 
-        // 远程传入数据流的相关统计信息
-        "remote-inbound-rtp" | 
-        // 远程传出数据流的相关统计信息
-        "remote-outbound-rtp" | 
-        // 媒体轨道的相关统计信息
-        "track" | 
-        // 传输协议的相关统计信息
-        "transport";
-
         if (!peerConnection) {
             return "RTCPeerConnection is not available";
         }
@@ -325,23 +295,63 @@ window.tlrtcfile = {
             return "RTCStatsReport is not available";
         }
 
-        let result = { }
-        
-        let stats = await peerConnection.getStats(null);
-        
-        stats.forEach((report) => {
-            if (!report.type) return;
-            let data = {}
-            Object.keys(report).forEach((statName) => {
-                data[statName] = report[statName]
-            });
-            result[report.type] = {
-                kind : report.kind,
-                data : data
+        function getTypeDescription(type) {
+            switch (type) {
+                case 'candidate-pair':
+                    return '候选者对';
+                case 'certificate':
+                    return '证书相关的统计信息';
+                case 'codec':
+                    return '当前音视频编解码器的统计信息';
+                case 'csrc':
+                    return 'CSRC相关的统计信息';
+                case 'data-channel':
+                    return '数据通道的相关统计信息';
+                case 'inbound-rtp':
+                    return '传入数据流的相关统计信息';
+                case 'local-candidate':
+                    return '本地候选连接的相关统计信息';
+                case 'media-source':
+                    return '媒体源的相关统计信息';
+                case 'outbound-rtp':
+                    return '传出数据流的相关统计信息';
+                case 'peer-connection':
+                    return '对等连接的相关统计信息';
+                case 'remote-candidate':
+                    return '远程候选连接的相关统计信息';
+                case 'remote-inbound-rtp':
+                    return '远程传入数据流的相关统计信息';
+                case 'remote-outbound-rtp':
+                    return '远程传出数据流的相关统计信息';
+                case 'track':
+                    return '媒体轨道的相关统计信息';
+                case 'transport':
+                    return '传输协议的相关统计信息';
+                case 'media-playout':
+                    return '音频播放的相关统计数据'
+                default:
+                    return '未知类型';
             }
-        });
+        }
 
-        return result
+        function getRTCStats(peerConnection) {
+            const statsMap = new Map();
+            return new Promise((resolve) => {
+                peerConnection.getStats().then((stats) => {
+                    stats.forEach((report) => {
+                        const { type } = report;
+                        if (!statsMap.has(type)) {
+                            statsMap.set(type, []);
+                        }
+                        statsMap.get(type).push({ report, description: getTypeDescription(type) });
+                    });
+
+                    resolve(statsMap);
+                });
+            });
+        }
+
+        return await getRTCStats(peerConnection);
     },
     copyTxt: function (id, content) {
         let that = this;
