@@ -6,7 +6,9 @@ pm2 start npm --name=tlapi -- run lapi
 
 pm2 start npm --name=tlsocket -- run lsocket
 
-pm2 start npm --name=tlbuild -- run build:pro
+npm run build:pro
+
+sleep 2
 
 pm2 logs
 
