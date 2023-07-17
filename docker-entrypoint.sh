@@ -2,6 +2,8 @@
 
 cd /home/tlrtcfile/svr
 
+npm i
+
 pm2 start npm --name=tlapi -- run lapi
 
 pm2 start npm --name=tlsocket -- run lsocket
