@@ -5,7 +5,7 @@ defineOptions({
 </script>
 
 <template>
-  <div>Welcome</div>
+  <div class="flex items-center justify-center">Welcome</div>
 </template>
 
 <stylescoped></stylescoped>

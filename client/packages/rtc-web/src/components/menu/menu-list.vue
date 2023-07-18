@@ -56,7 +56,10 @@ const handleClose = () => {
     class="flex items-center justify-between"
   >
     <div>{{ item.label }}</div>
-    <button class="btn-circle btn bg-transparent" @click="createRoom(item.key)">
+    <button
+      class="btn-circle btn border-0 bg-transparent"
+      @click="createRoom(item.key)"
+    >
       <svg-icon :name="item.icon" class="h-5 w-5" />
     </button>
   </div>

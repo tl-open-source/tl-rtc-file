@@ -14,7 +14,7 @@ defineOptions({
       <MenuSide
         class="hidden dark:shadow-sm dark:shadow-neutral-600 lg:block lg:shadow-md"
       />
-      <RouterView />
+      <RouterView class="flex-1" />
     </FullHeightFlexBox>
   </FullHeightFlexBox>
 </template>
