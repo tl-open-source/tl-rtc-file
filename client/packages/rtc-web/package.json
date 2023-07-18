@@ -14,6 +14,7 @@
     "@vueuse/router": "^10.2.1",
     "lodash": "^4.17.21",
     "nanoid": "^4.0.2",
+    "socket.io-client": "2.3.0",
     "vue": "^3.3.4",
     "vue-router": "4"
   },
