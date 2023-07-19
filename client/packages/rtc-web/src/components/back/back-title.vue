@@ -18,7 +18,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="flex cursor-pointer items-center">
+  <div class="flex items-center">
     <!-- <svg-icon :name="props.svgName" class="mr-1 h-8 w-8"></svg-icon> -->
     <div v-if="props.title">{{ props.title }}</div>
     <slot v-else></slot>

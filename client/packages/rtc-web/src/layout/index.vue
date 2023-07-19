@@ -2,21 +2,12 @@
 import { MenuSide } from '@/components/menu';
 import { NavHeader, FullHeightFlexBox } from '@/components/lib';
 import { useInitData } from '@/hooks';
-import { watch } from 'vue';
 
 defineOptions({
   name: 'LayoutIndex',
 });
 
-const { initData } = useInitData();
-console.log(initData);
-
-watch(
-  () => initData.value,
-  (v) => {
-    console.log(v);
-  }
-);
+useInitData();
 </script>
 
 <template>

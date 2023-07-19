@@ -1,7 +1,8 @@
 import { ConfigEnum } from '@/config';
 import { useFetch, useLocalStorage } from '@vueuse/core';
-import { ref, watch } from 'vue';
+import { inject, provide, ref, watch } from 'vue';
 import io from 'socket.io-client';
+import { InitDataKey, InitDataKeyType } from '@/context';
 
 export const useFetchData = () => {
   const useTurn = useLocalStorage(ConfigEnum.useRelay, true);
@@ -15,7 +16,7 @@ export const useFetchData = () => {
 
 export const useInitData = () => {
   const { data } = useFetchData();
-  const initData = ref({
+  const initData = ref<InitDataKeyType>({
     langMode: 'zh', // 默认中文
   });
 
@@ -34,6 +35,8 @@ export const useInitData = () => {
       }
     }
   );
+
+  provide(InitDataKey, initData);
 
   return {
     initData,
