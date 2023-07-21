@@ -18,7 +18,7 @@ const roomId = useRouteParams('roomId');
 
 const { isValid } = useRoom((roomId.value as string) || '');
 
-const { switchMember, open, isIgScreen } = useSwitchMember();
+const { switchMember, open, isLgScreen } = useSwitchMember();
 
 const chatActionMenu = ref(ChatAction);
 
@@ -49,7 +49,7 @@ onBeforeRouteUpdate((to, from) => {
 const handleBackLevel = () => router.replace('/');
 
 const handleClickIcon = (name: string) => {
-  if (name === 'member' && !isIgScreen.value) {
+  if (name === 'member' && !isLgScreen.value) {
     switchMember();
   }
 };

@@ -2,6 +2,9 @@
 import ChatInput from './chat-input.vue';
 import MenuAction from '../menu-action.vue';
 import { ChatInputAction } from '@/config';
+import { useSwitchMember } from '@/views/chat/hooks/useSwitchMember';
+
+const { open } = useSwitchMember();
 
 defineOptions({
   name: 'ChatRoomCom',
@@ -19,7 +22,10 @@ defineOptions({
         <ChatInput class="mt-2 flex-1" />
       </div>
     </div>
-    <div class="hidden w-[220px] border-l dark:border-neutral-600 lg:block">
+    <div
+      v-if="open"
+      class="hidden w-[220px] border-l dark:border-neutral-600 lg:block"
+    >
       成员列表
     </div>
   </div>

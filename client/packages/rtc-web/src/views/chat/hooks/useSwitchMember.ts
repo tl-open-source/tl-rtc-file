@@ -1,35 +1,54 @@
-import { useUrlSearchParams, useWindowSize } from '@vueuse/core';
-import { computed, watch } from 'vue';
+import { useWindowSize } from '@vueuse/core';
+import { useRouteQuery } from '@vueuse/router';
+import { computed, toRefs, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { isNaN } from 'lodash';
 
 export const useSwitchMember = () => {
   const { width } = useWindowSize();
 
-  const params = useUrlSearchParams<{ showMembers: string | undefined }>(
-    'history'
-  );
+  const { query } = toRefs(useRoute());
 
-  if (params.showMembers === undefined) {
-    params.showMembers = 'true';
-  }
+  const showMembers = useRouteQuery('showMembers', '0', {
+    transform: Number,
+  });
 
   const switchMember = () => {
-    params.showMembers = params.showMembers === 'true' ? 'false' : 'true';
+    showMembers.value = showMembers.value === 0 ? 1 : 0;
   };
 
-  const open = computed(() => params.showMembers === 'true');
+  const open = computed(() => showMembers.value === 1);
 
-  const isIgScreen = computed(() => width.value <= 1024);
+  // 是否是宽屏， max-width = 1024
+  const isLgScreen = computed(() => width.value <= 1024);
 
   watch(
-    () => isIgScreen.value,
+    () => isLgScreen.value,
     (w) => {
-      params.showMembers = w ? 'false' : 'true';
+      showMembers.value = w ? 0 : 1;
+    },
+    {
+      immediate: true,
+    }
+  );
+
+  watch(
+    () => query.value.showMembers,
+    (v) => {
+      const nv = Number(v);
+      if (!isNaN(nv)) {
+        showMembers.value = nv;
+      }
+    },
+    {
+      immediate: true,
+      deep: true,
     }
   );
 
   return {
     open,
     switchMember,
-    isIgScreen,
+    isLgScreen,
   };
 };

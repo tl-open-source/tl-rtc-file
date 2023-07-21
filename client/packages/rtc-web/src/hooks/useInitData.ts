@@ -1,6 +1,6 @@
 import { ConfigEnum } from '@/config';
 import { useFetch, useLocalStorage } from '@vueuse/core';
-import { inject, provide, ref, watch } from 'vue';
+import { provide, ref, watch } from 'vue';
 import io from 'socket.io-client';
 import { InitDataKey, InitDataKeyType } from '@/context';
 
