@@ -23,5 +23,6 @@ module.exports = {
     'vue/attribute-hyphenation': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     'no-debugger': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
   },
 };

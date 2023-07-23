@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import ChatInput from './chat-input.vue';
 import MenuAction from '../menu-action.vue';
+import ChatRoomUser from './chat-room-user.vue';
 import { ChatInputAction } from '@/config';
 import { useSwitchMember } from '@/views/chat/hooks/useSwitchMember';
 
@@ -26,7 +27,7 @@ defineOptions({
       v-if="open"
       class="hidden w-[220px] border-l dark:border-neutral-600 lg:block"
     >
-      成员列表
+      <ChatRoomUser />
     </div>
   </div>
 </template>

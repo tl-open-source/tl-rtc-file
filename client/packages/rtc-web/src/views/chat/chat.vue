@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
-import { onBeforeRouteUpdate, useRouter } from 'vue-router';
-import { useRoom } from '@/hooks';
+import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useCreateRoom, useGetRoomInfo } from '@/hooks';
 import { BackPreviousLevel, BackTitle } from '@/components/back';
-import { useRouteParams } from '@vueuse/router';
 import { ChatRoomCom } from '@/components/chat-room';
 import MenuAction from '@/components/menu-action.vue';
 import { ChatAction } from '@/config';
@@ -14,9 +13,10 @@ defineOptions({
 });
 
 const router = useRouter();
-const roomId = useRouteParams('roomId');
 
-const { isValid } = useRoom((roomId.value as string) || '');
+const { roomId } = useCreateRoom();
+
+useGetRoomInfo();
 
 const { switchMember, open, isLgScreen } = useSwitchMember();
 
@@ -32,19 +32,6 @@ watch(
   },
   { immediate: true }
 );
-
-const checkParams = () => {
-  if (!isValid.value) router.replace('/');
-};
-
-onMounted(checkParams);
-
-onBeforeRouteUpdate((to, from) => {
-  if (to.params.roomId !== from.params.roomId) {
-    roomId.value = to.params.roomId;
-    checkParams();
-  }
-});
 
 const handleBackLevel = () => router.replace('/');
 

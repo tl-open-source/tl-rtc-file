@@ -1,6 +1,6 @@
 import { ConfigEnum } from '@/config';
 import { useFetch, useLocalStorage } from '@vueuse/core';
-import { provide, ref, watch } from 'vue';
+import { provide, ref, shallowReactive, watch } from 'vue';
 import io from 'socket.io-client';
 import { InitDataKey, InitDataKeyType } from '@/context';
 
@@ -26,7 +26,7 @@ export const useInitData = () => {
       if (v) {
         const { wsHost, logo, version, rtcConfig, options } = v;
         initData.value = Object.assign({}, initData.value, {
-          socket: wsHost ? io(wsHost) : null,
+          socket: wsHost ? shallowReactive(io(wsHost)) : null,
           logo,
           version,
           options,
