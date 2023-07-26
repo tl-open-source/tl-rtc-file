@@ -47,7 +47,7 @@ export const FullHeightFlexBox = (
   };
 
   return (
-    <div class={['flex', height[type], `flex-${dire}`]}>
+    <div class={['flex', height[type], `flex-${dire}`, 'min-h-0']}>
       {ctx.slots.default?.()}
     </div>
   );

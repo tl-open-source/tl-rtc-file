@@ -1,16 +1,31 @@
 <script lang="ts" setup>
-import { useGetRoomInfo } from '@/hooks';
+import { Member } from '@/hooks';
 import UserCard from './user-card.vue';
 import { computed } from 'vue';
-
-const { members, roomOwner, self } = useGetRoomInfo();
-const memberwithoutOwner = computed(() =>
-  members.value.filter((item) => !item.owner)
-);
+import { PropType } from 'vue';
 
 defineOptions({
   name: 'ChatRoomUsers',
 });
+
+const props = defineProps({
+  members: {
+    type: Array as PropType<Partial<Member>[]>,
+    default: () => [],
+  },
+  roomOwner: {
+    type: Object as PropType<Partial<Member>>,
+    default: () => ({}),
+  },
+  self: {
+    type: Object as PropType<Partial<Member>>,
+    default: () => ({}),
+  },
+});
+
+const memberwithoutOwner = computed(() =>
+  props.members.filter((item) => !item.owner)
+);
 </script>
 
 <template>

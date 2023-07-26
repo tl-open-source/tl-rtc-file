@@ -8,3 +8,7 @@ export const enum SocketEventName {
   RoomAnswer = 'answer',
   RoomCandidate = 'candidate',
 }
+
+export const enum ChatEventName {
+  ChatingRoom = 'chatingRoom',
+}

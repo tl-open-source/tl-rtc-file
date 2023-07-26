@@ -26,3 +26,34 @@ export function transformSocketListenEvent(socket: any, ev: string) {
     socket.on(ev, cb);
   });
 }
+
+// 转义字符串
+export function escapeStr(str: string) {
+  const entityMap: any = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;',
+  };
+
+  const encodedMap: any = {
+    '%': '%25',
+    '!': '%21',
+    "'": '%27',
+    '(': '%28',
+    ')': '%29',
+    '*': '%2A',
+    '-': '%2D',
+    '.': '%2E',
+    _: '%5F',
+    '~': '%7E',
+  };
+
+  return String(str).replace(/[&<>"'`=/%!'()*\-._~]/g, function (s) {
+    return entityMap[s] || encodedMap[s] || '';
+  });
+}

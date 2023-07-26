@@ -58,7 +58,7 @@ const handleClickIcon = (name: string) => {
       </BackTitle>
     </BackPreviousLevel>
 
-    <div class="flex-1">
+    <div class="min-h-0 flex-1">
       <ChatRoomCom />
     </div>
   </div>
