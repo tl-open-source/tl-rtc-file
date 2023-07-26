@@ -4,4 +4,7 @@ export const enum SocketEventName {
   RoomCreated = 'created',
   RoomExit = 'exit',
   RoomJoin = 'joined',
+  RoomOffer = 'offer',
+  RoomAnswer = 'answer',
+  RoomCandidate = 'candidate',
 }

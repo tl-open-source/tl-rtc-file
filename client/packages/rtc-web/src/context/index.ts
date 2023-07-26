@@ -5,16 +5,9 @@ export type InitDataKeyType = Partial<{
   socket: any;
   logo: string;
   version: string;
-  options: {
-    offerToReceiveAudio: number;
-    offerToReceiveVideo: number;
-  };
+  options: RTCOfferOptions;
   config: {
-    iceServers: Partial<{
-      urls: string;
-      username: string;
-      credential: string;
-    }>[];
+    iceServers: RTCIceServer[];
   };
 }>;
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useCreateRoom, useGetRoomInfo } from '@/hooks';
+import { useCreateRoom } from '@/hooks';
 import { BackPreviousLevel, BackTitle } from '@/components/back';
 import { ChatRoomCom } from '@/components/chat-room';
 import MenuAction from '@/components/menu-action.vue';
@@ -15,8 +15,6 @@ defineOptions({
 const router = useRouter();
 
 const { roomId } = useCreateRoom();
-
-useGetRoomInfo();
 
 const { switchMember, open, isLgScreen } = useSwitchMember();
 

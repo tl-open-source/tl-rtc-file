@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 import { InitDataKey, InitDataKeyType } from '@/context';
 
 export const useFetchData = () => {
-  const useTurn = useLocalStorage(ConfigEnum.useRelay, true);
+  const useTurn = useLocalStorage(ConfigEnum.useRelay, false);
 
   const { data } = useFetch(() => `/api/comm/initData?turn=${useTurn.value}`)
     .get()
@@ -29,7 +29,10 @@ export const useInitData = () => {
           socket: wsHost ? shallowReactive(io(wsHost)) : null,
           logo,
           version,
-          options,
+          options: Object.keys(options).reduce(
+            (cur, next) => ({ ...cur, [next]: Boolean(options[next]) }),
+            {}
+          ),
           config: rtcConfig,
         });
       }
