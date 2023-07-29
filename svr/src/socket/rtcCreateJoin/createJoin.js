@@ -114,7 +114,7 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
         }
 
         //流媒体房间只允许两个人同时在线
-        if((type === 'screen' || type === 'video') && numClients >= 2){
+        if((type === 'screen' || type === 'video') && numClients >= 4){
             socket.emit(rtcClientEvent.tips, {
                 room : data.room,
                 to : socket.id,
