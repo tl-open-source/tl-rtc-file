@@ -31,7 +31,7 @@ async function exit(io, socket, tables, dbClient, data){
 
         let recoderId = data.recoderId;
         if (recoderId != undefined) {
-            await daoRoom.exitRoomBySid({ sid: socket.id },tables, dbClient)
+            await daoRoom.exitRoomBySid({ socket_id: socket.id },tables, dbClient)
 
             let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 

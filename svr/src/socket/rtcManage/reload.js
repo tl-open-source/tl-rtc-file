@@ -8,7 +8,7 @@ const cfg = require("./../../../conf/cfg.json")
 const manageConfig = cfg.manage
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 /**
  * 管理后台登陆验证
@@ -61,7 +61,7 @@ async function reload(io, socket, tables, dbClient, data){
                 html: await bussinessManageSettingPage.getSettingPageHtml({
                     tables: tables,
                     dbClient: dbClient,
-                    sid: socket.id,
+                    socket_id: socket.id,
                     ip: ip,
                     device: userAgent
                 })

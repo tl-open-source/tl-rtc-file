@@ -7,7 +7,7 @@ const cfg = require("./../../../conf/cfg.json")
 const manageConfig = cfg.manage
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 // 登陆token列表
 let tokens = [];
@@ -79,7 +79,7 @@ async function confirm(io, socket, tables, dbClient, data){
                 html: await bussinessManageSettingPage.getSettingPageHtml({
                     tables: tables,
                     dbClient: dbClient,
-                    sid: socket.socketId,
+                    socket_id: socket.socketId,
                     ip: ip,
                     device: userAgent
                 })

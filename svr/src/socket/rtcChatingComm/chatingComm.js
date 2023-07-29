@@ -4,7 +4,7 @@ const rtcCommData = require("../rtcCommData/commData");
 const utils = require("../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-const check = require("../../utils/check/content");
+const check = require("../../bussiness/check/content");
 /**
  * 公共聊天频道
  * @param {*} io socketio对象

@@ -5,7 +5,7 @@ const utils = require("./../../utils/utils");
 const cfg = require("./../../../conf/cfg.json")
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 /**
  * 用户创建或加入房间
@@ -61,16 +61,16 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
     const joinTime = utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")
     io.sockets.connected[socket.id].joinTime = joinTime;
     io.sockets.connected[socket.id].userAgent = userAgent;
+    io.sockets.connected[socket.id].owner = false;
 
     let recoderId = await daoRoom.createJoinRoom({
         uid: "1",
         uname: nickName,
-        rname: room,
-        sid: socket.id,
+        room_id: room,
+        socket_id: socket.id,
         pwd: password,
         ip: ip,
         device: userAgent,
-        url: data.url || "",
         content: JSON.stringify({ handshake: handshake })
     }, tables, dbClient);
     
@@ -89,14 +89,30 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             owner : true,
             recoderId : recoderId
         });
-
+        //设置为房主
         io.sockets.connected[socket.id].owner = true;
 
-        //密码房间 首次创建设置密码
+        //设置房间类型
+        io.sockets.adapter.rooms[room].type = type;
+
+        //密码房间设置密码
         if(type === 'password'){
             io.sockets.adapter.rooms[room].password = password
         }
     }else {
+        //加入时，房间类型不匹配，提示并退出
+        const createdRoomType = io.sockets.adapter.rooms[room].type;
+        if(type !== createdRoomType){
+            socket.emit(rtcClientEvent.tips, {
+                room : data.room,
+                nickName : nickName,
+                to : socket.id,
+                msg : room + "是" + getRoomTypeZh(createdRoomType) + "类型的房间，请从对应功能入口进入",
+                reload : true
+            });
+            return
+        }
+
         //流媒体房间只允许两个人同时在线
         if((type === 'screen' || type === 'video') && numClients >= 2){
             socket.emit(rtcClientEvent.tips, {
@@ -122,9 +138,7 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             }
         }
 
-        io.sockets.connected[socket.id].owner = false;
-
-        io.sockets.in(room).emit(rtcClientEvent.joined,{
+        io.sockets.in(room).emit(rtcClientEvent.joined, {
             id: socket.id,
             room: room,
             nickName : nickName,
@@ -135,6 +149,7 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             network : network,
             joinTime : joinTime,
             ip : ip,
+            owner : false,
             userAgent : userAgent
         });
 
@@ -200,6 +215,27 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             userAgent: userAgent,
             ip: ip,
         })
+    }
+}
+
+/**
+ * 获取房间类型提示
+ * @param {*} type 
+ * @returns 
+ */
+function getRoomTypeZh(type){
+    if(type === 'file'){
+        return "文件"
+    }else if(type === 'live'){
+        return "直播"
+    }else if(type === 'video'){
+        return "音视频"
+    }else if(type === 'screen'){
+        return "屏幕共享"
+    }else if(type === 'password'){
+        return "密码"
+    }else{
+        return "未知类型"
     }
 }
 

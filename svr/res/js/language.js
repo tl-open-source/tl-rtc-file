@@ -8,6 +8,9 @@
 
 const local_lang = {
     "en": {
+        "audience" : "Audience",
+        "webrtc_check_init" : "Webrtc check init",
+        "webrtc_check_init_done" : "Webrtc check init done",
         "add_ice_candidate_failed": "AddIceCandidate failed",
         "add_ice_candidate_success": "AddIceCandidateSuccess success",
         "ai_answering": "AI is answering your question, please ask again later",
@@ -326,6 +329,9 @@ const local_lang = {
         "webrtc_ice_state" : "webrtc state"
     },
     "zh": {
+        "audience" : "观众",
+        "webrtc_check_init" : "Webrtc检测初始化",
+        "webrtc_check_init_done" : "Webrtc检测初始化完成",
         "webrtc_ice_state" : "webrtc状态",
         "nickname" : "用户昵称",
         "userid" : "用户ID  ",

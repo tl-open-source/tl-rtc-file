@@ -423,7 +423,9 @@ const draw = new Vue({
                     }
 
                     document.getElementById("drawImage").onclick = function () {
-                        that.drawImage({ canvas, context, localDrawCallback })
+                        that.drawImage({ local : {
+                            canvas, context, localDrawCallback
+                        } })
                     }
 
                     document.getElementById("drawDonwload").onclick = function () {

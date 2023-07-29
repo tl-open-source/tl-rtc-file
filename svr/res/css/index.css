@@ -215,11 +215,6 @@ body {
     color: black;
 }
 
-/* .tl-rtc-file-send-file-txt-tool .swiper-slide{
-    transition: all 0.3s;
-} */
-
-
 .tl-rtc-file-tool {
     cursor: pointer;
     background-color: rgb(248 253 255 / 45%);
@@ -230,30 +225,21 @@ body {
 
 .tl-rtc-file-tool:hover {
     box-shadow: rgba(9,30,66,0.25) 0px 8px 9px;
-    /* box-shadow: 0 20px 32px -8px rgba(9,30,66,0.25), 0 0 1px rgba(9,30,66,0.31); */
 }
 
-.tl-rtc-file-tool i {
+.tl-rtc-file-tool svg{
     color: black;
     margin: 12px 10px 10px 10px;
-    transition: color 0.8s;
-}
-
-.tl-rtc-file-tool-mobile i{
-    padding-top : 0 !important;
-    margin-bottom: 15px;
-    padding:5px;
-    font-size: 18px;
+    transition: color 1.5s;
 }
 
 .tl-rtc-file-tool b {
-    margin: 10px 10px 10px 0;
+    margin: 12px 10px 10px 0;
     letter-spacing: 2px;
-    left: 15px;
 }
 
 .tl-rtc-file-tool-disabled,
-.tl-rtc-file-tool-disabled i,
+.tl-rtc-file-tool-disabled svg,
 .tl-rtc-file-tool-disabled b {
     cursor: no-drop !important;
     color: #80808061 !important;
@@ -780,55 +766,58 @@ body {
     -webkit-transition: all .3s;
 }
 
-
-/* 500px以下 */
-@media screen and (max-width: 500px) {
-    .tl-rtc-file-send-txt-tool-send{
-        font-size: 12px;
-        font-weight: bold;
-    }
-    .tl-rtc-file-send-file-tool-send {
-        font-size: 12px;
-        font-weight: bold;
-    }
-}
-/* 480px到765px */
-@media screen and (min-width: 480px) and (max-width: 765px) {
-    
-}
-/* 765px到1280px */
-@media screen and (min-width: 765px) and (max-width: 1280px) {
-    
-}
-/** 765px以上 */
-@media screen and (min-width: 765px) {
-    
-}
-
-
 .tl-rtc-file-mask-media-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
+    /* display: flex; */
 }
 
 .tl-rtc-file-mask-media-video {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 50%;
-    width: 100%;
-    background-color: black;
-    margin-bottom: 15px;
+    background-color: #36353c;
+    border-radius: 15px;
+    padding: 5px;
+    margin: 5px;
+}
+
+.tl-rtc-file-mask-media-video-tool{
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 90%;
+    margin-left: 5%;
+    overflow: auto;
+    border-bottom: 2px dashed #e7e6e699;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.tl-rtc-file-mask-media-video-tool-item{
+    cursor: pointer;
+    margin: 10px 5px 10px 5px;
+    border-radius: 15px;
+    background: #e2e2e2;
+    padding: 5px;
+    display: flex;
+}
+
+.tl-rtc-file-mask-media-video-tool-item:hover{
+    background: #c6b6b6;
 }
 
 .tl-rtc-file-mask-media-video video{
-    height: 100%;
+    border-radius: 15px;
+    position: relative;
     width: 100%;
-    object-fit: cover;
+    max-width: 300px;
+}
+
+.tl-rtc-file-mask-media-video-other-audio{
+    width: 22px;
+    height: 22px;
+    position: absolute;
+    bottom: 25px;
+    left: 30px;
 }
 
 .tl-rtc-file-mask-media-video b{
@@ -925,17 +914,6 @@ body {
     text-overflow: ellipsis;
     word-break: break-all;
     white-space: nowrap;
-}
-
-.tl-rtc-file-tool-mobile-title{
-    position: absolute;
-    width: 100%;
-    word-break: keep-all;
-    margin: 0 !important;
-    bottom: 0;
-    -webkit-transform-origin-x: 0; 
-    transform: scale(0.6);
-    -webkit-transform: scale(0.6);
 }
 
 #tl-rtc-file-code-share{
@@ -1158,4 +1136,71 @@ body {
 .layui-carousel>[carousel-item]{
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+.swiper-scrollbar {
+    min-width: 20px;
+    max-width: 40px;
+    width: 5% !important;
+    margin-left: 50% !important;
+ }
+
+.tl-rtc-file-tool-mobile {
+    padding: 5px !important;
+}
+.tl-rtc-file-tool-mobile svg{
+    padding-top : 0 !important;
+    margin-bottom: 15px !important;
+    font-size: 18px !important;
+}
+.tl-rtc-file-tool-title-mobile{
+    position: absolute !important;
+    word-break: keep-all !important;
+    margin: 0 !important;
+    bottom: 0 !important;
+    -webkit-transform-origin-x: 0 !important; 
+    transform: scale(0.6) !important;
+    -webkit-transform: scale(0.6) !important;
+}
+
+
+/* 500px以下 */
+@media screen and (max-width: 500px) {
+    .tl-rtc-file-send-txt-tool-send{
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .tl-rtc-file-send-file-tool-send {
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .tl-rtc-file-tool {
+        padding: 5px;
+    }
+    .tl-rtc-file-tool svg{
+        padding-top : 0 !important;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+    .tl-rtc-file-tool-title{
+        position: absolute;
+        word-break: keep-all;
+        margin: 0 !important;
+        bottom: 0;
+        -webkit-transform-origin-x: 0; 
+        transform: scale(0.6);
+        -webkit-transform: scale(0.6);
+    }
+}
+/* 480px到765px */
+@media screen and (min-width: 480px) and (max-width: 765px) {
+    
+}
+/* 765px到1280px */
+@media screen and (min-width: 765px) and (max-width: 1280px) {
+    
+}
+/** 765px以上 */
+@media screen and (min-width: 765px) {
+    
 }

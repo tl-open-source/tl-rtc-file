@@ -5,7 +5,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const daoFile = require("./../../dao/file/file")
 const rtcCommData = require("./../rtcCommData/commData");
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 /**
  * 取件码取件

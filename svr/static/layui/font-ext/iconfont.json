@@ -6,6 +6,132 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "2076200",
+      "name": "翻转镜头",
+      "font_class": "fanzhuanjingtou",
+      "unicode": "e872",
+      "unicode_decimal": 59506
+    },
+    {
+      "icon_id": "7192490",
+      "name": "hot",
+      "font_class": "hot",
+      "unicode": "e727",
+      "unicode_decimal": 59175
+    },
+    {
+      "icon_id": "564213",
+      "name": "网盘",
+      "font_class": "wangpan",
+      "unicode": "e63d",
+      "unicode_decimal": 58941
+    },
+    {
+      "icon_id": "1134325",
+      "name": "密码",
+      "font_class": "mima",
+      "unicode": "e67a",
+      "unicode_decimal": 59002
+    },
+    {
+      "icon_id": "4933362",
+      "name": "录制",
+      "font_class": "luzhi",
+      "unicode": "e741",
+      "unicode_decimal": 59201
+    },
+    {
+      "icon_id": "4933398",
+      "name": "实物-画笔",
+      "font_class": "shiwu-huabi",
+      "unicode": "e753",
+      "unicode_decimal": 59219
+    },
+    {
+      "icon_id": "15053872",
+      "name": "ai",
+      "font_class": "24px2x",
+      "unicode": "e623",
+      "unicode_decimal": 58915
+    },
+    {
+      "icon_id": "21712533",
+      "name": "chat",
+      "font_class": "chat",
+      "unicode": "e69a",
+      "unicode_decimal": 59034
+    },
+    {
+      "icon_id": "11520120",
+      "name": "直播",
+      "font_class": "zhibo",
+      "unicode": "e74f",
+      "unicode_decimal": 59215
+    },
+    {
+      "icon_id": "1231602",
+      "name": "挂断电话",
+      "font_class": "guaduandianhua",
+      "unicode": "e61c",
+      "unicode_decimal": 58908
+    },
+    {
+      "icon_id": "1374721",
+      "name": "关闭扬声器",
+      "font_class": "guanbiyangshengqi",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    },
+    {
+      "icon_id": "1780714",
+      "name": "麦克风",
+      "font_class": "maikefeng-XDY",
+      "unicode": "e663",
+      "unicode_decimal": 58979
+    },
+    {
+      "icon_id": "4933368",
+      "name": "屏幕共享",
+      "font_class": "pingmugongxiang",
+      "unicode": "e746",
+      "unicode_decimal": 59206
+    },
+    {
+      "icon_id": "6776383",
+      "name": "摄像头_关闭",
+      "font_class": "shexiangtou_guanbi",
+      "unicode": "eca5",
+      "unicode_decimal": 60581
+    },
+    {
+      "icon_id": "6776384",
+      "name": "摄像头",
+      "font_class": "shexiangtou",
+      "unicode": "eca6",
+      "unicode_decimal": 60582
+    },
+    {
+      "icon_id": "14191058",
+      "name": "喇叭",
+      "font_class": "laba",
+      "unicode": "e61f",
+      "unicode_decimal": 58911
+    },
+    {
+      "icon_id": "16534085",
+      "name": "关闭屏幕",
+      "font_class": "guanbipingmu",
+      "unicode": "e622",
+      "unicode_decimal": 58914
+    },
+    {
+      "icon_id": "26661601",
+      "name": "关闭麦克风",
+      "font_class": "guanbimaikefeng",
+      "unicode": "e643",
+      "unicode_decimal": 58947
+    },
+    {
       "icon_id": "3494344",
       "name": "数据汇总",
       "font_class": "daohang-shujufenxi",

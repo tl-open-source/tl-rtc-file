@@ -9,25 +9,21 @@ module.exports = (sequelize, DataTypes) => {
 				unique: true,
 				comment: '数据id',
 			},
-			rcode: {
-				type: DataTypes.STRING(30),
-				comment: '房间随机编号'
-			},
-			rname: {
+			room_id: {
 				type: DataTypes.STRING(32),
 				comment: '房间频道号码'
 			},
 			uid: {
 				type: DataTypes.INTEGER,
-				comment: '属于的用户id, 待定~',
+				comment: '匿名用户的id',
 			},
 			uname: {
 				type: DataTypes.STRING(20),
-				comment: '姓名, 待定~'
+				comment: '匿名用户姓名，昵称'
 			},
-			sid: {
+			socket_id: {
 				type: DataTypes.STRING(30),
-				comment: '进入房间时的sessionId'
+				comment: '匿名用户进入房间时的socket.id'
 			},
 			pwd: {
 				type: DataTypes.STRING(6),
@@ -44,15 +40,7 @@ module.exports = (sequelize, DataTypes) => {
 			},
 			device: {
 				type: DataTypes.STRING(256),
-				comment: '设备'
-			},
-			localtion: {
-				type: DataTypes.STRING(256),
-				comment: '地理位置'
-			},
-			url: {
-				type: DataTypes.STRING(256),
-				comment: '请求url'
+				comment: '设备信息'
 			},
 			flag: {
 				type: DataTypes.INTEGER,
@@ -65,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
 			}
 		}, {
 			timestamps: true,
-			comment: '房间表',
+			comment: '匿名用户房间表',
 			indexes: [{
 				name: 'created_at_index',
 				method: 'BTREE',

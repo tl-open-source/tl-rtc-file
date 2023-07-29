@@ -54,26 +54,26 @@ var screenShare = new Vue({
                     layer.msg("获取设备屏幕录制权限失败")
                 }
                 window.Bus.$emit("changeScreenShareState", false)
-                if(callback){
-                    callback()
-                }
+                callback && callback()
                 return;
             }
 
-            $("#mediaScreenRoomList").append(`
-                <div class="tl-rtc-file-mask-media-video">
-                    <video style="width:100%;height:30%;" id="selfMediaShareVideo" autoplay playsinline onclick="tlrtcfile.openFullVideo(this, 'screen', 'self')"></video>
-                </div>
-            `);
-            var video = document.querySelector("#selfMediaShareVideo");
-            video.srcObject = this.stream
+            const video = document.querySelector("#selfMediaShareScreen");
             video.addEventListener('loadedmetadata', function() {
                 // ios 微信浏览器兼容问题
+                window.Bus.$emit("addSysLogs", "loadedmetadata")
                 video.play();
                 document.addEventListener('WeixinJSBridgeReady', function () {
+                    window.Bus.$emit("addSysLogs", "loadedmetadata WeixinJSBridgeReady")
                     video.play();
                 }, false);
             });
+            document.addEventListener('WeixinJSBridgeReady', function () {
+                window.Bus.$emit("addSysLogs", "WeixinJSBridgeReady")
+                video.play();
+            }, false);
+            video.srcObject = this.stream;
+            video.play();
 
             //计算时间
             this.interverlId = setInterval(() => {
@@ -93,9 +93,7 @@ var screenShare = new Vue({
 
             this.stream.getTracks().forEach(function (track) {
                 that.track = track;
-                if(callback){
-                    callback(track, that.stream)
-                }
+                callback && callback(track, that.stream)
             });
         },
         stopScreenShare: function () {
@@ -124,7 +122,7 @@ var screenShare = new Vue({
             callback(this.track, this.stream)
         },
     },
-    mounted: function () {
+    mounted: async function () {
         window.Bus.$on("startScreenShare", this.startScreenShare);
         window.Bus.$on("stopScreenShare", this.stopScreenShare);
         window.Bus.$on("getScreenShareTrackAndStream", this.getScreenShareTrackAndStream);

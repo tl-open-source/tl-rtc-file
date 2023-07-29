@@ -5,7 +5,7 @@ const rtcCommData = require("./../rtcCommData/commData")
 const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 /**
  * 管理后台修改数据
@@ -34,7 +34,7 @@ async function change(io, socket, tables, dbClient, data){
             return
         }
 
-        await daoRoom.updateRoomContent({
+        await daoRoom.updateManageRoomContent({
             id: data.id,
             content: JSON.stringify(data.content)
         }, tables, dbClient)

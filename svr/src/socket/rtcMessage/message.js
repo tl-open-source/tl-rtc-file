@@ -3,7 +3,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcServerMessageEvent = rtcConstant.rtcServerMessageEvent
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 let rtcEventOpName = {
     "sendFileInfo": "准备发送文件",

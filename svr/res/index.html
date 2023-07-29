@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/static/css/default.min.css">
     <link rel="stylesheet" href="/static/css/pdf_viewer.min.css">
     <script type="text/javascript" src="/static/js/swiper-bundle.min.js"></script>
+    <script type="text/javascript" src="/static/js/adapter.js"></script>
     <script type="text/javascript" src="/static/js/socket.io.js"></script>
     <script type="text/javascript" src="/static/js/vue.min.js"></script>
     <script type="text/javascript" src="/static/js/axios.js"></script>
@@ -27,7 +28,7 @@
     <script type="text/javascript" src="/static/js/docx-preview.min.js"></script>
     <script type="text/javascript" src="/static/js/qrcode.min.js"></script>
     <script type="text/javascript" src="/static/layui/font-ext/iconfont.js"></script>
-    <link href="/image/44826979.png" rel="shortcut icon" type="image/x-icon">
+    <link href="image/44826979.png" rel="shortcut icon" type="image/x-icon">
     <style>
         .icon {
             width: 1em;
@@ -201,108 +202,107 @@
             <div class="swiper-wrapper">
                 <div class="layui-col-xs3 swiper-slide" @click="openChatingComm"
                     :class="switchData.openCommRoom ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-reply-fill"></i>
-                        <b class="tl-rtc-file-tool-mobile-title">{{lang.chat_comm}}</b>
-                        <span v-show="receiveChatCommList.length > 0" class="layui-badge tl-rtc-file-msg-dot"
-                            style="right: 5px; top: 4px; width: 7px; height: 7px;position: relative;"></span>
-                    </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-reply-fill"></i>
-                        <b>{{lang.chat_comm}}</b>
+                    <div class="tl-rtc-file-tool" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-chat"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.chat_comm}}</b>
                         <span v-show="receiveChatCommList.length > 0" class="layui-badge tl-rtc-file-msg-dot"
                             style="right: 5px; top: 4px; width: 7px; height: 7px;position: relative;"></span>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="startScreenShare"
                     :class="switchData.openScreenShare ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-chart-screen" id="screenShareIcon"></i>
-                        <b class="tl-rtc-file-tool-mobile-title">{{lang.screen_sharing}}</b>
+                    <div class="tl-rtc-file-tool" v-if="isScreenShare" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="screenShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-guaduandianhua"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.screen_sharing}}</b>
                     </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-chart-screen" id="screenShareIcon"></i>
-                        <b>{{lang.screen_sharing}}</b>
+                    <div class="tl-rtc-file-tool" v-else :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="screenShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-pingmugongxiang"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.screen_sharing}}</b>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="startVideoShare"
                     :class="switchData.openVideoShare ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-video" id="videoShareIcon"></i>
-                        <b class="tl-rtc-file-tool-mobile-title">{{lang.video_call}}</b>
+                    <div class="tl-rtc-file-tool" v-if="isVideoShare" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="videoShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-guaduandianhua"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.video_call}}</b>
                     </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-video" id="videoShareIcon"></i>
-                        <b>{{lang.video_call}}</b>
+                    <div class="tl-rtc-file-tool" v-else :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="videoShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-shexiangtou"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.video_call}}</b>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="startLiveShare"
                     :class="switchData.openLiveShare ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-fire" id="liveShareIcon"></i>
-                        <b class="tl-rtc-file-tool-mobile-title">{{lang.start_live}}</b>
+                    <div class="tl-rtc-file-tool " v-if="isLiveShare" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="liveShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-guaduandianhua"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.start_live}}</b>
                     </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-fire" id="liveShareIcon"></i>
-                        <b>{{lang.start_live}}</b>
+                    <div class="tl-rtc-file-tool" v-else :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="liveShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-zhibo"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.start_live}}</b>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="getCodeFile"
                     :class="switchData.openGetCodeFile ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-email"></i>
-                        <b class="tl-rtc-file-tool-mobile-title">{{lang.pickup_code}}</b>
-                    </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-email"></i>
-                        <b>{{lang.pickup_code}}</b>
+                    <div class="tl-rtc-file-tool" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="liveShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-wangpan"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.pickup_code}}</b>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="openRemoteDraw"
                     :class="switchData.openRemoteDraw ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-console" id="remoteDrawIcon"></i>
-                        <b class="tl-rtc-file-tool-mobile-title">{{lang.remote_draw}}</b>
-                    </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-console" id="remoteDrawIcon"></i>
-                        <b>{{lang.remote_draw}}</b>
+                    <div class="tl-rtc-file-tool" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-shiwu-huabi"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.remote_draw}}</b>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="openLocalScreen"
                     :class="switchData.openScreen ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-radio" id="screenIcon"></i>
-                        <b class="tl-rtc-file-tool-mobile-title">{{lang.screen_recording}}</b>
-                    </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-radio" id="screenIcon"></i>
-                        <b>{{lang.screen_recording}}</b>
+                    <div class="tl-rtc-file-tool" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="screenIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-luzhi"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.screen_recording}}</b>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="startPassword"
                     :class="switchData.openPasswordRoom ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-key"></i>
-                        <b class="tl-rtc-file-tool-mobile-title">{{lang.password_room}}</b>
-                    </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-key"></i>
-                        <b>{{lang.password_room}}</b>
+                    <div class="tl-rtc-file-tool" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-mima"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.password_room}}</b>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="openaiChat"
                     :class="switchData.openAiChat ? '':'tl-rtc-file-tool-disabled'">
-                    <div class="tl-rtc-file-tool tl-rtc-file-tool-mobile" v-if="clientWidth < 450">
-                        <i class="layui-icon layui-icon-service"></i>
-                        <b class="tl-rtc-file-tool-mobile-title" style="letter-spacing: 0px;">{{lang.chat_gpt}}</b>
-                    </div>
-                    <div class="tl-rtc-file-tool" v-else>
-                        <i class="layui-icon layui-icon-service"></i>
-                        <b>{{lang.chat_gpt}}</b>
+                    <div class="tl-rtc-file-tool" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-24px2x"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''" style="letter-spacing: 0px;">{{lang.chat_gpt}}</b>
                     </div>
                 </div>
             </div>
+            <div class="swiper-scrollbar"></div>
         </div>
 
         <!-- 自己 -->
@@ -996,16 +996,41 @@
         <div id="videoMask" class="tl-rtc-file-mask-media-list" :style="{left: mediaVideoMaskHeightNum + '%'}">
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
-                    <div class="layui-card-header">
-                        {{lang.video_call}}
-                        <i @click="startVideoShare" class="layui-icon layui-icon-close"
-                            style="cursor: pointer; right: 10px;position: absolute;"></i>
-                    </div>
+                    <div class="layui-card-header"> {{lang.video_call}} </div>
                 </div>
                 <div class="layui-card">
-                    <div :style="{height: logsHeight+'px',overflowY: 'auto'}">
+                    <div :style="{height: logsHeight + 80 +'px',overflowY: 'auto'}">
                         <div class="layui-card-body">
-                            <div class="tl-rtc-file-mask-media-container " id="mediaVideoRoomList"> </div>
+                            <div class="tl-rtc-file-mask-media-container" id="mediaVideoRoomList"> 
+                                <div class="tl-rtc-file-mask-media-video">
+                                    <video v-show="isCameraEnabled" id="selfMediaShareVideo" 
+                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
+                                        playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" 
+                                        x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
+                                    <svg v-show="!isCameraEnabled" class="icon" aria-hidden="true" style="width: 100%;height: 100%;">
+                                        <use xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
+                                    </svg>
+                                </div>
+                                <div class="tl-rtc-file-mask-media-video-tool">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('video','video')">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use v-if="isCameraEnabled" xlink:href="#icon-rtc-file-shexiangtou"></use>
+                                            <use v-else xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
+                                        </svg>
+                                    </div>
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('video','audio')">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use v-if="isAudioEnabled" xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
+                                            <use v-else xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
+                                        </svg>
+                                    </div>
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="startVideoShare()">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use xlink:href="#icon-rtc-file-guaduandianhua"></use>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1018,14 +1043,35 @@
                 <div class="layui-card">
                     <div class="layui-card-header" style="text-align: left;">
                         {{lang.screen_sharing}}
-                        <i @click="startScreenShare" class="layui-icon layui-icon-close"
-                            style="cursor: pointer; right: 10px;position: absolute;"></i>
                     </div>
                 </div>
                 <div class="layui-card">
-                    <div :style="{height: logsHeight+'px',overflowY: 'auto'}">
+                    <div :style="{height: logsHeight + 80 +'px',overflowY: 'auto'}">
                         <div class="layui-card-body">
-                            <div class="tl-rtc-file-mask-media-container " id="mediaScreenRoomList"> </div>
+                            <div class="tl-rtc-file-mask-media-container" id="mediaScreenRoomList"> 
+                                <div class="tl-rtc-file-mask-media-video">
+                                    <video v-show="isCameraEnabled" id="selfMediaShareScreen" 
+                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
+                                        playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" 
+                                        x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
+                                    <svg v-show="!isCameraEnabled" class="icon" aria-hidden="true" style="width: 100%;height: 100%;">
+                                        <use xlink:href="#icon-rtc-file-guanbipingmu"></use>
+                                    </svg>
+                                </div>
+                                <div class="tl-rtc-file-mask-media-video-tool">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('screen','video')">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use v-if="isCameraEnabled" xlink:href="#icon-rtc-file-pingmugongxiang"></use>
+                                            <use v-else xlink:href="#icon-rtc-file-guanbipingmu"></use>
+                                        </svg>
+                                    </div>
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="startScreenShare()">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use xlink:href="#icon-rtc-file-guaduandianhua"></use>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1037,15 +1083,55 @@
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
                     <div class="layui-card-header" style="text-align: left;">
-                        {{lang.start_live}}
-                        <i @click="startLiveShare" class="layui-icon layui-icon-close"
-                            style="cursor: pointer; right: 10px;position: absolute;"></i>
+                        {{lang.start_live}} - {{owner ? lang.owner : lang.audience}}
                     </div>
                 </div>
                 <div class="layui-card">
-                    <div :style="{height: logsHeight+'px',overflowY: 'auto'}">
+                    <div :style="{height: logsHeight + 80 +'px',overflowY: 'auto'}">
                         <div class="layui-card-body">
-                            <div class="tl-rtc-file-mask-media-container " id="mediaLiveRoomList"> </div>
+                            <div class="tl-rtc-file-mask-media-container" id="mediaLiveRoomList"> 
+                                <div class="tl-rtc-file-mask-media-video" v-show="owner">
+                                    <video v-show="isCameraEnabled" id="selfMediaShareLive" 
+                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
+                                        playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" 
+                                        x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
+                                    <svg v-show="!isCameraEnabled" class="icon" aria-hidden="true" style="width: 100%;height: 100%;">
+                                        <use v-if="liveShareMode === 'video'" xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
+                                        <use v-else xlink:href="#icon-rtc-file-guanbipingmu"></use>
+                                    </svg>
+                                </div>
+                                <div class="tl-rtc-file-mask-media-video-tool" v-show="owner">
+                                    <div v-show="changeLiveShareMediaTrackAndStreamTime === 0" class="tl-rtc-file-mask-media-video-tool-item" @click="changeLiveShareMediaTrackAndStream()">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use xlink:href="#icon-rtc-file-fanzhuanjingtou"></use>
+                                        </svg>
+                                    </div>
+                                    <div v-show="changeLiveShareMediaTrackAndStreamTime > 0" class="tl-rtc-file-mask-media-video-tool-item layui-disabled" style="padding: 2px 10px 2px 10px">
+                                        {{changeLiveShareMediaTrackAndStreamTime}}
+                                    </div>
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('live', 'video')">
+                                        <svg v-if="liveShareMode === 'video'" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use v-if="isCameraEnabled" xlink:href="#icon-rtc-file-shexiangtou"></use>
+                                            <use v-else xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
+                                        </svg>
+                                        <svg v-else class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use v-if="isCameraEnabled" xlink:href="#icon-rtc-file-pingmugongxiang"></use>
+                                            <use v-else xlink:href="#icon-rtc-file-guanbipingmu"></use>
+                                        </svg>
+                                    </div>
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('live','audio')">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use v-if="isAudioEnabled" xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
+                                            <use v-else xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
+                                        </svg>
+                                    </div>
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="startLiveShare()">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use xlink:href="#icon-rtc-file-guaduandianhua"></use>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

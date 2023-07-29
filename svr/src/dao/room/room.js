@@ -51,17 +51,16 @@ async function getOrCreateManageRoom(params, tables, dbClient) {
 
 		let manageRoomList = await tables.Room.findAll({
 			where: {
-				rname: manageConfig.room,
+				room_id: manageConfig.room,
 				flag: 1
 			}
 		});
 	
 		if (manageRoomList.length === 0) {
 			let res = await tables.Room.create({
-				rcode: utils.genRoom(),
-				rname: manageConfig.room,
+				room_id: manageConfig.room,
 				flag: 1,
-				sid: params.sid,
+				socket_id: params.socket_id,
 				ip: params.ip,
 				device: params.device,
 				content: JSON.stringify(defaultSwitchData)
@@ -71,7 +70,7 @@ async function getOrCreateManageRoom(params, tables, dbClient) {
 
 			manageRoomList = await tables.Room.findAll({
 				where: {
-					rname: manageConfig.room,
+					room_id: manageConfig.room,
 					flag: 1
 				}
 			});
@@ -137,32 +136,32 @@ async function getRoomHistoryInfo(params, tables, dbClient, sockets) {
 	
 		// 某日房间聚合列表，数量统计
 		const [roomCoutingListToday, metadata] = await dbClient.query(
-			`select rname, any_value(created_at) as created_at, count(*) as user from room where created_at >= "${chooseDay}" and created_at <= "${nextDay}" group by rname order by created_at desc`);
+			`select room_id, any_value(created_at) as created_at, count(*) as user from room where created_at >= "${chooseDay}" and created_at <= "${nextDay}" group by room_id order by created_at desc`);
 	
 		data.createRoomToday += roomCoutingListToday.length;
 		roomCoutingListToday.forEach(element => {
 			data.joinRoomTodady += element.user;
 			data.todayRoomList.push({
-				room: element.rname,
+				room: element.room_id,
 				count: element.user,
 				createTime: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
 			})
 		});
 	
 		// 全部数量统计
-		const [roomCoutingListAll, metadata1] = await dbClient.query(`select count(*) as user from room group by rname`);
+		const [roomCoutingListAll, metadata1] = await dbClient.query(`select count(*) as user from room group by room_id`);
 		data.createRoomAll += roomCoutingListAll.length;
 		roomCoutingListAll.forEach(element => {
 			data.joinRoomAll += element.user
 		});
 	
 		// 某日房间设备统计列表
-		const [roomListAgent, metadata2] = await dbClient.query(`select rname, content, created_at from room where created_at >= "${utils.formateDateTime(new Date(), "yyyy-MM-dd")}" order by created_at desc`);
+		const [roomListAgent, metadata2] = await dbClient.query(`select room_id, content, created_at from room where created_at >= "${utils.formateDateTime(new Date(), "yyyy-MM-dd")}" order by created_at desc`);
 		roomListAgent.forEach(element => {
 			let content = JSON.parse(element.content);
 			if (content && content.handshake) {
 				data.userAgentIpList.push({
-					room: element.rname,
+					room: element.room_id,
 					userAgent: content.handshake.headers['user-agent'],
 					Ip: content.handshake.headers['x-real-ip'] || content.handshake.headers['x-forwarded-for'] || content.handshake.headers['host'],
 					createTime: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
@@ -199,16 +198,15 @@ async function createJoinRoom(params, tables, dbClient) {
 		let data = await tables.Room.create({
 			uid: params.uid,
 			uname: params.uname,
-			rcode: utils.genRoom(),
-			rname: params.rname,
-			sid: params.sid,
+			room_id: params.room_id,
+			pwd : params.pwd,
+			socket_id: params.socket_id,
 			ip: params.ip,
 			device: params.device,
-			url: params.url,
 			content: params.content
 		});
 		
-		utils.tlConsole("加入房间 : ", params.uname, params.sid, params.rname)
+		utils.tlConsole("加入房间 : ", params.uname, params.socket_id, params.room_id)
 
         return data && data.dataValues ? data.dataValues.id : 0;
     }catch(e){
@@ -219,13 +217,13 @@ async function createJoinRoom(params, tables, dbClient) {
 
 
 /**
- * 更新房间
+ * 更新管理员房间
  * @param {*} params 
  * @param {*} tables 
  * @param {*} dbClient 
  * @returns 
  */
-async function updateRoomContent(params, tables, dbClient) {
+async function updateManageRoomContent(params, tables, dbClient) {
 	try{
         if(!tables || !dbClient){
             return {};
@@ -274,7 +272,7 @@ async function exitRoomBySid(params, tables, dbClient) {
 			status: 1
 		}, {
 			where: {
-				sid: params.sid
+				socket_id: params.socket_id
 			}
 		});
 
@@ -291,7 +289,7 @@ async function exitRoomBySid(params, tables, dbClient) {
 module.exports = dbOpen ? {
 	getRoomHistoryInfo,
 	createJoinRoom,
-	updateRoomContent,
+	updateManageRoomContent,
 	exitRoomBySid,
 	getOrCreateManageRoom
 } : {
@@ -301,7 +299,7 @@ module.exports = dbOpen ? {
 	createJoinRoom: () => {
 		return {}
 	},
-	updateRoomContent: () => {
+	updateManageRoomContent: () => {
 		return {}
 	},
 	exitRoomBySid: () => {

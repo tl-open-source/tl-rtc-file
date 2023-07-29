@@ -24,7 +24,7 @@ async function getCommData(io, socket, tables, dbClient, data){
         let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
         let manageInfo = await daoRoom.getOrCreateManageRoom({
-            sid: socket.id,
+            socket_id: socket.id,
             ip: ip,
             device: userAgent,
         }, tables, dbClient)

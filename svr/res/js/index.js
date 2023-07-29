@@ -57,6 +57,13 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 isMouseDrag : false, //是否正在拖拽鼠标
                 isSendAllWaiting : false, //一键发送文件时，有1秒时间间隔，这个记录当前是否是一键发送文件等待中
                 isShareJoin : false, //是否是分享加入房间
+                isCameraEnabled : true,  //音视频场景下自己的摄像头是否开启
+                isAudioEnabled : true, //音视频场景下自己的麦克风是否开启
+                isLoudspeakerEnabled : true, //音视频场景下自己的扬声器是否开启
+                facingMode : "user", //音视频场景下自己的摄像头前后置 ,user, environment
+                videoDeviceId : "", //音视频场景下自己的摄像头设备id
+                audioDeviceId : "", //音视频场景下自己的麦克风设备id
+                loudspeakerDeviceId : "", //音视频场景下自己的扬声器设备id
 
                 sendFileMaskHeightNum: 150, // 用于控制发送文件列表面板展示
                 chooseFileMaskHeightNum: 150, // 用于控制选择文件列表面板展示
@@ -82,6 +89,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 socketId: 0, //本人的id
                 roomId: "10086", //房间号
                 roomType : "file", //房间类型
+                liveShareMode : "video", //直播类型 video, screen
                 codeId: "", //取件码
                 recoderId: 0, //记录id
                 rtcConns: {}, //远程连接
@@ -110,6 +118,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 preMouseMove : {}, //上一次鼠标移动的事件
                 ips: [], // 记录ip列表，检测是否支持p2p
                 popUpMsgDom : [], // 消息弹窗dom
+                videoDeviceList : [], //摄像头设备列表
+                audioDeviceList : [], //麦克风设备列表
+                loudspeakerDeviceList : [], //扬声器设备列表
 
 
                 token: "", //登录token
@@ -118,6 +129,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 aiAnsweringTxtIntervalId: 0, //实现等待动画
                 aiAnsweringTxt: "思考中...", //ai思考中的文字
                 logsFilter: "", //日志过滤参数
+                changeLiveShareMediaTrackAndStreamTimeLimit : 9, //切换直播媒体流的时间限制, 允许9s内切换一次
+                changeLiveShareMediaTrackAndStreamTime : 0, //可以下一次切换直播媒体流的时间
+                changeLiveShareMediaTrackAndStreamIntervalId : 0, //切换直播媒体流的时间间隔id
                 clientWidth : document.body.clientWidth, //页面宽度
             }
         },
@@ -155,7 +169,25 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             },
             isMediaing : function(){
                 return this.isVideoShare || this.isScreenShare || this.isLiveShare
-            }
+            },
+            videoConstraints : function(){
+                return {
+                    audio: true,
+                    video: {
+                        facingMode: this.facingMode,
+                        deviceId: this.videoDeviceId,
+                        width: {
+                            ideal : 200,  max : 200, min : 100
+                        }, 
+                        height: {
+                            ideal : 150, max : 150, min : 150
+                        },
+                        frameRate: {
+                            ideal: 100,  max: 100
+                        },
+                    }
+                }
+            },
         },
         watch: {
             isAiAnswering: function (newV, oldV) {
@@ -204,6 +236,99 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             }
         },
         methods: {
+            changeLiveShareMediaTrackAndStream : async function(){
+                //切换媒体流之前，先将已关闭的媒体流打开之后再进行切换
+                if(this.liveShareMode === 'live'){
+                    //屏幕共享流只需要打开video通道即可
+                    await this.changeShareStream('live', 'video', 'open')
+                }else if(this.liveShareMode === 'video'){
+                    //视频流需要打开video和audio通道
+                    await this.changeShareStream('live', 'video', 'open')
+                    await this.changeShareStream('live', 'audio', 'open')
+                }
+
+                let that = this;
+                this.liveShareMode = this.liveShareMode === 'video' ? 'screen' : 'video';
+                window.Bus.$emit("changeLiveShareMediaTrackAndStream", {
+                    type : this.liveShareMode,
+                    kind : 'video',
+                    constraints : this.videoConstraints,
+                    rtcConns : this.rtcConns,
+                    callback : (success) => {
+                        if(!success){ //没有成功，切换回来
+                            that.liveShareMode = that.liveShareMode === 'video' ? 'screen' : 'video';
+                        }
+                    }
+                });
+
+                if(this.changeLiveShareMediaTrackAndStreamTime === 0){
+                    this.changeLiveShareMediaTrackAndStreamTime = this.changeLiveShareMediaTrackAndStreamTimeLimit - 1;
+                    //10s内只允许切换一次
+                    this.changeLiveShareMediaTrackAndStreamIntervalId = setInterval(() => {
+                        if(this.changeLiveShareMediaTrackAndStreamTime === 0){
+                            clearInterval(this.changeLiveShareMediaTrackAndStreamIntervalId)
+                            return
+                        }
+                        this.changeLiveShareMediaTrackAndStreamTime -= 1;
+                    }, 1000);
+                }
+            },
+            changeShareStream : async function(type, kind, value){
+                let stream = null;
+
+                if(type === 'video'){
+                    stream = await new Promise((resolve, reject) => {
+                        window.Bus.$emit("getVideoShareTrackAndStream", (track, stream) => {
+                            resolve(stream)
+                        })
+                    });
+                }else if(type === 'screen'){
+                    stream = await new Promise((resolve, reject) => {
+                        stream = window.Bus.$emit("getScreenShareTrackAndStream", (track, stream) => {
+                            resolve(stream)
+                        }); 
+                    });
+                }else if(type === 'live'){
+                    stream = await new Promise((resolve, reject) => {
+                        stream = window.Bus.$emit("getLiveShareTrackAndStream", (track, stream) => {
+                            resolve(stream)
+                        });
+                    });
+                }
+
+                if(kind === 'video'){
+                    //指定开关
+                    if(value && ['open','close'].includes(value)){
+                        stream.getVideoTracks()[0].enabled = value === 'open'
+                        this.isCameraEnabled = value === 'open'
+                    }else{
+                        //根据当前状态取反
+                        stream.getVideoTracks()[0].enabled = !stream.getVideoTracks()[0].enabled
+                        this.isCameraEnabled = !this.isCameraEnabled
+                    }
+                }
+                if(kind === 'audio'){
+                    //指定开关
+                    if(value && ['open','close'].includes(value)){
+                        stream.getAudioTracks()[0].enabled = value === 'open'
+                        this.isAudioEnabled = value === 'open'
+                    }else{
+                        //根据当前状态取反
+                        stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0].enabled
+                        this.isAudioEnabled = !this.isAudioEnabled
+                    }
+                }
+                this.socket.emit('message', {
+                    emitType: "openCamera",
+                    room: this.roomId,
+                    from : this.socketId,
+                    type : type,
+                    kind : kind,
+                    isCameraEnabled : this.isCameraEnabled,
+                    isAudioEnabled : this.isAudioEnabled
+                });
+                
+            },
             updateRemoteRtcState : async function(){
                 for(let id in this.remoteMap){
                     let stat = await window.tlrtcfile.getWebrtcStats(
@@ -1276,7 +1401,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     that.addUserLogs(that.lang.start_video_call);
                 }else{
                     layer.prompt({
-                        formType: 1,
+                        formType: 0,
                         title: that.lang.please_enter_video_call_room_num
                     }, function (value, index, elem) {
                         that.roomId = value;
@@ -1335,7 +1460,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     that.addUserLogs(that.lang.start_screen_sharing);
                 }else{
                     layer.prompt({
-                        formType: 1,
+                        formType: 0,
                         title: this.lang.please_enter_screen_sharing_room_num,
                     }, function (value, index, elem) {
                         that.roomId = value;
@@ -1394,21 +1519,51 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     that.addUserLogs(that.lang.start_live);
                 }else{
                     layer.prompt({
-                        formType: 1,
+                        formType: 0,
                         title: this.lang.please_enter_live_room_num,
-                    }, function (value, index, elem) {
-                        that.roomId = value;
-                        that.createMediaRoom("live");
-                        layer.close(index)
+                        btn : ['视频直播', '屏幕直播', '取消'],
+                        yes: function (index, layero) {
+                            const value = $('#layui-layer'+index + " .layui-layer-input").val();
+                            if(value === ''){
+                                return
+                            }
+                            that.roomId = value;
+                            that.liveShareMode = "video";
+                            that.createMediaRoom("live");
+                            layer.close(index)
 
-                        that.socket.emit('message', {
-                            emitType: "startLiveShare",
-                            room: that.roomId,
-                            to : that.socketId
-                        });
-                        that.clickMediaLive();
-                        that.isLiveShare = !that.isLiveShare;
-                        that.addUserLogs(that.lang.start_live);
+                            that.socket.emit('message', {
+                                emitType: "startLiveShare",
+                                room: that.roomId,
+                                to : that.socketId,
+                                liveShareMode : that.liveShareMode
+                            });
+                            that.clickMediaLive();
+                            that.isLiveShare = !that.isLiveShare;
+                            that.addUserLogs(that.lang.start_live);
+                            return false
+                        },
+                        btn2: function (index, layero) {
+                            const value = $('#layui-layer'+index + " .layui-layer-input").val();
+                            if(value === ''){
+                                return false
+                            }
+                            that.roomId = value;
+                            that.liveShareMode = "screen";
+                            that.createMediaRoom("live");
+                            layer.close(index)
+
+                            that.socket.emit('message', {
+                                emitType: "startLiveShare",
+                                room: that.roomId,
+                                to : that.socketId,
+                                liveShareMode : that.liveShareMode
+                            });
+                            that.clickMediaLive();
+                            that.isLiveShare = !that.isLiveShare;
+                            that.addUserLogs(that.lang.start_live);
+                            return false
+                        }
                     });
                 }
             },
@@ -2207,8 +2362,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     this.setNickName();
                     this.socket.emit('createAndJoin', {
                         room: this.roomId,
-                        type : 'password',
-                        password : '',
+                        type : 'file',
                         nickName : this.nickName,
                         langMode : this.langMode,
                         ua: this.isMobile ? 'mobile' : 'pc',
@@ -2317,6 +2471,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 let that = this;
                 let rtcConnect = new RTCPeerConnection(this.config);
 
+                //ice
                 rtcConnect.onicecandidate = (e) => {
                     that.iceCandidate(rtcConnect, id, e)
                 };
@@ -2328,68 +2483,13 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     })
                 }
 
-                //保存peer连接
-                this.rtcConns[id] = rtcConnect;
-                if (!this.remoteMap[id]) {
-                    Vue.set(this.remoteMap, id, { 
-                        id: id, 
-                        receiveChatRoomSingleList : [],
-                        p2pMode : '识别中...'
-                    })
-                }
-
-                //数据通道
-                this.initSendDataChannel(id);
-
-                rtcConnect.onremovestream = (e) => {
-                    that.removeStream(rtcConnect, id, e)
+                //媒体流通道
+                rtcConnect.ontrack = (e) => {
+                    that.mediaTrackHandler(e, id)
                 };
-
-                return rtcConnect;
-            },
-            //获取本地与远程连接
-            getOrCreateRtcConnect: function (id) {
-                // 获取rtc缓存连接
-                let rtcConnect = this.rtcConns[id];
-                // 不存在，创建一个
-                if (typeof (rtcConnect) == 'undefined') {
-                    rtcConnect = this.createRtcConnect(id);
-                }
-                return rtcConnect;
-            },
-            //当前用户开启了媒体流时 建立 stream share 链接
-            initMediaShareChannel: function (rtcConnect, type, track, stream) {
-                rtcConnect.ontrack = (event) => {
-                    if(event.track.kind === 'audio'){
-                        return;
-                    }
-                    $(`${type === 'screen' ? '#mediaScreenRoomList' : type === 'video' ? '#mediaVideoRoomList' : '#mediaLiveRoomList'}`).append(`
-                        <div class="tl-rtc-file-mask-media-video">
-                            <video id="otherMediaShareVideo" autoplay playsinline onclick="tlrtcfile.openFullVideo(this, '${type}', 'other')"></video>
-                        </div>
-                    `);
-                
-                    var video = document.querySelector("#otherMediaShareVideo");
-                    video.srcObject = event.streams[0]
-                    // ios 微信浏览器兼容问题
-                    video.addEventListener('loadedmetadata', function() {
-                        video.play();
-                        document.addEventListener('WeixinJSBridgeReady', function () {
-                            video.play();
-                        }, false);
-                    });
-                };
-
-                if (track && stream) {
-                    rtcConnect.addTrack(track, stream);
-                }
-            },
-            //连接创立时建立 send/receive Channel链接
-            initSendDataChannel: function (id) {
-                let that = this;
 
                 //文件发送数据通道
-                let sendFileDataChannel = this.rtcConns[id].createDataChannel('sendFileDataChannel');
+                let sendFileDataChannel = rtcConnect.createDataChannel('sendFileDataChannel');
                 sendFileDataChannel.binaryType = 'arraybuffer';
                 sendFileDataChannel.addEventListener('open', (event) => {
                     if (sendFileDataChannel.readyState === 'open') {
@@ -2408,7 +2508,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 });
 
                 //自定义数据发送通道
-                let sendDataChannel = this.rtcConns[id].createDataChannel('sendDataChannel');
+                let sendDataChannel = rtcConnect.createDataChannel('sendDataChannel');
                 sendDataChannel.binaryType = 'arraybuffer';
                 sendDataChannel.addEventListener('open', (event) => {
                     if (sendDataChannel.readyState === 'open') {
@@ -2426,13 +2526,125 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     that.removeStream(null, id, null)
                 });
 
-                this.rtcConns[id].addEventListener('datachannel', (event) => {
+                rtcConnect.addEventListener('datachannel', (event) => {
                     that.initReceiveDataChannel(event, id);
                 });
-                this.setRemoteInfo(id, { 
-                    sendFileDataChannel: sendFileDataChannel,
-                    sendDataChannel : sendDataChannel
-                });
+
+                rtcConnect.onremovestream = (e) => {
+                    that.removeStream(rtcConnect, id, e)
+                };
+
+                //保存peer连接
+                this.rtcConns[id] = rtcConnect;
+                if (!this.remoteMap[id]) {
+                    Vue.set(this.remoteMap, id, { 
+                        id: id, 
+                        receiveChatRoomSingleList : [],
+                        p2pMode : '识别中...',
+                        sendFileDataChannel: sendFileDataChannel,
+                        sendDataChannel : sendDataChannel
+                    })
+                }
+
+                return rtcConnect;
+            },
+            //获取本地与远程连接
+            getOrCreateRtcConnect: function (id) {
+                // 获取rtc缓存连接
+                let rtcConnect = this.rtcConns[id];
+                // 不存在，创建一个
+                if (typeof (rtcConnect) == 'undefined') {
+                    rtcConnect = this.createRtcConnect(id);
+                }
+                return rtcConnect;
+            },
+            //远程媒体流处理
+            mediaTrackHandler: function(event, id){
+                let that = this;
+                if(event.track.kind === 'audio'){
+                    return;
+                }
+
+                let video = null;
+                if(this.roomType === 'video'){
+                    $(`#mediaVideoRoomList`).append(`
+                        <div class="tl-rtc-file-mask-media-video">
+                            <video id="otherMediaVideoShare${id}" preload="auto" autoplay="autoplay" x-webkit-airplay="true" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint" ></video>
+                            <svg id="otherMediaVideoShareVideoSvg${id}" class="icon" aria-hidden="true" style="width: 100%;height: 100%;display:none;">
+                                <use xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
+                            </svg>
+                            <svg id="otherMediaVideoShareAudioOpenSvg${id}" class="tl-rtc-file-mask-media-video-other-audio" aria-hidden="true">
+                                <use xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
+                            </svg>
+                            <svg id="otherMediaVideoShareAudioCloseSvg${id}" class="tl-rtc-file-mask-media-video-other-audio" aria-hidden="true" style="display:none;">
+                                <use xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
+                            </svg>
+                        </div>
+                    `);
+                    video = document.querySelector(`#otherMediaVideoShare${id}`);
+                } else if(this.roomType === 'screen'){
+                    $(`#mediaScreenRoomList`).append(`
+                        <div class="tl-rtc-file-mask-media-video">
+                            <video id="otherMediaScreenShare${id}" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint" ></video>
+                            <svg id="otherMediaScreenShareVideoSvg${id}" class="icon" aria-hidden="true" style="width: 100%;height: 100%;display:none;">
+                                <use xlink:href="#icon-rtc-file-guanbipingmu"></use>
+                            </svg>
+                        </div>
+                    `);
+                    video = document.querySelector(`#otherMediaScreenShare${id}`);
+                } else if(this.roomType === 'live'){
+                    if(this.liveShareMode === 'video'){
+                        $(`#mediaLiveRoomList`).append(`
+                            <div class="tl-rtc-file-mask-media-video">
+                                <video id="otherMediaLiveShare${id}" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint" ></video>
+                                <svg id="otherMediaLiveShareVideoSvg${id}" class="icon" aria-hidden="true" style="width: 100%;height: 100%;display:none;">
+                                    <use xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
+                                </svg>
+                                <svg id="otherMediaLiveShareAudioOpenSvg${id}" class="tl-rtc-file-mask-media-video-other-audio" aria-hidden="true">
+                                    <use xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
+                                </svg>
+                                <svg id="otherMediaLiveShareAudioCloseSvg${id}" class="tl-rtc-file-mask-media-video-other-audio" aria-hidden="true" style="display:none;">
+                                    <use xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
+                                </svg>
+                            </div>
+                        `);
+                    }else if(this.liveShareMode === 'screen'){
+                        $(`#mediaLiveRoomList`).append(`
+                            <div class="tl-rtc-file-mask-media-video">
+                                <video id="otherMediaLiveShare${id}" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
+                                <svg id="otherMediaLiveShareVideoSvg${id}" class="icon" aria-hidden="true" style="width: 100%;height: 100%;display:none;">
+                                    <use xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
+                                </svg>
+                                <svg id="otherMediaLiveShareAudioOpenSvg${id}" class="tl-rtc-file-mask-media-video-other-audio" aria-hidden="true">
+                                    <use xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
+                                </svg>
+                                <svg id="otherMediaLiveShareAudioCloseSvg${id}" class="tl-rtc-file-mask-media-video-other-audio" aria-hidden="true" style="display:none;">
+                                    <use xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
+                                </svg>
+                            </div>
+                        `);
+                    }
+                    
+                    video = document.querySelector(`#otherMediaLiveShare${id}`);
+                }
+            
+                if(video){
+                    video.addEventListener('loadedmetadata', function() {
+                        video.play();
+                        that.addSysLogs("loadedmetadata")
+                        // ios 微信浏览器兼容问题
+                        document.addEventListener('WeixinJSBridgeReady', function () {
+                            that.addSysLogs("loadedmetadata WeixinJSBridgeReady")
+                            video.play();
+                        }, false);
+                    });
+                    document.addEventListener('WeixinJSBridgeReady', function () {
+                        that.addSysLogs("WeixinJSBridgeReady")
+                        video.play();
+                    }, false);
+                    video.srcObject = event.streams[0]
+                    video.play();
+                }
             },
             // 初始发送 
             // pickRecoder : 指定发送记录进行发送
@@ -2863,6 +3075,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             //移除rtc连接
             removeStream: function (rtcConnect, id, event) {
                 this.getOrCreateRtcConnect(id).close;
+                const remoteInfo = this.remoteMap[id] || {};
+                const removeIsOwner = remoteInfo.owner;
+
                 delete this.rtcConns[id];
                 delete this.remoteMap[id];
 
@@ -2870,6 +3085,18 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 this.sendFileRecoderList = this.sendFileRecoderList.filter(item => {
                     return item.id !== id;
                 })
+
+                if(['live','video','screen'].includes(this.roomType)){
+                    //主播异常关闭直播，观众页面强制刷新
+                    if(this.roomType === 'live' && removeIsOwner){
+                        window.location.reload()
+                    }
+
+                    //多人音视频/多人屏幕共享，有人异常退出，移除对应的video标签
+                    if(this.roomType === 'video' || this.roomType === 'screen'){
+                        $(`#otherMediaVideoShare${id}`).parent().remove();
+                    }
+                }
             },
             // ice
             iceCandidate: function (rtcConnect, id, event) {
@@ -2934,6 +3161,13 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             socketListener: function () {
                 let that = this;
 
+                this.socket.on('connect_error', error => {
+                    console.error('connect_error', error);
+                    if(error){
+                        layer.msg("socket服务连接失败，请检查socket服务是否正常启动 " + error.message);
+                    }
+                });
+
                 // created作用是让自己去和其他人建立rtc连接
                 // 1. 对于screen, video房间来说，是双方都需要传输各自的媒体流
                 // 2. 对于live房间来说，只有房主需要获取媒体流
@@ -2944,21 +3178,25 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     that.recoderId = data.recoderId;
                     that.owner = data.owner;
 
+                    //第一个人进入时，获取媒体流数据，此时无需addTrack，因为房间只有一个连接，addTrack没意义，
+                    //因为一个连接无需进行offer收集，offer信息收集是从第二个连接开始。
                     if(data.peers.length === 0){
                         if(data.type === 'screen'){
                             window.Bus.$emit("startScreenShare");
                         }
                         if(data.type === 'video'){
-                            window.Bus.$emit("startVideoShare");
+                            window.Bus.$emit("startVideoShare", that.videoConstraints);
                         }
                         if(data.type === 'live'){
-                            window.Bus.$emit("startLiveShare");
+                            window.Bus.$emit("startLiveShare", {
+                                liveShareMode : that.liveShareMode
+                            });
                         }
                     }
 
                     for (let i = 0; i < data.peers.length; i++) {
                         let otherSocketId = data.peers[i].id;
-                        let rtcConnect = that.getOrCreateRtcConnect(otherSocketId);
+                        let otherRtcConnect = that.getOrCreateRtcConnect(otherSocketId);
                         // 处理完连接后，更新下昵称
                         that.setRemoteInfo(otherSocketId, { 
                             nickName : data.peers[i].nickName,
@@ -2972,32 +3210,28 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         })
 
                         await new Promise(resolve => {
-                            // 处理音视频情况
-                            if (data.type === 'screen') {
-                                window.Bus.$emit("startScreenShare", (track, stream) => {
-                                    that.initMediaShareChannel(rtcConnect, data.type, track, stream)
+                            if(data.type === 'screen'){
+                                window.Bus.$emit("startScreenShare",(track, stream) => {
+                                    //其他人将数据流添加到通道中, 此时需要addTrack，因为后面会有offer收集，然后进行answer ...等后续操作
+                                    otherRtcConnect.addTrack(track, stream);
                                     resolve()
                                 });
-                            }else if (data.type === 'video') {
-                                window.Bus.$emit("startVideoShare", (track, stream) => {
-                                    that.initMediaShareChannel(rtcConnect, data.type, track, stream)
-                                    resolve()
-                                });
-                            }else if (data.type === 'live') {
-                                window.Bus.$emit("getLiveShareTrackAndStream", (track, stream) => {
-                                    that.initMediaShareChannel(rtcConnect, data.type, null, null)
+                            }else if(data.type === 'video'){
+                                window.Bus.$emit("startVideoShare", that.videoConstraints, (track, stream) => {
+                                     //其他人将数据流添加到通道中, 此时需要addTrack，因为后面会有offer收集，然后进行answer ...等后续操作
+                                    otherRtcConnect.addTrack(track, stream);
                                     resolve()
                                 });
                             }else{
-                                resolve()
+                                resolve();
                             }
                         }).then(()=>{
-                            rtcConnect.createOffer(that.options).then(offer => {
-                                that.offerSuccess(rtcConnect, otherSocketId, offer);
+                            otherRtcConnect.createOffer(that.options).then(offer => {
+                                that.offerSuccess(otherRtcConnect, otherSocketId, offer);
                             }, error => {
-                                that.offerFailed(rtcConnect, otherSocketId, error);
+                                that.offerFailed(otherRtcConnect, otherSocketId, error);
                             });
-                        })
+                        });
                     }
                 });
 
@@ -3007,8 +3241,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     that.recoderId = data.recoderId;
                     let rtcConnect = that.getOrCreateRtcConnect(data.id);
                     // 处理完连接后，更新下昵称
-                    that.setRemoteInfo(data.id, { 
-                        nickName : data.nickName, 
+                    that.setRemoteInfo(data.id, {
+                        nickName : data.nickName,
                         owner : data.owner,
                         langMode : data.langMode,
                         ua : data.ua,
@@ -3017,20 +3251,30 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         userAgent : data.userAgent,
                         ip : data.ip,
                     })
-                    // 处理音视频逻辑
+                    
+                    //这部分逻辑主要是将比当前加入连接更早加入的连接媒体流添加到track中
+                    //以便于当前加入的连接可以收到之前的连接的媒体流数据
+
                     if (data.type === 'screen') {
+                        //比如多人屏幕共享，后面加入的连接已经在created事件中addTrack了
+                        //所以这个地方主要是通知当前连接之前的那一些连接进行addTrack，以便于当前连接能收到
                         window.Bus.$emit("getScreenShareTrackAndStream", (track, stream) => {
-                            that.initMediaShareChannel(rtcConnect, data.type, track, stream)
+                            rtcConnect.addTrack(track, stream);
                         });
                     }
+                    
                     if (data.type === 'video') {
+                        //比如多人音视频，后面加入的连接已经在created事件中addTrack了
+                        //所以这个地方主要是通知当前连接之前的那一些连接进行addTrack，以便于当前连接能收到
                         window.Bus.$emit("getVideoShareTrackAndStream", (track, stream) => {
-                            that.initMediaShareChannel(rtcConnect, data.type, track, stream)
+                            rtcConnect.addTrack(track, stream);
                         });
                     }
+                    
                     if (data.type === 'live') {
+                        //比如直播，后面加入的都是观众，所以每个观众加入的时候，都会通知一下所有人可以添加媒体流到通道了（这里就是只有房主有媒体流数据）
                         window.Bus.$emit("getLiveShareTrackAndStream", (track, stream) => {
-                            that.initMediaShareChannel(rtcConnect, data.type, track, stream)
+                            rtcConnect.addTrack(track, stream);
                         });
                     }
                     that.addPopup({
@@ -3038,6 +3282,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         msg : data.nickName + that.lang.join_room
                     });
                 });
+
 
                 this.socket.on('offer', function (data) {
                     that.addSysLogs(that.lang.receive_offer_event + JSON.stringify(data));
@@ -3294,7 +3539,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         if (data.reload) {
                             setTimeout(() => {
                                 window.location.reload()
-                            }, 1000);
+                            }, 1300);
                         }
                     }
                 });
@@ -3302,36 +3547,64 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 //关闭共享
                 this.socket.on('stopScreenShare', function (data) {
                     if (data.id === that.socketId) {
-                        setTimeout(() => {
-                            $("#selfMediaShareVideo").parent().remove();
-                        }, 500);
                         that.clickMediaScreen();
                     } else {
-                        $("#otherMediaShareVideo").parent().remove();
+                        $(`#otherMediaScreenShare${data.id}`).parent().remove();
+                    }
+                });
+
+                //关闭共享
+                this.socket.on('openCamera', function (data) {
+                    that.setRemoteInfo(data.from, {
+                        isCameraEnabled : data.isCameraEnabled,
+                        isAudioEnabled : data.isAudioEnabled
+                    })
+                    if(data.type === 'video'){
+                        if(data.kind === 'video'){
+                            document.querySelector(`#otherMediaVideoShare${data.from}`).style.display = data.isCameraEnabled ? 'block' : 'none';
+                            document.querySelector(`#otherMediaVideoShareVideoSvg${data.from}`).style.display = data.isCameraEnabled ? 'none' : 'block';
+                        }else if(data.kind === 'audio'){
+                            document.querySelector(`#otherMediaVideoShareAudioOpenSvg${data.from}`).style.display = data.isAudioEnabled ? 'block' : 'none';
+                            document.querySelector(`#otherMediaVideoShareAudioCloseSvg${data.from}`).style.display = data.isAudioEnabled ? 'none' : 'block';
+                        }
+                    }else if(data.type === 'screen'){
+                        if(data.kind === 'video'){
+                            document.querySelector(`#otherMediaScreenShare${data.from}`).style.display = data.isCameraEnabled ? 'block' : 'none';
+                            document.querySelector(`#otherMediaScreenShareVideoSvg${data.from}`).style.display = data.isCameraEnabled ? 'none' : 'block';
+                        }else if(data.kind === 'audio'){
+                            document.querySelector(`#otherMediaScreenShareAudioOpenSvg${data.from}`).style.display = data.isAudioEnabled ? 'block' : 'none';
+                            document.querySelector(`#otherMediaScreenShareAudioCloseSvg${data.from}`).style.display = data.isAudioEnabled ? 'none' : 'block';
+                        }
+                    }else if(data.type === 'live'){
+                        if(data.kind === 'video'){
+                            document.querySelector(`#otherMediaLiveShare${data.from}`).style.display = data.isCameraEnabled ? 'block' : 'none';
+                            document.querySelector(`#otherMediaLiveShareVideoSvg${data.from}`).style.display = data.isCameraEnabled ? 'none' : 'block';
+                        }else if(data.kind === 'audio'){
+                            document.querySelector(`#otherMediaLiveShareAudioOpenSvg${data.from}`).style.display = data.isAudioEnabled ? 'block' : 'none';
+                            document.querySelector(`#otherMediaLiveShareAudioCloseSvg${data.from}`).style.display = data.isAudioEnabled ? 'none' : 'block';
+                        }
                     }
                 });
 
                 //关闭音视频
                 this.socket.on('stopVideoShare', function (data) {
                     if (data.id === that.socketId) {
-                        setTimeout(() => {
-                            $("#selfMediaShareVideo").parent().remove();
-                        }, 500);
                         that.clickMediaVideo();
                     } else {
-                        $("#otherMediaShareVideo").parent().remove();
+                        $(`#otherMediaVideoShare${data.id}`).parent().remove();
                     }
                 });
 
                 //退出直播
                 this.socket.on('stopLiveShare', function (data) {
+                    //如果是主动房主退出，所有观众都退出
+                    if(data.owner){
+                        window.location.reload();
+                        return
+                    }
+
                     if (data.id === that.socketId) {
-                        setTimeout(() => {
-                            $("#selfMediaShareVideo").parent().remove();
-                        }, 500);
                         that.clickMediaLive();
-                    } else {
-                        $("#otherMediaShareVideo").parent().remove();
                     }
                 });
 
@@ -3500,7 +3773,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 }
 
                 // logs height
-                this.logsHeight = document.documentElement.clientHeight - 55;
+                this.logsHeight = document.documentElement.clientHeight - 130;
                 this.sendFileRecoderHeight = document.querySelector("#send-file-list").clientHeight - 190;
                 this.chooseFileHeight = document.querySelector("#send-file-list-choose").clientHeight - 40;
                 this.sendFileRecoderHistoryHeight = document.querySelector("#send-file-list-history").clientHeight - 40;
@@ -3549,7 +3822,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             id: this.socketId,
                             room: this.roomId,
                             cost: this.screenShareTimes,
-                            to : this.socketId
                         });
                     }
                     this.screenShareTimes = res
@@ -3567,7 +3839,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             id: this.socketId,
                             room: this.roomId,
                             cost: this.videoShareTimes,
-                            to : this.socketId
                         });
                     }
                     this.videoShareTimes = res
@@ -3586,7 +3857,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             room: this.roomId,
                             cost: this.liveShareTimes,
                             owner : this.owner,
-                            to : this.socketId
                         });
                     }
                     this.liveShareTimes = res
@@ -3639,6 +3909,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 })
                 window.Bus.$on("relaySetting", (res) => {
                     this.relaySetting()
+                })
+                window.Bus.$on("addSysLogs", (res) => {
+                    this.addSysLogs(res)
                 })
             },
             // 初始化选择文件面板
@@ -3744,6 +4017,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     loop: false,
                     slidesPerView: this.toolSlidesPerViewCount,
                     observer: true,
+                    scrollbar: {
+                        el : '.swiper-scrollbar',
+                        hide: true,
+                    }
                 })
                 window.toolSwiper = toolSwiper;
             },            
@@ -3780,11 +4057,13 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             setInterval(() => {
                 this.touchResize()
             }, 1000);
+            this.addSysLogs(this.lang.window_event_init_done);
 
+            this.addSysLogs(this.lang.webrtc_check_init);
             setInterval(async () => {
                 await this.updateRemoteRtcState()
             }, 5000);
-            this.addSysLogs(this.lang.window_event_init_done);
+            this.addSysLogs(this.lang.webrtc_check_init_done);
 
             this.addSysLogs(this.lang.message_box_init);
             this.startPopUpMsg()
@@ -3807,6 +4086,12 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 this.addSysLogs(this.lang.language_select_init);
                 this.changeLanguage()
                 this.addSysLogs(this.lang.language_select_init_done);
+
+                window.Bus.$emit("getVideoShareDeviceList", (v, a, l) => {
+                    this.videoDeviceList = v;
+                    this.audioDeviceList = a;
+                    this.loudspeakerDeviceList = l;
+                });
             }, 2000);
 
             this.addSysLogs(this.lang.debug_init);

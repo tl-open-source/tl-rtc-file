@@ -5,7 +5,7 @@ const utils = require("./../../utils/utils");
 const bussinessOpenai = require("./../../bussiness/openai/openai")
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 /**
  * ai聊天

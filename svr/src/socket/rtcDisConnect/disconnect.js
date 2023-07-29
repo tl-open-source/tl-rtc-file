@@ -16,7 +16,7 @@ async function disconnect(io, socket, tables, dbClient, data){
         from : socket.id,
     });
     
-    await daoRoom.exitRoomBySid({ sid: socket.id }, tables, dbClient);
+    await daoRoom.exitRoomBySid({ socket_id: socket.id }, tables, dbClient);
 
     rtcCount.count(io, socket, tables, dbClient, data)
 }

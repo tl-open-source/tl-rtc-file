@@ -5,7 +5,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const seafile = require("./../../bussiness/oss/seafile")
 const rtcCommData = require("./../rtcCommData/commData");
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 /**
  * 生成取件码上传链接

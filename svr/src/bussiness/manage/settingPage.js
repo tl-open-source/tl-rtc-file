@@ -12,7 +12,7 @@ async function getSettingPageHtml(data) {
         return 'db配置未开启';
     }
     let resData = await daoRoom.getOrCreateManageRoom({
-        sid: data.socketId,
+        socket_id: data.socketId,
         ip: data.ip,
         device: data.userAgent,
     }, data.tables, data.dbClient)

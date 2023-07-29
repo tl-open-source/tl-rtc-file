@@ -1,4 +1,4 @@
-const check = require("../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 /**
  * 检查内容

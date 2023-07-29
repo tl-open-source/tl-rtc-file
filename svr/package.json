@@ -1,7 +1,7 @@
 {
 	"name": "tl-rtc-file",
-	"version": "1.0.0",
-	"description": "webrtc， p2p，file",
+	"version": "10.2.8",
+	"description": "webrtc, p2p, file, screen, video, live, draw, chat",
 	"main": "main.js",
 	"scripts": {
 		"lapi": "cross-env ENV_MODE=local node localapi",
@@ -14,7 +14,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": ""
+		"url": "https://github.com/tl-open-source/tl-rtc-file"
 	},
 	"keywords": [
 		"none"
@@ -22,19 +22,22 @@
 	"author": "iamtsm",
 	"license": "MIT",
 	"dependencies": {
-		"glob": "^10.3.1",
-		"terser": "^5.18.2",
-		"vite": "^4.3.9",
-		"rollup-plugin-copy": "^3.4.0",
+		"@grpc/grpc-js": "^1.8.0",
+		"@grpc/proto-loader": "^0.6.0",
 		"cross-env": "^5.2.0",
 		"express": "^4.17.1",
+		"glob": "^10.3.1",
+		"google-protobuf": "^3.0.0",
 		"mocha": "^10.2.0",
 		"mysql2": "^2.1.0",
-		"openai": "^1.0.0",
+		"openai": "^3.3.0",
 		"request": "^2.88.2",
+		"rollup-plugin-copy": "^3.4.0",
 		"sequelize": "^6.1.0",
 		"sequelize-pool": "^6.0.0",
-		"socket.io": "^2.3.0"
-	},
-	"devDependencies": {}
+		"socket.io": "^2.3.0",
+		"terser": "^5.18.2",
+		"tl-ngrpc": "^1.0.1",
+		"vite": "^4.3.9"
+	}
 }

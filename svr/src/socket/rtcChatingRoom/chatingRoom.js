@@ -3,7 +3,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
-const check = require("./../../utils/check/content");
+const check = require("../../bussiness/check/content");
 
 /**
  * 房间内聊天 群聊/私聊

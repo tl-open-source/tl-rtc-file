@@ -214,64 +214,6 @@ window.tlrtcfile = {
             }
         }
     },
-    closeFullVideo: function (node, type, from) {
-        let stream = node.srcObject;
-        let nodeId = node.id.substr(0, node.id.length - 5);
-        if (window.layer) {
-            layer.closeAll()
-        }
-        $(`${type === 'screen' ? '#mediaScreenRoomList' : '#mediaVideoRoomList'}`).append(`
-            <div class="tl-rtc-file-mask-media-video">
-                <video id="${nodeId}" autoplay playsinline onclick="tlrtcfile.openFullVideo(this,'${type}', '${from}')"></video>
-            </div>
-        `);
-        var video = document.querySelector("#" + nodeId);
-        video.srcObject = stream
-
-        video.addEventListener('loadedmetadata', function () {
-            // ios 微信浏览器兼容问题
-            video.play();
-            document.addEventListener('WeixinJSBridgeReady', function () {
-                video.play();
-            }, false);
-        });
-
-    },
-    openFullVideo: function (node, type, from) {
-        let stream = node.srcObject;
-        let nodeId = node.id + "_full";
-        if (window.layer) {
-            layer.open({
-                type: 1,
-                title: false,
-                area: ["95%", "auto"],
-                shade: 0.3,
-                content: `
-                    ${from === 'self' ? '<b style="position: absolute;left: 5px; top: 8px;">自己</b>' : ''}
-                    <video style="width:100%;height:100%;border-radius:8px;" id="${nodeId}" autoplay playsinline onclick="tlrtcfile.closeFullVideo(this, '${type}', '${from}')"></video>
-                `,
-                success: function (layero) {
-                    document.querySelector("#" + nodeId).parentElement.style.height = "auto"
-
-                    let video = document.querySelector("#" + nodeId);
-                    video.srcObject = stream;
-                    video.addEventListener('loadedmetadata', function () {
-                        // ios 微信浏览器兼容问题
-                        video.play();
-                        document.addEventListener('WeixinJSBridgeReady', function () {
-                            video.play();
-                        }, false);
-                    });
-
-                    //并且需要移除父节点
-                    document.querySelector("#" + node.id).parentElement.remove();
-                },
-                cancel: function () {
-                    tlrtcfile.closeFullVideo(document.querySelector("#" + nodeId), type, from);
-                }
-            });
-        }
-    },
     supposeWebrtc: function (rtcConfig) {
         try {
             let testRTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCIceGatherer;
