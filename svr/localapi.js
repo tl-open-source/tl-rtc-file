@@ -1,5 +1,6 @@
 const express = require("express");
-const conf = require("./conf/cfg.json");
+const { inject_env_config } = require("./conf/env_config");
+const conf = inject_env_config(require("./conf/cfg.json"));
 const fileApiRouters = require("./src/controller/router")();
 const db = require("./src/tables/db"); //db
 const utils = require("./src/utils/utils");
