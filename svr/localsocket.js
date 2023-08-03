@@ -1,7 +1,8 @@
 const http = require('http'); // http
 const socketIO = require('socket.io'); //socket
 const db = require("./src/tables/db"); //db
-const conf = require("./conf/cfg.json"); //conf
+const { inject_env_config } = require("./conf/env_config");
+const conf = inject_env_config(require("./conf/cfg.json")); //conf
 const socket = require("./src/socket/index") //socket handler
 const utils = require("./src/utils/utils");
 

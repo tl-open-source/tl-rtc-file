@@ -1,0 +1,18 @@
+version: '3'
+services:
+  api:
+    env_file:
+    - local.env
+    build: .
+    ports:
+    - 9092:9092
+    links:
+    - socket
+    command: localapi
+  socket:
+    env_file:
+    - local.env
+    build: .
+    ports:
+    - 8444:8444
+    command: localsocket
