@@ -120,12 +120,9 @@ ubuntu示例:
 
 
 ## Docker (非必须步骤)
-
-    按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
-
-    docker build -t tl-open-source/tl-rtc-file .
-
-    docker run -p 9092:9092 -p 8444:8444 --name tl-rtc-file-local -d tl-open-source/tl-rtc-file
+    修改local.env中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
+    
+    docker-compose up -d
 
     访问 : http://localhost:9092 或者 http://本机ip:9092
 
