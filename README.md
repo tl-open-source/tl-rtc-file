@@ -36,12 +36,12 @@
 修改cfg.json中相应ws配置，或者wss配置
 
     "ws": {
-        "port": 8444,                                            #socket 端口
-        "host": "ws://域名 或者 ip:port 或者 ws://域名:port",       #socket ip  局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
+        "port": 8444,                                       #socket 端口
+        "host": "ws://域名 或者 ip:port 或者 域名:port",       #socket ip  局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
     },
     "wss" : {
-        "port": 8444,                                            #socket 端口
-        "host": "wss://域名 或者 ip:port 或者 ws://域名:port",      #socket ip  局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
+        "port": 8444,                                       #socket 端口
+        "host": "wss://域名 或者 ip:port 或者 域名:port",      #socket ip  局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
     },
 
 常见情况示例 : 
