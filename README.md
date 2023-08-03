@@ -21,7 +21,7 @@
 
 ## 准备 (必须步骤)
 
-安装node-14.x或14.x以上，npm后进入项目目录运行下面命令
+安装node-14.21.x或14.21.x以上，npm后进入项目目录运行下面命令
 
     `cd svr/`
 
@@ -31,6 +31,32 @@
 
     `npm run build:dev` (打包监听文件改动打包min) 或者  `npm run build:pro` 打包min
 
+## 配置websocket (必须步骤)
+
+修改cfg.json中相应ws配置，或者wss配置
+
+    "ws": {
+        "port": 8444,                                            #socket 端口
+        "host": "ws://域名 或者 ip:port 或者 ws://域名:port",       #socket ip  局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
+    },
+    "wss" : {
+        "port": 8444,                                            #socket 端口
+        "host": "wss://域名 或者 ip:port 或者 ws://域名:port",      #socket ip  局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
+    },
+
+常见情况示例 : 
+
+比如你是用ip(10.x.x.x)的形式部署socket服务，那么host就为
+
+    ws://10.x.x.x:8444 或者 wss://10.x.x.x:8444
+
+如果你有域名，并且配置了代理，比如a.test.com转发到本地socket服务的8444端口，那么host就为
+
+    ws://a.test.com 或者 wss://a.test.com
+
+如果你有域名，但是没有转发到具体的端口，比如有b.test.com:8444访问的是socket服务的8444端口，那么host就为
+
+    ws://b.test.com:8444 或者 wss://b.test.com
 
 ## 启动 (必须步骤)
 
@@ -47,20 +73,6 @@ https模式
     api服务: `npm run sapi`
 
     socket服务 : `npm run ssocket`
-
-
-## 配置websocket (必须步骤)
-
-修改cfg.json中相应ws配置，或者wss配置
-
-    "ws": {
-          "port": 8444,                         #socket 端口
-          "host": "ws://127.0.0.1:8444",        #socket ip
-     },
-     "wss" : {
-          "port": 8444,
-          "host": "wss://域名||ip:port",
-     },
 
 ## 配置数据库 (非必须步骤)
 
