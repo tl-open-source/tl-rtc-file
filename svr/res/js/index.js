@@ -19,7 +19,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
         data: function () {
             let socket = null;
             if (io) {
-                socket = io(resData.wsHost);
+                socket = io(resData.wsHost,{
+                    transports : ['polling', 'websocket']
+                });
             }
             return {
                 langMode : "zh", // 默认中文
@@ -424,7 +426,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 return ['completed', 'connected', 'checking', 'new'].includes(state);
             },
             consoleLogo : function(){
-                window.console.log(`%c____ TL-RTC-FILE-V${this.version} ____ \n____ FORK ME IN GITHUB ____ \n____ https://github.com/tl-open-source/tl-rtc-file ____`, this.logo)
+                window.console.log(`%c____ TL-RTC-FILE-V${this.version} ____ \n____ FORK ME ON GITHUB ____ \n____ https://github.com/tl-open-source/tl-rtc-file ____`, this.logo)
             },
             changeLanguage: function () {
                 let that = this;

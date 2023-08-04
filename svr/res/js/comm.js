@@ -5,16 +5,16 @@
 // --------------------------- //
 
 window.tlrtcfile = {
-    addUrlHashParams : function(obj){
+    addUrlHashParams: function (obj) {
         let redirect = window.location.protocol + "//" + window.location.host + "#"
         let oldObj = this.getRequestHashArgsObj();
-        obj = Object.assign(oldObj,obj);
-        for(let key in obj){
+        obj = Object.assign(oldObj, obj);
+        for (let key in obj) {
             redirect += key + "=" + obj[key] + "&";
         }
         return redirect;
     },
-    getRequestHashArgsObj : function () {
+    getRequestHashArgsObj: function () {
         let query = decodeURIComponent(window.location.hash.substring(1));
         let args = query.split("&");
         let obj = {};
@@ -22,18 +22,18 @@ window.tlrtcfile = {
             let pair = args[i].split("=");
             const key = pair[0];
             const val = pair[1];
-            if(key){
+            if (key) {
                 obj[key] = val
             }
         }
         return obj;
     },
-    getRequestHashArgs : function (key) {
+    getRequestHashArgs: function (key) {
         let query = decodeURIComponent(window.location.hash.substring(1));
         let args = query.split("&");
         for (let i = 0; i < args.length; i++) {
             let pair = args[i].split("=");
-            if(pair[0] === key){
+            if (pair[0] === key) {
                 return pair[1];
             }
         }
@@ -163,7 +163,7 @@ window.tlrtcfile = {
         }, 32)
     },
     loadJS: function (url, callback) {
-        var script = document.createElement('script'),
+        let script = document.createElement('script'),
             fn = callback || function () { };
         script.type = 'text/javascript';
         //IE
@@ -189,7 +189,7 @@ window.tlrtcfile = {
         );
     },
     chatKeydown: function (dom, callback) {
-        if(dom){
+        if (dom) {
             dom.onkeydown = function (e) {
                 if (e.defaultPrevented) {
                     return;
@@ -198,7 +198,7 @@ window.tlrtcfile = {
                 if (e.shiftKey) {
                     // shift+enter 换行
                     return;
-                }else if (e.key !== undefined) {
+                } else if (e.key !== undefined) {
                     if (e.key === "Enter") {
                         // enter键执行
                         callback && callback()
@@ -216,7 +216,8 @@ window.tlrtcfile = {
     },
     supposeWebrtc: function (rtcConfig) {
         try {
-            let testRTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.RTCIceGatherer;
+            let testRTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || 
+                                        window.mozRTCPeerConnection || window.RTCIceGatherer;
             if (testRTCPeerConnection) {
                 new RTCPeerConnection(rtcConfig);
                 return true;
@@ -228,7 +229,146 @@ window.tlrtcfile = {
             return false;
         }
     },
+    checkWebRtcNATType: async function (rtcConfig) {
+        // 确认网络连接状态
+        try {
+            const rtcConnect = new RTCPeerConnection(rtcConfig);
+            const dataChannel = rtcConnect.createDataChannel('ping'); // 创建数据通道
+            // 生成本地候选者
+            const localCandidates = [];
+            const candidates = {};
+            rtcConnect.onicecandidate = (event) => {
+                if(!event.candidate){//等待几秒钟没有候选者了，可以初步判断结果了
+                    rtcConnect.close();
+                    return
+                }
+
+                localCandidates.push(event.candidate.candidate);
+
+                // if (event.candidate.candidate.indexOf('srflx') === -1) return;
+
+                // let fields;
+                // if (event.candidate.candidate.indexOf('a=candidate:') === 0) {
+                //     fields = event.candidate.candidate.substring(12).split(' ');
+                // } else {
+                //     fields = event.candidate.candidate.substring(10).split(' ');
+                // }
     
+                // let candidateFields = {
+                //     ip: fields[4],
+                //     port: parseInt(fields[5], 10),
+                //     type: fields[7]
+                // };
+    
+                // for (let i = 8; i < fields.length; i += 2) {
+                //     if(fields[i] === 'raddr'){
+                //         candidateFields.relatedAddress = fields[i + 1];
+                //     }
+                //     if(fields[i] === 'rport'){
+                //         candidateFields.relatedPort = parseInt(fields[i + 1], 10);
+                //     }
+                //     if(fields[i] === 'tcptype'){
+                //         candidateFields.tcpType = fields[i + 1];
+                //     }
+                // }
+                // console.log("candidate : ",candidateFields);
+
+                // if (!candidates[candidateFields.relatedPort]){
+                //     candidates[candidateFields.relatedPort] = []
+                // }
+                // candidates[candidateFields.relatedPort].push(candidateFields.port);
+            };
+
+            await rtcConnect.setLocalDescription(await rtcConnect.createOffer({
+                iceRestart: true // 避免使用缓存的ICE候选者
+            }));
+
+            // 等待一段时间以获取完整的ICE候选者
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+
+            // 模拟将本地候选者发送给Server并从Server获取Server的候选者
+            const serverCandidates = []; // 假设这里填入从Server获取的候选者
+            const remoteCandidates = localCandidates.concat(serverCandidates);
+
+            // 解析ICE候选者中的IP和Port
+            const candidateIPandPorts = remoteCandidates.map( candidate => {
+                const fields = candidate.split(' ');
+                let candidateFields = {
+                    ip: fields[4],
+                    port: parseInt(fields[5], 10),
+                    type: fields[7]
+                };
+
+                if (candidate.indexOf('srflx') !== -1){
+                    let srflxFiled = ""
+                    if (candidate.indexOf('a=candidate:') === 0) {
+                        srflxFiled = candidate.substring(12).split(' ');
+                    } else {
+                        srflxFiled = candidate.substring(10).split(' ');
+                    }
+                    for (let i = 8; i < srflxFiled.length; i += 2) {
+                        if(srflxFiled[i] === 'raddr'){
+                            candidateFields.relatedAddress = srflxFiled[i + 1];
+                        }
+                        if(srflxFiled[i] === 'rport'){
+                            candidateFields.relatedPort = parseInt(srflxFiled[i + 1], 10);
+                        }
+                        if(srflxFiled[i] === 'tcptype'){
+                            candidateFields.tcpType = srflxFiled[i + 1];
+                        }
+                    }
+    
+                }
+                return candidateFields;
+            });
+
+            console.log("candidateIPandPorts : ",candidateIPandPorts)
+
+            // 判断网络状态是否正常
+            const isNetworkBlocked = candidateIPandPorts.length === 0;
+            if (isNetworkBlocked) {
+                return "udp-blocked";
+            }
+
+            // 判断是否在NAT之后，比较第一个候选者的IP和Port
+            const isBehindNAT = candidateIPandPorts[0].ip !== candidateIPandPorts[candidateIPandPorts.length - 1].ip ||
+                candidateIPandPorts[0].port !== candidateIPandPorts[candidateIPandPorts.length - 1].port;
+
+            if (!isBehindNAT) {
+                // 没有经过NAT转换，可能存在网络防火墙
+                // TODO: 进行更多验证，例如尝试连接不同的端口和IP
+                return "no-nat";
+            } else {
+                // 判断是否是端口限制型NAT
+                const isPortRestrictedNAT = candidateIPandPorts.some((candidate, index) => {
+                    const nextCandidate = candidateIPandPorts[index + 1];
+                    if (nextCandidate) {
+                        return candidate.ip === nextCandidate.ip && candidate.port !== nextCandidate.port;
+                    }
+                    return false;
+                });
+
+                if (isPortRestrictedNAT) return 'port-restricted-nat';
+
+                // 判断是否是IP限制型NAT
+                const isIPRestrictedNAT = candidateIPandPorts.some((candidate, index) => {
+                    const nextCandidate = candidateIPandPorts[index + 1];
+                    if (nextCandidate) {
+                        return candidate.ip !== nextCandidate.ip && candidate.port === nextCandidate.port;
+                    }
+                    return false;
+                });
+
+                if (isIPRestrictedNAT) return 'ip-restricted-nat';
+
+                return 'unknown-nat';
+            }
+        } catch (error) {
+            console.error('Error occurred:', error);
+            return 'error';
+        }
+    },
     getWebrtcStats: async function (peerConnection) {
         if (!peerConnection) {
             return "RTCPeerConnection is not available";
@@ -298,7 +438,7 @@ window.tlrtcfile = {
     copyTxt: function (id, content) {
         let that = this;
         document.querySelector("#" + id).setAttribute("data-clipboard-text", content);
-        var clipboard = new ClipboardJS('#' + id);
+        let clipboard = new ClipboardJS('#' + id);
         clipboard.on('success', function (e) {
             e.clearSelection();
             if (window.layer) {
@@ -306,17 +446,17 @@ window.tlrtcfile = {
             }
         });
     },
-    getQrCode : function(id, content){
+    getQrCode: function (id, content) {
         const qrcode = new QRCode(id, {
             text: content,   // 二维码内容
             width: 300,
             height: 300,
-            colorDark : "#000000",  // 码的颜色
-            colorLight : "#ffffff",  // 码的背景色
-            correctLevel : QRCode.CorrectLevel.H  // 高度容错
+            colorDark: "#000000",  // 码的颜色
+            colorLight: "#ffffff",  // 码的背景色
+            correctLevel: QRCode.CorrectLevel.H  // 高度容错
         });
     },
-    getOpEventData: function(callback){
+    getOpEventData: function (callback) {
         window.addEventListener('click', function (event) {
             callback("click", event)
         })
@@ -330,10 +470,10 @@ window.tlrtcfile = {
         window.addEventListener('mousedown', function () {
             callback("mousedown", null)
         })
-        window.addEventListener('mouseup', function() {
+        window.addEventListener('mouseup', function () {
             callback("mouseup", null)
         })
-        window.addEventListener('wheel', function(event) {
+        window.addEventListener('wheel', function (event) {
             callback("wheel", event)
         })
         window.addEventListener('keydown', function (event) {
@@ -376,11 +516,11 @@ window.tlrtcfile = {
             return (t = t / 1 - 1) * t * t + 1;
         }
 
-        function animateMargin() {            
+        function animateMargin() {
             currentTime += increment;
             let val = easeOutCubic(currentTime / duration) * change;
-            dom.style.marginLeft = val+"%";
-            if(val === 100){
+            dom.style.marginLeft = val + "%";
+            if (val === 100) {
                 callback()
             }
             if (currentTime < duration) {
@@ -476,7 +616,7 @@ window.tlrtcfile = {
                 html = content;
             } else {
                 lang = file.name.split(".").pop();
-                if(lang === 'log'){lang = 'txt'}
+                if (lang === 'log') { lang = 'txt' }
                 html = hljs.highlight(content, { language: lang }).value;
             }
 
@@ -493,13 +633,13 @@ window.tlrtcfile = {
                             <pre><code class="hljs ${lang}">${html}</code></pre>
                         </div>
                     `,
-                    area: ["80%","80%"],
+                    area: ["80%", "80%"],
                     success: function (layero, index) {
                         document.querySelector(".layui-layer-content").style.borderRadius = "15px"
                     },
                 });
             }
-            
+
             return callback && callback("预览文件 【" + file.name + "】")
         };
 
@@ -519,34 +659,34 @@ window.tlrtcfile = {
             content: `  <div id="tl-rtc-file-pdf-container" style="height: 100%;"> </div> `,
             success: function (layero, index) {
                 document.querySelector(".layui-layer-content").style.borderRadius = "15px"
-                try{
+                try {
                     let fileReader = new FileReader();
-                    fileReader.onload = function(e) {
+                    fileReader.onload = function (e) {
                         pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.min.js';
-                        pdfjsLib.getDocument(e.target.result).promise.then(async function(pdf) {
-                            function renderPage(numPages, num){
-                                if(num - 1 >= numPages){
+                        pdfjsLib.getDocument(e.target.result).promise.then(async function (pdf) {
+                            function renderPage(numPages, num) {
+                                if (num - 1 >= numPages) {
                                     return callback && callback("pdf加载渲染完毕")
                                 }
-                                pdf.getPage(num).then(function(page) {
-                                    const viewport = page.getViewport({scale: 1.5});
+                                pdf.getPage(num).then(function (page) {
+                                    const viewport = page.getViewport({ scale: 1.5 });
                                     const canvas = document.createElement('canvas');
                                     let pdfDom = document.getElementById("tl-rtc-file-pdf-container");
-                                    if(pdfDom){
+                                    if (pdfDom) {
                                         pdfDom.appendChild(canvas);
-                                        canvas.setAttribute("style","height: auto; width: 100%;")
+                                        canvas.setAttribute("style", "height: auto; width: 100%;")
                                         canvas.height = viewport.height;
                                         canvas.width = viewport.width;
-        
+
                                         page.render({
                                             canvasContext: canvas.getContext('2d'),
                                             viewport: viewport
-                                        }).promise.then(function(e) {
+                                        }).promise.then(function (e) {
                                             let dom = document.querySelector(".layui-layer-title");
-                                            if(dom){
+                                            if (dom) {
                                                 dom.innerText = `共${numPages}页 - 已渲染${num}页`;
                                             }
-                                            renderPage(numPages, num+1)
+                                            renderPage(numPages, num + 1)
                                         });
                                     }
                                 })
@@ -555,13 +695,13 @@ window.tlrtcfile = {
                         });
                     }
                     fileReader.readAsDataURL(file);
-                }catch(e){
+                } catch (e) {
                     return callback && callback("加载预览pdf资源失败");
                 }
             }
         });
     },
-    previewWordFile : function (options) {
+    previewWordFile: function (options) {
         let { file, max, callback } = options;
 
         if (file.size > max) {
@@ -570,7 +710,7 @@ window.tlrtcfile = {
 
         layer.open({
             type: 1,
-            content : `
+            content: `
                 <div style="width:100%;height:100%;" id="tl-rtc-file-word"></div>
             `,
             area: ["80%", "80%"],
@@ -578,15 +718,15 @@ window.tlrtcfile = {
             success: function (layero, index) {
                 document.querySelector(".layui-layer-content").style.borderRadius = "15px"
                 let reader = new FileReader();
-                reader.onload = function(event) {
-                    let blob = new Blob([event.target.result], {type: file.type});
+                reader.onload = function (event) {
+                    let blob = new Blob([event.target.result], { type: file.type });
                     docx.renderAsync(blob, document.getElementById("tl-rtc-file-word"))
                 };
                 reader.readAsArrayBuffer(file);
             },
         });
     },
-    previewExcelFile : function (options) {
+    previewExcelFile: function (options) {
         let { file, max, callback } = options;
 
         if (file.size > max) {
@@ -647,7 +787,7 @@ window.tlrtcfile = {
                             <img src="${reader.result}" style="max-width: 98%; max-height: 98%;  margin-left: 1%;  margin-top: 1%;">
                         </div>
                     `,
-                    success : function(){
+                    success: function () {
                         document.querySelector(".layui-layer-content").style.borderRadius = "15px";
                     }
                 });

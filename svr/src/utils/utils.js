@@ -1,6 +1,6 @@
 const os = require('os');
-const crypto = require('crypto');
 const cfg = require('./../../conf/cfg.json');
+const crypto = require('crypto');
 
 /**
  * 获取本机ip
@@ -208,7 +208,7 @@ function genTurnServerIceServersConfig(withTurn, useSecret, username){
     }
 
     // 有效账号模式
-    const secret = cfg.webrtc.turn.secret || "tlrtcfile";
+    const secret = cfg.webrtc.turn.secret;
     //生成账号的有效期
     const expirseTime = 60 * 60 * 24 * 1000;
     //当前时间
@@ -222,7 +222,7 @@ function genTurnServerIceServersConfig(withTurn, useSecret, username){
     iceServers.push({
         urls : cfg.webrtc.turn.host,
         username: turnUsername,
-        credential: turnPassword
+        credential: turnPassword,
     })
 
     return iceServers;

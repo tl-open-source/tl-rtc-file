@@ -11,7 +11,7 @@ function initData(req, res) {
 	//是否开启turn
 	const openTurn = (req.query.turn || "") === 'true';
 	//使用的账号模式, true : 有效账号模式, false : 固定账号
-	const useSecret = (req.query.secret || "") === 'true';
+	const useSecret = (req.query.secret || "") === 'true' || true;
 
 	//ice服务器配置
 	const iceServers = utils.genTurnServerIceServersConfig(openTurn, useSecret, "tlrtcfile");
