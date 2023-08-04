@@ -144,34 +144,6 @@ ubuntu示例:
         }
     }
 
-## Docker (非必须步骤)
-
-#### 使用官方镜像 : 
-
-    docker pull iamtsm/tl-rtc-file-api-local
-
-    docker pull iamtsm/tl-rtc-file-socket-local
-
-#### 自己打包镜像 : 
-
-两种模式选一种操作即可
-
-    http模式启动:
-
-    修改 `docker/local.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
-    
-    docker-compose --profile=local up -d
-
-    访问 : http://localhost:9092 或者 http://本机ip:9092
-
-    https模式启动:
-
-    修改 `docker/local.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
-    
-    docker-compose --profile=server up -d
-
-    访问 : https://localhost:9092 或者 https://本机ip:9092
-
 ## 管理后台 (非必须步骤)
 
 前提 : 需要开启数据库配置
@@ -244,6 +216,34 @@ normal : 正常通知, error : 系统报错通知
 			
 		]
 	},
+
+## Docker (非必须步骤)
+
+### 使用官方镜像 : 
+
+    docker pull iamtsm/tl-rtc-file-api-local
+
+    docker pull iamtsm/tl-rtc-file-socket-local
+
+### 自己打包镜像 : 
+
+两种模式选一种操作即可
+
+http模式启动:
+
+    修改 `docker/local.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
+    
+    docker-compose --profile=local up -d
+
+    访问 : http://localhost:9092 或者 http://本机ip:9092
+
+https模式启动:
+
+    修改 `docker/local.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
+    
+    docker-compose --profile=server up -d
+
+    访问 : https://localhost:9092 或者 https://本机ip:9092
 
 ## 概述图
 
