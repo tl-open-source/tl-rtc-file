@@ -148,7 +148,9 @@ ubuntu示例:
 
 #### 使用官方镜像 : 
 
-    docker pull iamtsm/tl-rtc-file
+    docker pull iamtsm/tl-rtc-file-api-local
+
+    docker pull iamtsm/tl-rtc-file-socket-local
 
 #### 自己打包镜像 : 
 
