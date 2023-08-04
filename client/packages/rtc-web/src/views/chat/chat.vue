@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCreateRoom } from '@/hooks';
 import { BackPreviousLevel, BackTitle } from '@/components/back';
-import { ChatRoomCom } from '@/components/chat-room';
+import ChatRoomCom from './chat-room.vue';
 import MenuAction from '@/components/menu-action.vue';
 import { ChatAction } from '@/config';
 import { useSwitchMember } from './hooks/useSwitchMember';

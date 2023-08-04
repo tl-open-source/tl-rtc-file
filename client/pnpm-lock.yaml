@@ -14,6 +14,7 @@ importers:
       '@vueuse/router': ^10.2.1
       autoprefixer: ^10.4.14
       daisyui: ^3.1.6
+      dayjs: ^1.11.9
       eslint: ^8.43.0
       eslint-config-prettier: ^8.8.0
       eslint-plugin-prettier: ^4.2.1
@@ -39,6 +40,7 @@ importers:
       '@vitejs/plugin-vue-jsx': 3.0.1_vite@4.3.9+vue@3.3.4
       '@vueuse/core': 10.2.0_vue@3.3.4
       '@vueuse/router': 10.2.1_vue-router@4.2.2+vue@3.3.4
+      dayjs: 1.11.9
       lodash: 4.17.21
       nanoid: 4.0.2
       socket.io-client: 2.3.0
@@ -1541,6 +1543,10 @@ packages:
     transitivePeerDependencies:
       - ts-node
     dev: true
+
+  /dayjs/1.11.9:
+    resolution: {integrity: sha512-QvzAURSbQ0pKdIye2txOzNaHmxtUBXerpY0FJsFXUMKbIZeFm5ht1LS/jFsrncjnmtv8HsG0W2g6c0zUjZWmpA==}
+    dev: false
 
   /de-indent/1.0.2:
     resolution: {integrity: sha512-e/1zu3xH5MQryN2zdVaF0OrdNLUbvWxzMbi+iNA6Bky7l1RoP8a2fIbRocyHclXt/arDrrR6lL3TqFD9pMQTsg==}

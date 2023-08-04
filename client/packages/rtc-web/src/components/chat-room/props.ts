@@ -3,4 +3,5 @@ export type UserCardProps = {
   iconcolor?: string;
   username?: string;
   time?: string;
+  reverse?: boolean;
 };

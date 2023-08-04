@@ -30,6 +30,7 @@ export type Member = {
   ip: string;
   network: string;
   room?: string;
+  roomInfo?: OwnerInfo;
 };
 
 export type OwnerInfo = {
@@ -129,7 +130,7 @@ export const useRoomConnect = () => {
   const createRtcConnect = (id: string) => {
     const pc = new RTCPeerConnection(initData.value.config);
 
-    pc.onicecandidate = (e) => {
+    pc.onicecandidate = () => {
       // console.log('on candidate', e);
     };
 
@@ -269,11 +270,16 @@ export const useGetRoomInfo = () => {
     () => members.value.find((item) => item.owner) || undefined
   );
 
-  const self = computed(
-    () =>
+  const self = computed(() => {
+    const info =
       members.value.find((item) => item.id === selfInfo.value.socketId) ||
-      undefined
-  );
+      undefined;
+
+    if (info) {
+      return Object.assign({}, { ...info, roomInfo: selfInfo.value });
+    }
+    return undefined;
+  });
 
   const handleRoomInfo = async (socket: any) => {
     console.log('执行', socket);

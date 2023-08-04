@@ -1,20 +1,31 @@
 <script lang="ts" setup>
 import ChatMessage from './chat-message.vue';
+
+defineOptions({
+  name: 'ChatContent',
+});
+
+const props = defineProps<{
+  msgList: {
+    time: string;
+    username: string;
+    message: string;
+    reverse: boolean;
+  }[];
+}>();
 </script>
 
 <template>
-  <div class="overflow-y-scroll">
+  <div class="flex flex-col justify-end overflow-y-auto">
     <ChatMessage
+      v-for="(item, index) in props.msgList"
+      :key="index"
       class="mb-4"
-      time="2020-12-12 12:12"
-      username="钟文池"
-      message="asdasjdiqw大奖赛哦大家琼文京东卡六十九撒洒家打开按时间看来大家ask领导健康撒娇的看来撒娇的卡拉asdasjdiqw大奖赛哦大家琼文京东卡六十九撒洒家打开按时间看来大家ask领导健康撒娇的看来撒娇的卡拉asdasjdiqw大奖赛哦大家琼文京东卡六十九撒洒家打开按时间看来大家ask领导健康撒娇的看来撒娇的卡拉"
-    />
-    <ChatMessage
-      class="mb-4"
-      time="2020-12-12 12:12"
-      username="钟文池"
-      message="asdasjdiqw大奖赛哦大家琼文京东卡六十九撒洒家打开按时间看来大家ask领导健康撒娇的看来撒娇的卡拉asdasjdiqw大奖赛哦大家琼文京东卡六十九撒洒家打开按时间看来大家ask领导健康撒娇的看来撒娇的卡拉asdasjdiqw大奖赛哦大家琼文京东卡六十九撒洒家打开按时间看来大家ask领导健康撒娇的看来撒娇的卡拉"
+      :time="item.time"
+      :username="item.username"
+      :message="item.message"
+      :reverse="item.reverse"
+      :background="item.reverse ? 'bg-success' : ''"
     />
   </div>
 </template>

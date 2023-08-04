@@ -57,3 +57,34 @@ export function escapeStr(str: string) {
     return entityMap[s] || encodedMap[s] || '';
   });
 }
+
+export function unescapeStr(str: string) {
+  const entityMap: any = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&#x2F;': '/',
+    '&#x60;': '`',
+    '&#x3D;': '=',
+  };
+  const encodedMap: any = {
+    '%25': '%',
+    '%21': '!',
+    '%27': "'",
+    '%28': '(',
+    '%29': ')',
+    '%2A': '*',
+    '%2D': '-',
+    '%2E': '.',
+    '%5F': '_',
+    '%7E': '~',
+  };
+  return String(str).replace(
+    /&(amp|lt|gt|quot|#39|#x2F|#x60|#x3D);|%(25|21|27|28|29|2A|2D|2E|5F|7E)/g,
+    function (s) {
+      return entityMap[s] || encodedMap[s] || '';
+    }
+  );
+}

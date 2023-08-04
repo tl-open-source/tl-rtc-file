@@ -12,6 +12,7 @@
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "@vueuse/core": "^10.2.0",
     "@vueuse/router": "^10.2.1",
+    "dayjs": "^1.11.9",
     "lodash": "^4.17.21",
     "nanoid": "^4.0.2",
     "socket.io-client": "2.3.0",

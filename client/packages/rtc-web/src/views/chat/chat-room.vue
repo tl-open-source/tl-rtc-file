@@ -1,19 +1,44 @@
 <script lang="ts" setup>
-import ChatInput from './chat-input.vue';
-import MenuAction from '../menu-action.vue';
-import ChatRoomUser from './chat-room-user.vue';
-import ChatContent from './chat-content.vue';
+import { ChatContent, ChatRoomUser, ChatInput } from '@/components/chat-room';
+import MenuAction from '@/components/menu-action.vue';
 import { ChatInputAction } from '@/config';
 import { useSwitchMember } from '@/views/chat/hooks/useSwitchMember';
 import { useGetRoomInfo } from '@/hooks/useRoom';
+import { useChat } from './hooks/useChat';
+import { escapeStr } from '@/utils';
+import dayjs from 'dayjs';
+import { computed } from 'vue';
 
 const { open } = useSwitchMember();
 
 const { members, roomOwner, self } = useGetRoomInfo();
 
+const { sendMessage, msgList } = useChat();
+
 const handleSendmsg = (msg: string) => {
-  console.log(msg);
+  console.log(msg, self.value);
+
+  if (self.value) {
+    const { roomInfo, nickName = '' } = self.value;
+    sendMessage({
+      content: escapeStr(msg),
+      room: roomInfo?.roomId || '',
+      from: roomInfo?.socketId || '',
+      nickName,
+      recoderId: roomInfo?.recoderId,
+      time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    });
+  }
 };
+
+const msgContent = computed(() =>
+  msgList.value.map((item) => ({
+    message: item.content,
+    time: item.time,
+    username: item.nickName,
+    reverse: item.type === 'send',
+  }))
+);
 
 defineOptions({
   name: 'ChatRoomCom',
@@ -23,7 +48,7 @@ defineOptions({
 <template>
   <div class="flex h-full">
     <div class="flex flex-1 flex-col">
-      <ChatContent class="flex-1 px-4 py-4" />
+      <ChatContent class="flex-1 px-4 py-4" :msg-list="msgContent" />
       <div
         class="flex h-[260px] flex-col border-t pb-1.5 dark:border-neutral-600"
       >

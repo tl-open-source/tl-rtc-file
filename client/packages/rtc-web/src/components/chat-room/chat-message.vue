@@ -11,6 +11,7 @@ type ChatMessageProps = Partial<
 
 defineOptions({
   name: 'ChatMessage',
+  inheritAttrs: true,
 });
 
 const props = withDefaults(defineProps<ChatMessageProps>(), {
@@ -18,16 +19,22 @@ const props = withDefaults(defineProps<ChatMessageProps>(), {
   iconcolor: 'currentcolor',
   message: '',
   background: '',
+  reverse: false,
 });
 </script>
 
 <template>
   <UserCard v-bind="props">
     <div
-      :style="{ backgroundColor: background }"
-      class="flex max-w-[45%] flex-1 flex-wrap rounded-lg bg-slate-200 px-4 py-2 leading-6 text-black"
+      class="flex flex-wrap"
+      :class="[reverse ? 'justify-end' : 'justify-start']"
     >
-      {{ props.message }}
+      <div
+        class="whitespace-pre-wrap rounded-lg px-4 py-2 leading-6 text-black"
+        :class="[background ? background : 'bg-slate-200']"
+      >
+        {{ props.message }}
+      </div>
     </div>
   </UserCard>
 </template>

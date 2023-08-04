@@ -9,6 +9,7 @@ export const enum SocketEventName {
   RoomCandidate = 'candidate',
 }
 
+// chat 的事件名
 export const enum ChatEventName {
   ChatingRoom = 'chatingRoom',
 }
