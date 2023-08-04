@@ -17,7 +17,9 @@
     "nanoid": "^4.0.2",
     "socket.io-client": "2.3.0",
     "vue": "^3.3.4",
-    "vue-router": "4"
+    "vue-router": "4",
+    "vue3-emoji-picker": "^1.1.7",
+    "vue3-popper": "^1.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.3.1",

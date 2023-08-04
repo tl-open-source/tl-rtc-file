@@ -1,14 +1,21 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { ref } from 'vue';
+import { useVModel } from '@vueuse/core';
 
 defineOptions({
   name: 'ChatInput',
 });
 
-const msg = ref('');
+const props = defineProps({
+  msg: {
+    type: String,
+    default: '',
+  },
+});
 
-const emits = defineEmits(['sendMsg']);
+const emits = defineEmits(['sendMsg', 'update:msg']);
+
+const msg = useVModel(props, 'msg', emits);
 
 const canSend = computed(() => msg.value !== '');
 
@@ -18,6 +25,12 @@ const handleSend = () => {
     msg.value = '';
   }
 };
+
+const keyDownEvent = (e: any) => {
+  if (e.ctrlKey && e.keyCode === 13) {
+    handleSend();
+  }
+};
 </script>
 
 <template>
@@ -25,7 +38,8 @@ const handleSend = () => {
     <textarea
       v-model="msg"
       class="textarea flex-1 resize-none border-b-0 focus:outline-none"
-      placeholder="请输入聊天消息"
+      placeholder="请输入聊天消息 使用 Ctrl + Enter 发送"
+      @keydown="keyDownEvent"
     ></textarea>
     <div class="mb-2 flex justify-end pr-4">
       <button

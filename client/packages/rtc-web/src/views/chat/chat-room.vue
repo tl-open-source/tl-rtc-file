@@ -7,7 +7,11 @@ import { useGetRoomInfo } from '@/hooks/useRoom';
 import { useChat } from './hooks/useChat';
 import { escapeStr } from '@/utils';
 import dayjs from 'dayjs';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+
+defineOptions({
+  name: 'ChatRoomCom',
+});
 
 const { open } = useSwitchMember();
 
@@ -15,9 +19,9 @@ const { members, roomOwner, self } = useGetRoomInfo();
 
 const { sendMessage, msgList } = useChat();
 
-const handleSendmsg = (msg: string) => {
-  console.log(msg, self.value);
+const inputMsg = ref('');
 
+const handleSendmsg = (msg: string) => {
   if (self.value) {
     const { roomInfo, nickName = '' } = self.value;
     sendMessage({
@@ -40,9 +44,10 @@ const msgContent = computed(() =>
   }))
 );
 
-defineOptions({
-  name: 'ChatRoomCom',
-});
+const handleEmojiChange = (data: any) => {
+  const unicode = parseInt(`0x${data.r}`, 16);
+  inputMsg.value += String.fromCodePoint(unicode);
+};
 </script>
 
 <template>
@@ -52,8 +57,16 @@ defineOptions({
       <div
         class="flex h-[260px] flex-col border-t pb-1.5 dark:border-neutral-600"
       >
-        <MenuAction :menu-action="ChatInputAction" class="pl-2 pt-2" />
-        <ChatInput class="mt-2 flex-1" @send-msg="handleSendmsg" />
+        <MenuAction
+          :menu-action="ChatInputAction"
+          class="pl-2 pt-2"
+          @emoji-change="handleEmojiChange"
+        />
+        <ChatInput
+          v-model:msg="inputMsg"
+          class="mt-2 flex-1"
+          @send-msg="handleSendmsg"
+        />
       </div>
     </div>
     <div
