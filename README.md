@@ -231,7 +231,7 @@ http模式镜像:
 
     docker pull iamtsm/tl-rtc-file-socket-local
 
-    docker run --name=socket-local -p 8444:8444 -e "WS_HOST=ws://127.0.0.1:8444" -d iamtsm/tl-rtc-file-sockrt-local localsocket
+    docker run --name=socket-local -p 8444:8444 -e "WS_HOST=ws://127.0.0.1:8444" -d iamtsm/tl-rtc-file-socket-local localsocket
 
 https模式镜像:
 
@@ -241,7 +241,7 @@ https模式镜像:
 
     docker pull iamtsm/tl-rtc-file-socket-server
 
-    docker run --name=socket-server -p 8444:8444 -e "WSS_HOST=wss://127.0.0.1:8444" -d iamtsm/tl-rtc-file-sockrt-server serversocket
+    docker run --name=socket-server -p 8444:8444 -e "WSS_HOST=wss://127.0.0.1:8444" -d iamtsm/tl-rtc-file-socket-server serversocket
 
 
 ### 自己打包镜像 : 
