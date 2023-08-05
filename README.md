@@ -6,6 +6,13 @@
 [![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
 
+<p align="center">
+<a href="https://im.iamtsm.cn/file" target="_blank">体验地址</a> ｜
+<a href="https://hub.docker.com/repositories/iamtsm" target="_blank">DockerHub</a> | 
+<a href="https://github.com/tl-open-source/tl-rtc-file/blob/master/doc/README_EN.md" target="_blank">EN-DOC</a>
+</p>
+
+<p align="center">QQ群: <a href="https://jq.qq.com/?_wv=1027&k=TKCwMBjN" target="_blank">624214498 </a></p>
 
 #### 背景 ： 20年毕设的题目相关整理出来的
 
@@ -14,10 +21,6 @@
 #### 优点 ： 分片传输，跨终端，不限平台，方便使用，内网不限速（局域网最高到过70多M/s），支持私有部署，支持多文件拖拽发送，网页文件预览
 
 #### 扩展 ： 扩展了许多丰富的小功能，如本地屏幕录制，远程屏幕共享(无延迟)，远程音视频通话(无延迟)，直播(无延迟)，密码房间，oss云存储，中继服务设置，webrtc检测，webrtc统计，文字传输(群聊，私聊)，公共聊天，远程画板，AI聊天框，丰富的后台管理，实时执行日志展示，机器人告警通知等功能... 等等
-
-#### 体验 ： https://im.iamtsm.cn/file
-
-**qq交流群 : 624214498**
 
 ## 准备 (必须步骤)
 
@@ -263,6 +266,30 @@ https模式启动:
     docker-compose --profile=server up -d
 
     访问 : https://localhost:9092 或者 https://本机ip:9092
+
+
+## 其他形式部署 
+
+除了上面的手动安装，docker官方镜像，docker自己打包镜像之外，还支持全自动脚本，下载项目后，可以进入bin/目录，选择对应的系统脚本，直接执行即可
+
+如果linux脚本没权限，可以先修改一下脚本的可执行权限 `chmod +x bin/linux/*.sh` 
+
+### linux全自动脚本
+
+选一种模式启动即可
+
+- `auto-check-install-local.sh` : 自动检查安装node环境，并自动运行启动http模式服务
+
+- `auto-check-install-server.sh` : 自动检查安装node环境，并自动运行启动https模式服务
+
+### windows全自动脚本
+
+选一种模式启动即可
+
+- `auto-check-install-local.bat` : 自动检查安装node环境，并自动运行启动http模式服务
+
+- `auto-check-install-server.bat` : 自动检查安装node环境，并自动运行启动https模式服务
+
 
 ## 概述图
 

@@ -35,12 +35,3 @@ services:
     ports:
     - 8444:8444
     command: serversocket
-
-  # coturn:
-  #   image: coturn/coturn
-  #   restart: always
-  #   ports:
-  #     - "3478:3478/udp"
-  #     - "3478:3478/tcp"
-  #   volumes:
-  #     - ./docker/coturn/turnserver-with-secret-user.conf:/etc/turnserver.conf:ro
