@@ -221,9 +221,28 @@ normal : 正常通知, error : 系统报错通知
 
 ### 使用官方镜像 : 
 
+两种镜像模式选一种即可
+
+http模式镜像:
+
     docker pull iamtsm/tl-rtc-file-api-local
 
+    docker run --name=api-local -p 9092:9092 -e "WS_HOST=ws://127.0.0.1:8444" -d iamtsm/tl-rtc-file-api-local localapi
+
     docker pull iamtsm/tl-rtc-file-socket-local
+
+    docker run --name=socket-local -p 8444:8444 -e "WS_HOST=ws://127.0.0.1:8444" -d iamtsm/tl-rtc-file-sockrt-local localsocket
+
+https模式镜像:
+
+    docker pull iamtsm/tl-rtc-file-api-server
+
+    docker run --name=api-server -p 9092:9092 -e "WSS_HOST=wss://127.0.0.1:8444" -d iamtsm/tl-rtc-file-api-server serverapi
+
+    docker pull iamtsm/tl-rtc-file-socket-server
+
+    docker run --name=socket-server -p 8444:8444 -e "WSS_HOST=wss://127.0.0.1:8444" -d iamtsm/tl-rtc-file-sockrt-server serversocket
+
 
 ### 自己打包镜像 : 
 
