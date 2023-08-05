@@ -8,7 +8,7 @@
 
 <p align="center">
 <a href="https://im.iamtsm.cn/file" target="_blank">Demo</a> ｜
-<a href="https://hub.docker.com/repositories/iamtsm" target="_blank">DockerHub</a> | 
+<a href="https://hub.docker.com/repositories/iamtsm" target="_blank">DockerHub</a> ｜
 <a href="https://github.com/tl-open-source/tl-rtc-file/blob/master/README.md" target="_blank">中文-DOC</a>
 </p>
 
