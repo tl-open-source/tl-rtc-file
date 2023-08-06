@@ -11,7 +11,7 @@
 		"test": "cross-env mocha ./test/test.js",
 		"build:dev": "vite build --watch",
 		"build:pro": "vite build",
-		"build:vercel" : "vite build"
+		"build:vercel": "cross-env concurrently \"npm run build:pro\" \"npm run lapi\" \"npm run lsocket\""
 	},
 	"repository": {
 		"type": "git",
@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@grpc/grpc-js": "^1.8.0",
 		"@grpc/proto-loader": "^0.6.0",
+		"concurrently": "^8.2.0",
 		"cross-env": "^5.2.0",
 		"express": "^4.17.1",
 		"glob": "^10.3.1",
