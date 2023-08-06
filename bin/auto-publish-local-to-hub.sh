@@ -1,7 +1,7 @@
 #!/bin/bash
 
 build_version=latest
-hub_version=v1.0.0
+hub_version=v10.3.2
 
 ## build by docker-compose-build-code.yml
 docker-compose -f ../docker/docker-compose-build-code.yml --profile=local build

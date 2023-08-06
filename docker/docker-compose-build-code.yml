@@ -6,7 +6,7 @@ services:
     - local.env
     build: 
       context: ../
-      dockerfile: ./Dockerfile
+      dockerfile: docker/Dockerfile
     ports:
     - 9092:9092
     command: localapi
@@ -17,7 +17,7 @@ services:
     - local.env
     build: 
       context: ../
-      dockerfile: ./Dockerfile
+      dockerfile: docker/Dockerfile
     ports:
     - 8444:8444
     command: localsocket
@@ -28,7 +28,7 @@ services:
     - server.env
     build: 
       context: ../
-      dockerfile: ./Dockerfile
+      dockerfile: docker/Dockerfile
     ports:
     - 9092:9092
     command: serverapi
@@ -39,7 +39,7 @@ services:
     - server.env
     build: 
       context: ../
-      dockerfile: ./Dockerfile
+      dockerfile: docker/Dockerfile
     ports:
     - 8444:8444
     command: serversocket
