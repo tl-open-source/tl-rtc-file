@@ -1,3 +1,5 @@
+cd ../../svr/
+
 pm2 start npm --name=tl-rtc-file-api-local -- run lapi
 
 sleep 1

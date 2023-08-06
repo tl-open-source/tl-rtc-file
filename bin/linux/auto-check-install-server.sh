@@ -34,8 +34,13 @@ if [ "$port_9092_in_use" -gt 0 ] || [ "$port_8444_in_use" -gt 0 ]; then
     exit 1
 fi
 
+# Step 6: install npm packages
+echo "ready to install npm packages"
+cd ../../svr/
+npm install --registry=https://registry.npmmirror.com 
+cd ../bin/linux/
+
+# Step 7: Run start-server.sh script to start the service
 echo "ready to run auto-start-server.sh"
 sleep 1
-
-# Step 6: Run start-local.sh script to start the service
 ./auto-start-server.sh

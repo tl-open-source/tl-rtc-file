@@ -41,5 +41,11 @@ if %ERRORLEVEL% EQU 0 (
 REM Step 6: Output installation successful message
 echo env Installation successful.
 
+@echo off
+echo "ready to install npm packages"
+cd "..\..\svr\"
+npm install --registry=https://registry.npmmirror.com
+cd "..\bin\windows\"
+
 REM Step 7: Run start-local.bat script to start the service
 auto-start-local.bat

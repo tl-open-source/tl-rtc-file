@@ -1,3 +1,5 @@
+cd "..\..\svr\"
+
 @echo off
 
 REM Start the first process
