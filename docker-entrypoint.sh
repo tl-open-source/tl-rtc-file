@@ -1,8 +1,6 @@
 #!/bin/bash
 
-pm2 start npm --name=tlapi -- run lapi
-
-npm run build:pro
+pm2 start npm --name=tlsocket -- run lsocket
 
 sleep 8
 
