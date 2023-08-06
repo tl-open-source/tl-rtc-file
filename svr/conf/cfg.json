@@ -18,7 +18,8 @@
 				]
 			},
 			"res": {
-				"/": "res/dist/"			}
+				"/": "res/dist/"			
+			}
 		}
 	},
 	"manage": {
