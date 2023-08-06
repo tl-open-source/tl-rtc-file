@@ -285,7 +285,9 @@ https模式镜像:
 
 ## 其他形式部署 
 
-除了上面的手动安装，docker官方镜像，docker自己打包镜像之外，还支持自动脚本，下载项目后，可以进入bin/目录，选择对应的系统脚本，直接执行即可
+除了上面的手动安装，docker官方镜像，docker自己打包镜像之外，还支持自动脚本，托管平台一键部署等
+
+下载项目后，可以进入bin/目录，选择对应的系统脚本，直接执行即可
 
 如果linux脚本没权限，可以先修改一下脚本的可执行权限 `chmod +x bin/linux/*.sh` 
 
@@ -304,6 +306,11 @@ https模式镜像:
 - `auto-check-install-local.bat` : 自动检查安装node环境，并自动运行启动http模式服务
 
 - `auto-check-install-server.bat` : 自动检查安装node环境，并自动运行启动https模式服务
+
+
+### zeabur平台一键部署
+
+[![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/898TLE?referralCode=iamtsm)
 
 
 ## 概述图
