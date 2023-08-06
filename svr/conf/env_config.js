@@ -14,7 +14,6 @@ const inject_env_config = (conf) => {
             console.log(`config ${paths.join('.')}.${last} to ${data}`);
             curr[last] = data
         }
-
     })
     return conf
 }

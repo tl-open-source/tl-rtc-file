@@ -9,7 +9,8 @@ export default {
         copy({
             targets: [
                 { src: 'res/*.html', dest: 'res/dist' },
-                { src: 'res/image/*', dest: 'res/dist/image' }
+                { src: 'res/image/*', dest: 'res/dist/image' },
+                { src: 'static/*', dest: 'res/dist/static' },
             ],
             hook: 'writeBundle',
             verbose: true

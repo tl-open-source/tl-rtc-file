@@ -10,7 +10,8 @@
 		"ssocket": "cross-env ENV_MODE=server node serversocket",
 		"test": "cross-env mocha ./test/test.js",
 		"build:dev": "vite build --watch",
-		"build:pro": "vite build"
+		"build:pro": "vite build",
+		"build:vercel" : "vite build"
 	},
 	"repository": {
 		"type": "git",
