@@ -1,12 +1,23 @@
-docker-compose --profile=local build
+#!/bin/bash
 
-docker tag tl-rtc-file-git-api-local:latest iamtsm/tl-rtc-file-api-local
-docker tag tl-rtc-file-git-socket-local:latest iamtsm/tl-rtc-file-socket-local
+build_version=latest
+hub_version=v1.0.0
 
-docker push iamtsm/tl-rtc-file-api-local
-docker push iamtsm/tl-rtc-file-socket-local
+## build by docker-compose-build-code.yml
+docker-compose -f ../docker/docker-compose-build-code.yml --profile=local build
 
-docker rmi tl-rtc-file-git-api-local
-docker rmi tl-rtc-file-git-socket-local
-docker rmi iamtsm/tl-rtc-file-api-local
-docker rmi iamtsm/tl-rtc-file-socket-local
+## tag
+docker tag docker-tl-rtc-file-api-local:$build_version iamtsm/tl-rtc-file-api-local:$hub_version
+docker tag docker-tl-rtc-file-socket-local:$build_version iamtsm/tl-rtc-file-socket-local:$hub_version
+
+## push to hub version and latest
+docker push iamtsm/tl-rtc-file-api-local:$hub_version
+docker push iamtsm/tl-rtc-file-socket-local:$hub_version
+docker push iamtsm/tl-rtc-file-api-local:latest
+docker push iamtsm/tl-rtc-file-socket-local:latest
+
+## remove local images
+docker rmi docker-tl-rtc-file-api-local:$build_version
+docker rmi docker-tl-rtc-file-socket-local:$build_version
+docker rmi iamtsm/tl-rtc-file-api-local:$hub_version
+docker rmi iamtsm/tl-rtc-file-socket-local:$hub_version

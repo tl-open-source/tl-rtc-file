@@ -1,0 +1,45 @@
+version: '3'
+services:
+  tl-rtc-file-api-local:
+    profiles: ['local']
+    env_file:
+    - local.env
+    build: 
+      context: ../
+      dockerfile: ./Dockerfile
+    ports:
+    - 9092:9092
+    command: localapi
+
+  tl-rtc-file-socket-local:
+    profiles: ['local']
+    env_file:
+    - local.env
+    build: 
+      context: ../
+      dockerfile: ./Dockerfile
+    ports:
+    - 8444:8444
+    command: localsocket
+
+  tl-rtc-file-api-server:
+    profiles: ['server']
+    env_file:
+    - server.env
+    build: 
+      context: ../
+      dockerfile: ./Dockerfile
+    ports:
+    - 9092:9092
+    command: serverapi
+
+  tl-rtc-file-socket-server:
+    profiles: ['server']
+    env_file:
+    - server.env
+    build: 
+      context: ../
+      dockerfile: ./Dockerfile
+    ports:
+    - 8444:8444
+    command: serversocket

@@ -224,7 +224,7 @@ normal : 正常通知, error : 系统报错通知
 
 ### 使用官方镜像 : 
 
-两种镜像模式选一种即可
+两种镜像模式选一种即可, 注意 127.0.0.1:8444 可以按需调整，具体参考上面文档的websocket配置说明部分
 
 http模式镜像:
 
@@ -246,24 +246,39 @@ https模式镜像:
 
     docker run --name=socket-server -p 8444:8444 -e "WSS_HOST=wss://127.0.0.1:8444" -d iamtsm/tl-rtc-file-socket-server serversocket
 
+### 使用官方镜像(docker-compose) : 
 
-### 自己打包镜像 : 
+两种镜像模式选一种即可
 
-两种模式选一种操作即可
+http模式镜像: 
 
-http模式启动:
+    修改 `docker/local.env`
+
+    docker-compose --profile=local up -d
+
+https模式镜像:
+
+    修改 `docker/server.env`
+
+    docker-compose --profile=server up -d
+
+### 打包自己的镜像 : 
+
+进入docker目录后，两种模式选一种操作即可
+
+打包http模式镜像:
 
     修改 `docker/local.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
     
-    docker-compose --profile=local up -d
+    docker-compose -f docker-compose-build-code.yml --profile=local build
 
     访问 : http://localhost:9092 或者 http://本机ip:9092
 
-https模式启动:
+打包https模式镜像:
 
-    修改 `docker/local.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
+    修改 `docker/server.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
     
-    docker-compose --profile=server up -d
+    docker-compose -f docker-compose-build-code.yml --profile=server build
 
     访问 : https://localhost:9092 或者 https://本机ip:9092
 

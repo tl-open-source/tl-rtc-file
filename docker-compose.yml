@@ -2,36 +2,40 @@ version: '3'
 services:
   api-local:
     profiles: ['local']
+    container_name: tl-rtc-file-api-local
+    image: iamtsm/tl-rtc-file-api-local
     env_file:
     - docker/local.env
-    build: .
     ports:
     - 9092:9092
     command: localapi
 
   socket-local:
     profiles: ['local']
+    container_name: tl-rtc-file-socket-local
+    image: iamtsm/tl-rtc-file-socket-local
     env_file:
     - docker/local.env
-    build: .
     ports:
     - 8444:8444
     command: localsocket
 
   api-server:
     profiles: ['server']
+    container_name: tl-rtc-file-api-server
+    image: iamtsm/tl-rtc-file-api-server
     env_file:
     - docker/server.env
-    build: .
     ports:
     - 9092:9092
     command: serverapi
 
   socket-server:
     profiles: ['server']
+    container_name: tl-rtc-file-socket-server
+    image: iamtsm/tl-rtc-file-socket-server
     env_file:
     - docker/server.env
-    build: .
     ports:
     - 8444:8444
     command: serversocket
