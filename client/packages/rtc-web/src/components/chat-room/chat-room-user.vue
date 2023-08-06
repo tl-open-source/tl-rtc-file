@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { Member } from '@/hooks';
+import { Member, useDragChangeSize } from '@/hooks';
 import UserCard from './user-card.vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { PropType } from 'vue';
 
 defineOptions({
@@ -21,15 +21,45 @@ const props = defineProps({
     type: Object as PropType<Partial<Member>>,
     default: () => ({}),
   },
+  width: {
+    type: String as PropType<string>,
+    default: '220px',
+  },
 });
 
 const memberwithoutOwner = computed(() =>
   props.members.filter((item) => !item.owner)
 );
+
+const chatRoomUserRef = ref<any>();
+
+const { style, canDragged } = useDragChangeSize(chatRoomUserRef, {
+  initialSize: {
+    width: props.width,
+  },
+  position: 'left',
+  persistentSize: {
+    height: '100%',
+  },
+});
+
+const reSizeClass = computed(() => {
+  if (canDragged.value.draggable) {
+    if (canDragged.value.position === 'left') {
+      return ['cursor-w-resize'];
+    }
+  }
+  return [];
+});
 </script>
 
 <template>
-  <div class="px-2 pt-2 text-sm">
+  <div
+    ref="chatRoomUserRef"
+    :class="[...reSizeClass]"
+    class="h-full overflow-auto px-2 py-2 text-sm"
+    :style="style"
+  >
     <div class="mb-1 text-gray-400">房主</div>
     <UserCard
       class="mb-4"

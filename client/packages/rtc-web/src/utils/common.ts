@@ -88,3 +88,7 @@ export function unescapeStr(str: string) {
     }
   );
 }
+
+export const isItBetween = (num: number, arr: number[]) => {
+  return num >= arr[0] && num <= arr[1];
+};

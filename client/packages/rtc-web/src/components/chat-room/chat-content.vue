@@ -16,7 +16,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-col justify-end overflow-y-auto">
+  <div class="flex flex-col justify-end overflow-y-auto overflow-x-hidden">
     <ChatMessage
       v-for="(item, index) in props.msgList"
       :key="index"

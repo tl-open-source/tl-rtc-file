@@ -3,6 +3,7 @@ import { UserCardProps } from './props';
 
 defineOptions({
   name: 'UserCard',
+  inheritAttrs: false,
 });
 
 withDefaults(defineProps<UserCardProps>(), {

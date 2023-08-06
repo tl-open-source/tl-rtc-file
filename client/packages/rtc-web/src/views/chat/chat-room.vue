@@ -7,7 +7,8 @@ import { useGetRoomInfo } from '@/hooks/useRoom';
 import { useChat } from './hooks/useChat';
 import { escapeStr } from '@/utils';
 import dayjs from 'dayjs';
-import { computed, ref } from 'vue';
+import { computed, ref, nextTick } from 'vue';
+import { useDragChangeSize } from '@/hooks';
 
 defineOptions({
   name: 'ChatRoomCom',
@@ -21,6 +22,26 @@ const { sendMessage, msgList } = useChat();
 
 const inputMsg = ref('');
 
+const chatMsgBoxRef = ref<any>(null);
+const chatMsgContentRef = ref<Element | null>(null);
+
+const { canDragged, style } = useDragChangeSize(chatMsgBoxRef, {
+  initialSize: { height: '260px' },
+  position: 'top',
+  persistentSize: {
+    width: '100%',
+  },
+});
+
+const reSizeClass = computed(() => {
+  if (canDragged.value.draggable) {
+    if (canDragged.value.position === 'top') {
+      return ['cursor-ns-resize'];
+    }
+  }
+  return [];
+});
+
 const handleSendmsg = (msg: string) => {
   if (self.value) {
     const { roomInfo, nickName = '' } = self.value;
@@ -31,6 +52,14 @@ const handleSendmsg = (msg: string) => {
       nickName,
       recoderId: roomInfo?.recoderId,
       time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    });
+
+    nextTick(() => {
+      chatMsgContentRef?.value?.scroll({
+        top: chatMsgContentRef.value.scrollHeight,
+        left: 0,
+        behavior: 'smooth',
+      });
     });
   }
 };
@@ -53,9 +82,18 @@ const handleEmojiChange = (data: any) => {
 <template>
   <div class="flex h-full">
     <div class="flex flex-1 flex-col">
-      <ChatContent class="flex-1 px-4 py-4" :msg-list="msgContent" />
+      <!-- 这里得多加一个 div 才能 scroll -->
       <div
-        class="flex h-[260px] flex-col border-t pb-1.5 dark:border-neutral-600"
+        ref="chatMsgContentRef"
+        class="ces min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4"
+      >
+        <ChatContent :msg-list="msgContent" />
+      </div>
+      <div
+        ref="chatMsgBoxRef"
+        :style="style"
+        :class="[...reSizeClass]"
+        class="flex h-[260px] max-h-[610px] flex-col border-t pb-1.5 dark:border-neutral-600"
       >
         <MenuAction
           :menu-action="ChatInputAction"
@@ -69,11 +107,13 @@ const handleEmojiChange = (data: any) => {
         />
       </div>
     </div>
-    <div
-      v-if="open"
-      class="hidden w-[220px] border-l dark:border-neutral-600 lg:block"
-    >
-      <ChatRoomUser :members="members" :room-owner="roomOwner" :self="self" />
-    </div>
+    <ChatRoomUser
+      v-show="open"
+      class="hidden max-w-[400px] border-l dark:border-neutral-600 lg:block"
+      width="220px"
+      :members="members"
+      :room-owner="roomOwner"
+      :self="self"
+    />
   </div>
 </template>
