@@ -230,21 +230,33 @@ http模式镜像:
 
     docker pull iamtsm/tl-rtc-file-api-local
 
-    docker run --name=api-local -p 9092:9092 -e "WS_HOST=ws://127.0.0.1:8444" -d iamtsm/tl-rtc-file-api-local localapi
+    docker run --name=api-local -p 9092:9092 \
+        -e "WS_HOST=ws://127.0.0.1:8444" \
+        -e "ENV_MODE=local" \
+        -d iamtsm/tl-rtc-file-api-local localapi
 
     docker pull iamtsm/tl-rtc-file-socket-local
 
-    docker run --name=socket-local -p 8444:8444 -e "WS_HOST=ws://127.0.0.1:8444" -d iamtsm/tl-rtc-file-socket-local localsocket
+    docker run --name=socket-local -p 8444:8444 \
+        -e "WS_HOST=ws://127.0.0.1:8444" \
+        -e "ENV_MODE=local" \
+        -d iamtsm/tl-rtc-file-socket-local localsocket
 
 https模式镜像:
 
     docker pull iamtsm/tl-rtc-file-api-server
 
-    docker run --name=api-server -p 9092:9092 -e "WSS_HOST=wss://127.0.0.1:8444" -d iamtsm/tl-rtc-file-api-server serverapi
+    docker run --name=api-server -p 9092:9092 \
+        -e "WSS_HOST=wss://127.0.0.1:8444" \
+        -e "ENV_MODE=server" \
+        -d iamtsm/tl-rtc-file-api-server serverapi
 
     docker pull iamtsm/tl-rtc-file-socket-server
 
-    docker run --name=socket-server -p 8444:8444 -e "WSS_HOST=wss://127.0.0.1:8444" -d iamtsm/tl-rtc-file-socket-server serversocket
+    docker run --name=socket-server -p 8444:8444 \
+        -e "WSS_HOST=wss://127.0.0.1:8444" \
+        -e "ENV_MODE=server" \
+        -d iamtsm/tl-rtc-file-socket-server serversocket
 
 ### 使用官方镜像(docker-compose) : 
 
