@@ -1,4 +1,4 @@
-# tl-rtc-file-tool   【始于文件传输，不止于文件传输】
+# tl-rtc-file-tool【始于文件传输，不止于文件传输】
 
 [![](https://img.shields.io/badge/webrtc-p2p-blue)](https://webrtc.org.cn/)
 [![](https://img.shields.io/badge/code-simple-green)](https://github.com/iamtsm/tl-rtc-file/)
@@ -14,6 +14,27 @@
 
 <p align="center">QQ群: <a href="https://jq.qq.com/?_wv=1027&k=TKCwMBjN" target="_blank">624214498 </a></p>
 
+## Table of Contents
+
+- [背景](#背景)
+- [简介](#简介)
+- [优点](#优点)
+- [扩展](#扩展)
+- [准备 (必须步骤)](#准备-必须步骤)
+- [配置websocket (必须步骤)](#配置websocket-必须步骤)
+- [启动 (必须步骤)](#启动-必须步骤)
+- [配置数据库 (非必须步骤)](#配置数据库-非必须步骤)
+- [管理后台 (非必须步骤)](#管理后台-非必须步骤)
+- [企微通知 (非必须步骤)](#企微通知-非必须步骤)
+- [OSS云存储 (非必须步骤)](#oss云存储-非必须步骤)
+- [Chat-GPT (非必须步骤)](#chat-gpt-非必须步骤)
+- [配置turnserver (局域网非必须步骤，公网必须步骤)](#配置turnserver-局域网非必须步骤公网必须步骤)
+- [Docker](#docker)
+- [其他形式部署](#其他形式部署)
+- [概述图](#概述图)
+- [License](#license)
+- [免责声明](#免责声明)
+
 #### 背景 ： 20年毕设的题目相关整理出来的
 
 #### 简介 ：（tl webrtc datachannel filetools）用webrt在web端传输文件，支持传输超大文件。
@@ -21,6 +42,7 @@
 #### 优点 ： 分片传输，跨终端，不限平台，方便使用，内网不限速（局域网最高到过70多M/s），支持私有部署，支持多文件拖拽发送，网页文件预览
 
 #### 扩展 ： 扩展了许多丰富的小功能，如本地屏幕录制，远程屏幕共享(无延迟)，远程音视频通话(无延迟)，直播(无延迟)，密码房间，oss云存储，中继服务设置，webrtc检测，webrtc统计，文字传输(群聊，私聊)，公共聊天，远程画板，AI聊天框，丰富的后台管理，实时执行日志展示，机器人告警通知等功能... 等等
+
 
 ## 准备 (必须步骤)
 
