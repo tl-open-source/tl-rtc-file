@@ -1,6 +1,6 @@
 FROM node:lts-alpine
 
-COPY svr /tlrtcfile/svr
+COPY . /tlrtcfile
 
 WORKDIR /tlrtcfile/svr
 

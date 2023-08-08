@@ -47,5 +47,5 @@ cd "..\..\svr\"
 npm install --registry=https://registry.npmmirror.com
 cd "..\bin\windows\"
 
-REM Step 7: Run start-local.bat script to start the service
-auto-start-local.bat
+REM Step 7: Run start-https.bat script to start the service
+auto-start-https.bat

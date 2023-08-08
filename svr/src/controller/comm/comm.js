@@ -1,5 +1,6 @@
 const utils = require("../../utils/utils");
-const conf = require("../../../conf/cfg.json");
+const {inject_env_config} = require("../../../conf/env_config")
+const conf = inject_env_config(require("../../../conf/cfg.json"));
 const webrtcConf = conf.webrtc;
 
 /**
@@ -16,7 +17,7 @@ function initData(req, res) {
 	//ice服务器配置
 	const iceServers = utils.genTurnServerIceServersConfig(openTurn, useSecret, "tlrtcfile");
 
-	if(process.env.ENV_MODE === 'local'){
+	if(process.env.tl_rtc_file_env_mode === 'http'){
 
 		let regexIP = /^((?:(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d?\d))$/;
 		let ip = utils.getLocalIP();
@@ -36,7 +37,7 @@ function initData(req, res) {
 		};
 	
 		res.json(data)
-	}else if(process.env.ENV_MODE === 'server'){
+	}else{
 
 		let data = {
 			version : conf.version,

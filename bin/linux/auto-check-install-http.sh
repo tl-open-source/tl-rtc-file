@@ -40,7 +40,7 @@ cd ../../svr/
 npm install --registry=https://registry.npmmirror.com 
 cd ../bin/linux/
 
-# Step 7: Run start-server.sh script to start the service
-echo "ready to run auto-start-server.sh"
+# Step 7: Run start-https.sh script to start the service
+echo "ready to run auto-start-https.sh"
 sleep 1
-./auto-start-server.sh
+./auto-start-https.sh

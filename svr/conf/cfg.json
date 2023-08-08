@@ -1,15 +1,15 @@
 {
-	"version": "10.3.2",
+	"version": "10.3.3",
 	"ws": {
-		"port": 8444,
-		"host": "ws://127.0.0.1:8444"
+		"port": "请到 https.env 或者 https.env中进行配置",
+		"host": "请到 https.env 或者 https.env中进行配置"
 	},
 	"wss": {
-		"port": 8444,
-		"host": "wss://域名 或者 wss://ip:8444"
+		"port": "请到 https.env 或者 https.env中进行配置",
+		"host": "请到 https.env 或者 https.env中进行配置"
 	},
 	"api": {
-		"port": 9092,
+		"port": "请到 https.env 或者 https.env中进行配置",
 		"router": {
 			"filter": {
 				"whiteDir": [],
@@ -18,23 +18,24 @@
 				]
 			},
 			"res": {
-				"/": "res/dist/"			
+				"/": "res/dist/"
 			}
 		}
 	},
 	"manage": {
-		"room": "tlrtcfile",
-		"password": "tlrtcfile"
+		"room": "请到 https.env 或者 https.env中进行配置",
+		"password": "请到 https.env 或者 https.env中进行配置"
 	},
 	"webrtc": {
 		"turn": {
-			"host": "turn服务地址",
-			"secret": "tl-rtc-file",
-			"username": "tl-rtc-file",
-			"credential": "tl-rtc-file"
+			"host": "请到 https.env 或者 https.env中进行配置",
+			"secret": "请到 https.env 或者 https.env中进行配置",
+			"username": "请到 https.env 或者 https.env中进行配置",
+			"credential": "请到 https.env 或者 https.env中进行配置",
+			"expire" : "请到 https.env 或者 https.env中进行配置"
 		},
 		"stun": {
-			"host": "stun:stun.xten.com"
+			"host": "请到 https.env 或者 https.env中进行配置"
 		},
 		"iceTransportPolicy": "all",
 		"options": {
@@ -43,73 +44,46 @@
 		}
 	},
 	"openai": {
-		"apiKeys": []
+		"keys": [ "请到 https.env 或者 https.env中进行配置" ]
 	},
 	"oss": {
 		"seafile": {
-			"repoid": "存储库id",
-			"host": "seafile私有网盘域名",
-			"username": "账号",
-			"password": "密码"
+			"repoid": "请到 https.env 或者 https.env中进行配置",
+			"host": "请到 https.env 或者 https.env中进行配置",
+			"username": "请到 https.env 或者 https.env中进行配置",
+			"password": "请到 https.env 或者 https.env中进行配置"
 		},
 		"alyun": {
-			"AccessKey": "",
-			"SecretKey": "",
-			"bucket": "tl-rtc-file"
+			"AccessKey": "请到 https.env 或者 https.env中进行配置",
+			"SecretKey": "请到 https.env 或者 https.env中进行配置",
+			"bucket": "请到 https.env 或者 https.env中进行配置"
 		},
 		"txyun": {
-			"AccessKey": "",
-			"SecretKey": "",
-			"bucket": "tl-rtc-file"
+			"AccessKey": "请到 https.env 或者 https.env中进行配置",
+			"SecretKey": "请到 https.env 或者 https.env中进行配置",
+			"bucket": "请到 https.env 或者 https.env中进行配置"
 		},
 		"qiniuyun": {
-			"AccessKey": "",
-			"SecretKey": "",
-			"bucket": "tl-rtc-file"
+			"AccessKey": "请到 https.env 或者 https.env中进行配置",
+			"SecretKey": "请到 https.env 或者 https.env中进行配置",
+			"bucket": "请到 https.env 或者 https.env中进行配置"
 		}
 	},
 	"notify": {
-		"open": false,
+		"open": "请到 https.env 或者 https.env中进行配置",
 		"qiwei": {
-			"normal": [
-				"填写企业微信机器人key"
-			],
-			"error": [
-				"填写企业微信机器人key"
-			]
+			"normal": [ "请到 https.env 或者 https.env中进行配置" ],
+			"error": [ "请到 https.env 或者 https.env中进行配置" ]
 		}
 	},
 	"db": {
-		"open": false,
+		"open": "请到 https.env 或者 https.env中进行配置",
 		"mysql": {
-			"host": "host地址",
-			"port": 3306,
-			"dbName": "数据库名称",
-			"user": "用户名",
-			"password": "密码",
-			"other": {
-				"sequelize": {
-					"dialect": "mysql",
-					"host": "host地址",
-					"port": 3306,
-					"logging": false,
-					"pool": {
-						"max": 5,
-						"min": 0,
-						"acquire": 30000,
-						"idle": 10000
-					},
-					"timezone": "+08:00",
-					"define": {
-						"freezeTableName": true,
-						"underscored": true,
-						"charset": "utf8",
-						"collate": "utf8_general_ci",
-						"timestamps": false,
-						"paranoid": true
-					}
-				}
-			}
+			"host": "请到 https.env 或者 https.env中进行配置",
+			"port": "请到 https.env 或者 https.env中进行配置",
+			"dbName": "请到 https.env 或者 https.env中进行配置",
+			"user": "请到 https.env 或者 https.env中进行配置",
+			"password": "请到 https.env 或者 https.env中进行配置"
 		}
 	}
 }

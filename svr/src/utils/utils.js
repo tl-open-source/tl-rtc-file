@@ -1,5 +1,6 @@
 const os = require('os');
-const cfg = require('./../../conf/cfg.json');
+const { inject_env_config } = require('./../../conf/env_config');
+const cfg = inject_env_config(require('./../../conf/cfg.json'));
 const crypto = require('crypto');
 
 /**
@@ -210,7 +211,7 @@ function genTurnServerIceServersConfig(withTurn, useSecret, username){
     // 有效账号模式
     const secret = cfg.webrtc.turn.secret;
     //生成账号的有效期
-    const expirseTime = 60 * 60 * 24 * 1000;
+    const expirseTime = cfg.webrtc.turn.expire;
     //当前时间
     const time = new Date().getTime();
     //turn服务的用户名规则

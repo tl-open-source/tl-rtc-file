@@ -6,7 +6,32 @@ const utils = require("../../src/utils/utils");
 async function excute(config) {
 	let dbConf = config.db.mysql;
 
-	let dbClient = new sequelizeObj(dbConf.dbName, dbConf.user, dbConf.password, dbConf.other.sequelize);
+	let dbClient = new sequelizeObj(
+		dbConf.dbName, 
+		dbConf.user, 
+		dbConf.password,
+		{
+			"dialect": "mysql",
+			"host": dbConf.host,
+			"port": dbConf.port,
+			"logging": false,
+			"pool": {
+				"max": 5,
+				"min": 0,
+				"acquire": 30000,
+				"idle": 10000
+			},
+			"timezone": "+08:00",
+			"define": {
+				"freezeTableName": true,
+				"underscored": true,
+				"charset": "utf8",
+				"collate": "utf8_general_ci",
+				"timestamps": false,
+				"paranoid": true
+			}
+		}
+	);
 	
 	try {
 		let connect = await dbClient.authenticate();

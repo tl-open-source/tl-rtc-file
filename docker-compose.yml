@@ -1,41 +1,46 @@
+## 用于docker-compose部署启动官方镜像
+
 version: '3'
 services:
-  api-local:
-    profiles: ['local']
-    container_name: tl-rtc-file-api-local
-    image: iamtsm/tl-rtc-file-api-local
+
+  ## http
+  api-http:
+    profiles: ['http']
+    container_name: api
+    image: iamtsm/tl-rtc-file-api
     env_file:
-    - docker/local.env
+    - http.env
     ports:
     - 9092:9092
-    command: localapi
+    command: tlapi
 
-  socket-local:
-    profiles: ['local']
-    container_name: tl-rtc-file-socket-local
-    image: iamtsm/tl-rtc-file-socket-local
+  socket-http:
+    profiles: ['http']
+    container_name: socket
+    image: iamtsm/tl-rtc-file-socket
     env_file:
-    - docker/local.env
+    - http.env
     ports:
     - 8444:8444
-    command: localsocket
+    command: tlsocket
 
-  api-server:
-    profiles: ['server']
-    container_name: tl-rtc-file-api-server
-    image: iamtsm/tl-rtc-file-api-server
+  #https
+  api-https:
+    profiles: ['https']
+    container_name: api
+    image: iamtsm/tl-rtc-file-api
     env_file:
-    - docker/server.env
+    - https.env
     ports:
     - 9092:9092
-    command: serverapi
+    command: tlapi
 
-  socket-server:
-    profiles: ['server']
-    container_name: tl-rtc-file-socket-server
-    image: iamtsm/tl-rtc-file-socket-server
+  socket-https:
+    profiles: ['https']
+    container_name: socket
+    image: iamtsm/tl-rtc-file-socket
     env_file:
-    - docker/server.env
+    - https.env
     ports:
     - 8444:8444
-    command: serversocket
+    command: tlsocket

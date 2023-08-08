@@ -1,45 +1,29 @@
+## build the image from the Dockerfile in the current directory
+## 1. 用于自己通过代码构建镜像
+## 2. 用于推送到官方dockerhub
+
 version: '3'
 services:
-  tl-rtc-file-api-local:
-    profiles: ['local']
+  tl-rtc-file-api:
     env_file:
-    - local.env
+    - ../http.env
+    environment:
+      - tl_rtc_file_run_env=docker
     build: 
       context: ../
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile-build-code
     ports:
     - 9092:9092
-    command: localapi
+    command: tlapi
 
-  tl-rtc-file-socket-local:
-    profiles: ['local']
+  tl-rtc-file-socket:
     env_file:
-    - local.env
+    - ../http.env
+    environment:
+      - tl_rtc_file_run_env=docker
     build: 
       context: ../
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile-build-code
     ports:
     - 8444:8444
-    command: localsocket
-
-  tl-rtc-file-api-server:
-    profiles: ['server']
-    env_file:
-    - server.env
-    build: 
-      context: ../
-      dockerfile: docker/Dockerfile
-    ports:
-    - 9092:9092
-    command: serverapi
-
-  tl-rtc-file-socket-server:
-    profiles: ['server']
-    env_file:
-    - server.env
-    build: 
-      context: ../
-      dockerfile: docker/Dockerfile
-    ports:
-    - 8444:8444
-    command: serversocket
+    command: tlsocket

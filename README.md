@@ -24,61 +24,143 @@
 
 ## 准备 (必须步骤)
 
-安装node-14.21.x或14.21.x以上，npm后，进入项目目录运行下面命令
+1.安装node-14.21.x或14.21.x以上，npm后，进入项目目录运行下面命令
 
     `cd svr/`
 
     `npm install`
 
-首次运行/自行开发页面，用下面两个命令之一即可
+2.首次运行/自行开发页面，用下面两个命令之一即可
 
     `npm run build:dev`  (如果你需要自己开发/修改前端页面，用这个命令)
 
     `npm run build:pro`  (不需要开发/修改前端页面，用这个命令)
 
+3.修改`http.env` 和 `https.env`配置文件
+
 ## 配置websocket (必须步骤)
 
-修改cfg.json中相应ws配置，或者wss配置
+修改 `http.env` 和 `https.env` 中相应websocket配置
 
-    "ws": {
-        "port": 8444,    #socket 端口
-        "host": "ws://域名 或者 ip:port 或者 域名:port",  #socket ip  填局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
-    },
-    "wss" : {
-        "port": 8444,   #socket 端口
-        "host": "wss://域名 或者 ip:port 或者 域名:port", #socket ip  填局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
-    },
+`http.env`
 
-常见情况示例 : 
+    ## websocket服务端口
+    tl_rtc_file_ws_port=8444
 
-比如你是用ip(10.1.2.3)的形式部署socket服务，那么host就为
+    ## websocket服务地址
+    ## "ws://域名 或者 ip:port 或者 域名:port"
+    ## socket ip  填局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
+    tl_rtc_file_ws_host=ws://127.0.0.1:8444
 
-    ws://10.1.2.3:8444 或者 wss://10.1.2.3:8444
+`https.env`
 
-如果你有域名，并且配置了代理，比如a.test.com转发到本地socket服务的8444端口，那么host就为
+    ## websocket服务端口
+    tl_rtc_file_wss_port=8444
 
-    ws://a.test.com 或者 wss://a.test.com
+    ## websocket服务地址
+    ## "wss://域名 或者 ip:port 或者 域名:port"
+    ## socket ip  填局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
+    tl_rtc_file_wss_host=wss://127.0.0.1:8444
 
-如果你有域名，但是没有转发到具体的端口，比如有b.test.com:8444访问的是socket服务的8444端口，那么host就为
-
-    ws://b.test.com:8444 或者 wss://b.test.com:8444
 
 ## 启动 (必须步骤)
 
-启动以下两个服务, 选一种模式启动即可
+启动以下两个服务, 选一种模式启动即可，两者的区别就是，https环境启动才可以使用音视频,直播,屏幕共享功能，其他功能不影响
 
 http模式启动后，访问 http://你的机器ip:9092 即可
 
-    api服务: `npm run lapi`
+    api服务: `npm run http-api`
 
-    socket服务 : `npm run lsocket`
+    socket服务 : `npm run http-socket`
 
 https模式启动后，访问 https://你的机器ip:9092 即可
 
-    api服务: `npm run sapi`
+    api服务: `npm run https-api`
 
-    socket服务 : `npm run ssocket`
+    socket服务 : `npm run https-socket`
 
+
+## 配置数据库 (非必须步骤)
+
+修改`http.env` 和 `https.env`中的数据库相关配置即可
+
+    ## 是否开启数据库
+    tl_rtc_file_db_open=false
+    ## 数据库地址
+    tl_rtc_file_db_mysql_host=
+    ## 数据库端口
+    tl_rtc_file_db_mysql_port=3306
+    ## 数据库名称
+    tl_rtc_file_db_mysql_dbName=webchat
+    ## 数据库用户名
+    tl_rtc_file_db_mysql_user=tlrtcfile
+    ## 数据库密码
+    tl_rtc_file_db_mysql_password=tlrtcfile
+
+## 管理后台 (非必须步骤)
+
+前提 : 需要开启数据库配置
+
+修改`http.env` 和 `https.env`中的管理后台相关配置即可
+
+    ## 管理后台房间号
+    tl_rtc_file_manage_room=tlrtcfile
+    ## 管理后台密码
+    tl_rtc_file_manage_password=tlrtcfile
+
+访问 : http://localhost:9092 或者 http://本机ip:9092，输入配置的房间号，输入密码，即可进入管理后台
+
+## 企微通知 (非必须步骤)
+
+修改`http.env` 和 `https.env`中的企业微信通知相关配置即可
+
+    # ## 企业微信通知开关
+    tl_rtc_file_notify_open=false
+    ## 企业微信通知机器人KEY，正常通知，如果有多个key，逗号分隔
+    tl_rtc_file_notify_qiwei_normal=
+    ## 企业微信通知机器人KEY，错误通知，如果有多个key，逗号分隔
+    tl_rtc_file_notify_qiwei_error=
+
+## OSS云存储 (非必须步骤)
+
+修改`http.env` 和 `https.env`中的OSS存储相关配置即可
+
+    ## oss-seafile存储库ID
+    tl_rtc_file_oss_seafile_repoid=
+    ## oss-seafile地址
+    tl_rtc_file_oss_seafile_host=
+    ## oss-seafile用户名
+    tl_rtc_file_oss_seafile_username=
+    ## oss-seafile密码
+    tl_rtc_file_oss_seafile_password=
+
+    ## oss-alyun存储accessKey
+    tl_rtc_file_oss_alyun_AccessKey=
+    ## oss-aly存储SecretKey
+    tl_rtc_file_oss_alyun_Secretkey=
+    ## oss-aly存储bucket
+    tl_rtc_file_oss_alyun_bucket=
+
+    ## oss-txyun存储accessKey
+    tl_rtc_file_oss_txyun_AccessKey=
+    ## oss-txyunt存储SecretKey
+    tl_rtc_file_oss_txyun_Secretkey=
+    ## oss-txyun存储bucket
+    tl_rtc_file_oss_txyun_bucket=
+
+    ## oss-qiniuyun存储accessKey
+    tl_rtc_file_oss_qiniuyun_AccessKey=
+    ## oss-qiniuyunt存储SecretKey
+    tl_rtc_file_oss_qiniuyun_Secretkey==
+    ## oss-qiniuyun存储bucket
+    tl_rtc_file_oss_qiniuyun_bucket=
+
+## Chat-GPT (非必须步骤)
+
+修改`http.env` 和 `https.env`中的openai相关配置即可
+
+    ## openai-key，如果有多个key，逗号分隔
+    tl_rtc_file_openai_keys=
 
 ## 配置turnserver (局域网非必须步骤，公网必须步骤)
 
@@ -108,192 +190,62 @@ ubuntu示例:
     
     `turnserver -c  /这个地方路径填完整/docker/coturn/turnserver-with-secret-user.conf`
 
+部署好coturn后，在对应的 `http.env` 和 `https.env` 配置中设置好webrtc相关信息即可
 
-## 配置数据库 (非必须步骤)
+    ## webrtc-stun中继服务地址
+    tl_rtc_file_webrtc_stun_host=
+    ## webrtc-turn中继服务地址
+    tl_rtc_file_webrtc_turn_host=
+    ## webrtc中继服务用户名
+    tl_rtc_file_webrtc_turn_username=tlrtcfile
+    ## webrtc中继服务密码
+    tl_rtc_file_webrtc_turn_credential=tlrtcfile
+    ## webrtc中继服务Secret
+    tl_rtc_file_webrtc_turn_secret=tlrtcfile
+    ## webrtc中继服务帐号过期时间 (毫秒)
+    tl_rtc_file_webrtc_turn_expire=86400000
 
-修改cfg.json中相应数据库配置  
 
-    "db": {
-        "open": false, #是否开启数据库, 默认关闭
-        "mysql": {
-            "host": "host地址",
-            "port": 3306,
-            "dbName": "数据库名称",
-            "user": "用户名",
-            "password": "密码",
-            "other": {
-                "sequelize": {
-                    "dialect": "mysql",
-                    "host": "host地址",
-                    "port": 3306,
-                    "logging": false,
-                    "pool": {
-                        "max": 5,
-                        "min": 0,
-                        "acquire": 30000,
-                        "idle": 10000
-                    },
-                    "timezone": "+08:00",
-                    "define": {
-                        "freezeTableName": true,
-                        "underscored": true,
-                        "charset": "utf8",
-                        "collate": "utf8_general_ci",
-                        "timestamps": false,
-                        "paranoid": true
-                    }
-                }
-            }
-        }
-    }
-
-## 管理后台 (非必须步骤)
-
-前提 : 需要开启数据库配置
-
-修改cfg.json中的manage的room和password，默认房间号和密码都是tlrtcfile
-
-    访问 : http://localhost:9092 或者 http://本机ip:9092
-
-    输入配置的房间号，输入密码，即可进入管理后台
-
-    "manage": {
-		"room": "tlrtcfile",
-		"password": "tlrtcfile"
-	},
-
-## 企微通知 (非必须步骤)
-
-修改cfg.json中的notify的qiwei数组，填入企业微信机器人的key即可
-
-normal : 正常通知, error : 系统报错通知
-
-    "notify": {
-        "open": true,  #是否开启企业微信通知
-        "qiwei": {
-            "normal" : [
-                "key1",
-                "key2"
-            ],
-            "error" : [
-                "key3",
-                "key4"
-            ]
-        }
-    },
-
-## OSS云存储 (非必须步骤)
-
-修改cfg.json中的oss
-
-    "oss": {
-		"seafile": {
-			"repoid": "",
-			"host": "",
-			"username": "帐号",
-			"password": "密码"
-		},
-		"alyun": {
-			"AccessKey": "",
-			"SecretKey": "",
-			"bucket": "tl-rtc-file"
-		},
-		"txyun": {
-			"AccessKey": "",
-			"SecretKey": "",
-			"bucket": "tl-rtc-file"
-		},
-		"qiniuyun": {
-			"AccessKey": "",
-			"SecretKey": "",
-			"bucket": "tl-rtc-file"
-		}
-	},
-
-## Chat-GPT (非必须步骤)
-
-修改cfg.json中的openai.apiKeys，填写你自己openai账号生成的apiKey
-
-    "openai": {
-		"apiKeys": [
-			
-		]
-	},
-
-## Docker (非必须步骤)
+## Docker
 
 ### 使用官方镜像 : 
 
-两种镜像模式选一种即可, 注意 127.0.0.1:8444 可以按需调整，具体参考上面文档的websocket配置说明部分
+以下只是最基础参数，更多参数可以参考 `http.env` 和 `https.env`
 
-http模式镜像:
+    docker pull iamtsm/tl-rtc-file-api
 
-    docker pull iamtsm/tl-rtc-file-api-local
+    docker run --name=api -p 9092:9092 \
+        -e "tl_rtc_file_env_mode=http" \
+        -e "tl_rtc_file_ws_port=8444" \
+        -e "tl_rtc_file_ws_host=ws://127.0.0.1:8444" \
+        -d iamtsm/tl-rtc-file-api tlapi
 
-    docker run --name=api-local -p 9092:9092 \
-        -e "WS_HOST=ws://127.0.0.1:8444" \
-        -e "ENV_MODE=local" \
-        -d iamtsm/tl-rtc-file-api-local localapi
+    docker pull iamtsm/tl-rtc-file-socket
 
-    docker pull iamtsm/tl-rtc-file-socket-local
-
-    docker run --name=socket-local -p 8444:8444 \
-        -e "WS_HOST=ws://127.0.0.1:8444" \
-        -e "ENV_MODE=local" \
-        -d iamtsm/tl-rtc-file-socket-local localsocket
-
-https模式镜像:
-
-    docker pull iamtsm/tl-rtc-file-api-server
-
-    docker run --name=api-server -p 9092:9092 \
-        -e "WSS_HOST=wss://127.0.0.1:8444" \
-        -e "ENV_MODE=server" \
-        -d iamtsm/tl-rtc-file-api-server serverapi
-
-    docker pull iamtsm/tl-rtc-file-socket-server
-
-    docker run --name=socket-server -p 8444:8444 \
-        -e "WSS_HOST=wss://127.0.0.1:8444" \
-        -e "ENV_MODE=server" \
-        -d iamtsm/tl-rtc-file-socket-server serversocket
+    docker run --name=socket -p 8444:8444 \
+        -e "tl_rtc_file_env_mode=http" \
+        -e "tl_rtc_file_ws_port=8444" \
+        -e "tl_rtc_file_ws_host=ws://127.0.0.1:8444" \
+        -d iamtsm/tl-rtc-file-socket tlsocket
 
 ### 使用官方镜像(docker-compose) : 
 
-两种镜像模式选一种即可
+http模式启动镜像: `docker-compose --profile=http up -d`
 
-http模式镜像: 
+https模式镜像: `docker-compose --profile=https up -d`
 
-    修改 `docker/local.env`
 
-    docker-compose --profile=local up -d
+### 打包自己的镜像(docker-compose) : 
 
-https模式镜像:
-
-    修改 `docker/server.env`
-
-    docker-compose --profile=server up -d
-
-### 打包自己的镜像 : 
-
-进入docker目录后，两种模式选一种操作即可
+确认修改好`http.env` 和 `https.env`配置文件后， 进入docker目录后，两种模式选一种操作即可
 
 打包http模式镜像:
-
-    修改 `docker/local.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
     
-    docker-compose -f docker-compose-build-code.yml --profile=local build
-
-    访问 : http://localhost:9092 或者 http://本机ip:9092
+    docker-compose -f docker-compose-build-code.yml --profile=http build
 
 打包https模式镜像:
 
-    修改 `docker/server.env` 中的配置信息或者按需配置conf.json中的ws, 或者wss (需要填容器的ip，端口信息)
-    
     docker-compose -f docker-compose-build-code.yml --profile=server build
-
-    访问 : https://localhost:9092 或者 https://本机ip:9092
-
 
 ## 其他形式部署 
 
@@ -307,17 +259,17 @@ https模式镜像:
 
 选一种模式启动即可
 
-- `auto-check-install-local.sh` : 自动检查安装node环境，并自动运行启动http模式服务
+- `auto-check-install-http.sh` : 自动检查安装node环境，并自动运行启动http模式服务
 
-- `auto-check-install-server.sh` : 自动检查安装node环境，并自动运行启动https模式服务
+- `auto-check-install-https.sh` : 自动检查安装node环境，并自动运行启动https模式服务
 
 ### windows自动脚本
 
 选一种模式启动即可
 
-- `auto-check-install-local.bat` : 自动检查安装node环境，并自动运行启动http模式服务
+- `auto-check-install-http.bat` : 自动检查安装node环境，并自动运行启动http模式服务
 
-- `auto-check-install-server.bat` : 自动检查安装node环境，并自动运行启动https模式服务
+- `auto-check-install-https.bat` : 自动检查安装node环境，并自动运行启动https模式服务
 
 
 ### zeabur平台一键部署
