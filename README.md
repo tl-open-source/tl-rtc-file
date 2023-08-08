@@ -245,7 +245,7 @@ https模式镜像: `docker-compose --profile=https up -d`
 
 打包https模式镜像:
 
-    docker-compose -f docker-compose-build-code.yml --profile=server build
+    docker-compose -f docker-compose-build-code.yml --profile=https build
 
 ## 其他形式部署 
 
