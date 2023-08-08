@@ -14,7 +14,7 @@
 
 <p align="center">QQ群: <a href="https://jq.qq.com/?_wv=1027&k=TKCwMBjN" target="_blank">624214498 </a></p>
 
-## Table of Contents
+## 目录
 
 - [背景](#背景)
 - [简介](#简介)
