@@ -217,7 +217,7 @@ ubuntu示例:
 
 ## Docker
 
-目前支持 `官方镜像` 和 `自行打包镜像`，使用官方镜像目前支持两种操作方式 `docker脚本启动`，`docker-compose启动`
+目前支持 `官方镜像` 和 `自行打包镜像`，使用官方镜像目前支持两种操作方式 `docker脚本启动`，`docker compose启动`
 
 和自行在 `服务器/电脑部署` 不同的是，docke环境默认开启数据库，coturn服务，无须过多额外操作，启动即可用。
 
@@ -233,13 +233,13 @@ ubuntu示例:
 
 按需修改好 `tlrtcfile.env` 配置 (或使用默认配置也可) 后，在主目录执行
 
-    docker-compose --profile=http up -d
+    docker compose --profile=http up -d
 
 ### 自行打包启动镜像(docker-compose打包启动) : 
 
 确认修改好 `tlrtcfile.env` 配置文件  (或使用默认配置也可) 后， 进入 `docker/` 目录后执行
 
-    docker-compose -f docker-compose-build-code.yml up -d
+    docker compose -f docker-compose-build-code.yml up -d
 
 ## 其他形式部署 
 
