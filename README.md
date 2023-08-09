@@ -231,15 +231,31 @@ ubuntu示例:
 
 ### 使用官方镜像(docker-compose启动) : 
 
-按需修改好 `tlrtcfile.env` 配置 (或使用默认配置也可) 后，在主目录执行
+按需修改好 `tlrtcfile.env` 配置 (或使用默认配置也可) 后，根据你的`Docker Compose`版本在主目录执行如下对应的命令
 
-    docker compose --profile=http up -d
+- 对于`Docker Compose V1`
+```
+docker-compose --profile=http up -d
+```
+    
+- 对于`Docker Compose V2`
+```
+docker compose --profile=http up -d
+```
 
 ### 自行打包启动镜像(docker-compose打包启动) : 
 
-确认修改好 `tlrtcfile.env` 配置文件  (或使用默认配置也可) 后， 进入 `docker/` 目录后执行
+确认修改好 `tlrtcfile.env` 配置文件  (或使用默认配置也可) 后， 进入 `docker/` 目录后根据你的`Docker Compose`版本在主目录执行如下对应的命令
 
-    docker compose -f docker-compose-build-code.yml up -d
+- 对于`Docker Compose V1`
+```
+docker-compose -f docker-compose-build-code.yml up -d
+```
+    
+- 对于`Docker Compose V2`
+```
+docker compose -f docker-compose-build-code.yml up -d
+```
 
 ## 其他形式部署 
 
