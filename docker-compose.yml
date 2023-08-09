@@ -9,7 +9,9 @@ services:
     container_name: api
     image: iamtsm/tl-rtc-file-api
     env_file:
-    - http.env
+    - tlrtcfile.env
+    environment:
+    - tl_rtc_file_env_mode=http
     ports:
     - 9092:9092
     command: tlapi
@@ -19,7 +21,9 @@ services:
     container_name: socket
     image: iamtsm/tl-rtc-file-socket
     env_file:
-    - http.env
+    - tlrtcfile.env
+    environment:
+    - tl_rtc_file_env_mode=http
     ports:
     - 8444:8444
     command: tlsocket
@@ -30,7 +34,9 @@ services:
     container_name: api
     image: iamtsm/tl-rtc-file-api
     env_file:
-    - https.env
+    - tlrtcfile.env
+    environment:
+    - tl_rtc_file_env_mode=https
     ports:
     - 9092:9092
     command: tlapi
@@ -40,7 +46,9 @@ services:
     container_name: socket
     image: iamtsm/tl-rtc-file-socket
     env_file:
-    - https.env
+    - tlrtcfile.env
+    environment:
+    - tl_rtc_file_env_mode=https
     ports:
     - 8444:8444
     command: tlsocket

@@ -26,7 +26,7 @@ async function start(){
             cert: fs.readFileSync('./conf/keys/server.crt')
         }
         io = socketIO.listen(
-            https.createServer(options).listen(conf.wss.port)
+            https.createServer(options).listen(conf.ws.port)
         );
     }
 
@@ -40,12 +40,7 @@ async function start(){
     }
 
     utils.tlConsole("socket init done ...")
-
-    if(process.env.tl_rtc_file_env_mode == 'http'){
-        utils.tlConsole("socket ",process.env.tl_rtc_file_env_mode," server listen on ", conf.ws.port, " successful");
-    }else{
-        utils.tlConsole("socket ",process.env.tl_rtc_file_env_mode," server listen on ", conf.wss.port, " successful");
-    }
+    utils.tlConsole("socket ",process.env.tl_rtc_file_env_mode," server listen on ", conf.ws.port, " successful");
 }
 
 

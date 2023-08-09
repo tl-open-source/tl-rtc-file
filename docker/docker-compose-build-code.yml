@@ -6,9 +6,9 @@ version: '3'
 services:
   tl-rtc-file-api:
     env_file:
-    - ../http.env
+    - ../tlrtcfile.env
     environment:
-      - tl_rtc_file_run_env=docker
+      - tl_rtc_file_node_load_env=false
     build: 
       context: ../
       dockerfile: docker/Dockerfile-build-code
@@ -18,9 +18,9 @@ services:
 
   tl-rtc-file-socket:
     env_file:
-    - ../http.env
+    - ../tlrtcfile.env
     environment:
-      - tl_rtc_file_run_env=docker
+      - tl_rtc_file_node_load_env=false
     build: 
       context: ../
       dockerfile: docker/Dockerfile-build-code

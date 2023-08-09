@@ -58,13 +58,11 @@
 
     `npm run build:pro`  (不需要开发/修改前端页面，用这个命令)
 
-3.修改`http.env` 和 `https.env`配置文件
+3.修改 `tlrtcfile.env` 配置文件
 
 ## 配置websocket (必须步骤)
 
-修改 `http.env` 和 `https.env` 中相应websocket配置
-
-`http.env`
+修改 `tlrtcfile.env` 中相应websocket配置
 
     ## websocket服务端口
     tl_rtc_file_ws_port=8444
@@ -73,16 +71,6 @@
     ## "ws://域名 或者 ip:port 或者 域名:port"
     ## socket ip  填局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
     tl_rtc_file_ws_host=ws://127.0.0.1:8444
-
-`https.env`
-
-    ## websocket服务端口
-    tl_rtc_file_wss_port=8444
-
-    ## websocket服务地址
-    ## "wss://域名 或者 ip:port 或者 域名:port"
-    ## socket ip  填局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
-    tl_rtc_file_wss_host=wss://127.0.0.1:8444
 
 
 ## 启动 (必须步骤)
@@ -104,7 +92,7 @@ https模式启动后，访问 https://你的机器ip:9092 即可
 
 ## 配置数据库 (非必须步骤)
 
-修改`http.env` 和 `https.env`中的数据库相关配置即可
+修改 `tlrtcfile.env` 中的数据库相关配置即可
 
     ## 是否开启数据库
     tl_rtc_file_db_open=false
@@ -123,7 +111,7 @@ https模式启动后，访问 https://你的机器ip:9092 即可
 
 前提 : 需要开启数据库配置
 
-修改`http.env` 和 `https.env`中的管理后台相关配置即可
+修改 `tlrtcfile.env` 中的管理后台相关配置即可
 
     ## 管理后台房间号
     tl_rtc_file_manage_room=tlrtcfile
@@ -134,7 +122,7 @@ https模式启动后，访问 https://你的机器ip:9092 即可
 
 ## 企微通知 (非必须步骤)
 
-修改`http.env` 和 `https.env`中的企业微信通知相关配置即可
+修改 `tlrtcfile.env` 中的企业微信通知相关配置即可
 
     # ## 企业微信通知开关
     tl_rtc_file_notify_open=false
@@ -145,7 +133,7 @@ https模式启动后，访问 https://你的机器ip:9092 即可
 
 ## OSS云存储 (非必须步骤)
 
-修改`http.env` 和 `https.env`中的OSS存储相关配置即可
+修改 `tlrtcfile.env` 中的OSS存储相关配置即可
 
     ## oss-seafile存储库ID
     tl_rtc_file_oss_seafile_repoid=
@@ -179,7 +167,7 @@ https模式启动后，访问 https://你的机器ip:9092 即可
 
 ## Chat-GPT (非必须步骤)
 
-修改`http.env` 和 `https.env`中的openai相关配置即可
+修改 `tlrtcfile.env` 中的openai相关配置即可
 
     ## openai-key，如果有多个key，逗号分隔
     tl_rtc_file_openai_keys=
@@ -212,7 +200,7 @@ ubuntu示例:
     
     `turnserver -c  /这个地方路径填完整/docker/coturn/turnserver-with-secret-user.conf`
 
-部署好coturn后，在对应的 `http.env` 和 `https.env` 配置中设置好webrtc相关信息即可
+部署好coturn后，在对应的 `tlrtcfile.env` 配置中设置好webrtc相关信息即可
 
     ## webrtc-stun中继服务地址
     tl_rtc_file_webrtc_stun_host=
@@ -232,23 +220,15 @@ ubuntu示例:
 
 ### 使用官方镜像 : 
 
-以下只是最基础参数，更多参数可以参考 `http.env` 和 `https.env`
+以下只是最基础参数，更多参数可以参考 `tlrtcfile.env` 
 
     docker pull iamtsm/tl-rtc-file-api
 
-    docker run --name=api -p 9092:9092 \
-        -e "tl_rtc_file_env_mode=http" \
-        -e "tl_rtc_file_ws_port=8444" \
-        -e "tl_rtc_file_ws_host=ws://127.0.0.1:8444" \
-        -d iamtsm/tl-rtc-file-api tlapi
+    docker run --name=api -p 9092:9092  -e "tl_rtc_file_env_mode=http" -d iamtsm/tl-rtc-file-api tlapi
 
     docker pull iamtsm/tl-rtc-file-socket
 
-    docker run --name=socket -p 8444:8444 \
-        -e "tl_rtc_file_env_mode=http" \
-        -e "tl_rtc_file_ws_port=8444" \
-        -e "tl_rtc_file_ws_host=ws://127.0.0.1:8444" \
-        -d iamtsm/tl-rtc-file-socket tlsocket
+    docker run --name=socket -p 8444:8444 -e "tl_rtc_file_env_mode=http" -d iamtsm/tl-rtc-file-socket tlsocket
 
 ### 使用官方镜像(docker-compose) : 
 
@@ -259,7 +239,7 @@ https模式镜像: `docker-compose --profile=https up -d`
 
 ### 打包自己的镜像(docker-compose) : 
 
-确认修改好`http.env` 和 `https.env`配置文件后， 进入docker目录后，两种模式选一种操作即可
+确认修改好 `tlrtcfile.env` 配置文件后， 进入docker目录后，两种模式选一种操作即可
 
 打包http模式镜像:
     

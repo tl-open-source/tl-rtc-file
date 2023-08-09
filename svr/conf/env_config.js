@@ -4,21 +4,16 @@ const dotEnv = require("dotenv");
 /**
  * 从.env文件中加载环境变量
  * docker环境下，使用docker-compose.yml中指定的env逻辑，不使用主动加载的.env文件中的环境变量
+ * docker环境下，使用docker run 中指定的 -e 逻辑，不使用主动加载的.env文件中的环境变量
  * 非docker环境下，使用.env文件中的环境变量
  */
 const load_env_config = function(){
-    if(process.env.tl_rtc_file_run_env === 'docker'){
+    if(process.env.tl_rtc_file_node_load_env === 'false'){
         return
     }
-
     const pathsEnv = path.resolve(__dirname, "../../")
-    if(process.env.tl_rtc_file_env_mode === 'http'){
-        dotEnv.config({ path: `${pathsEnv}/http.env` })
-        console.log(`load env config from .env file ${pathsEnv}/http.env`)
-    }else{
-        dotEnv.config({ path: `${pathsEnv}/https.env` })
-        console.log(`load env config from .env file ${pathsEnv}/https.env`)
-    }
+    dotEnv.config({ path: `${pathsEnv}/tlrtcfile.env` })
+    console.log(`load env config from .env file ${pathsEnv}/tlrtcfile.env`)
 }
 
 /**
