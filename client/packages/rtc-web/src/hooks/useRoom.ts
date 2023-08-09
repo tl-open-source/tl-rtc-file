@@ -56,7 +56,7 @@ export const useRoom = (value: MaybeRef<string> | CommonFnType) => {
   };
 };
 
-export const useCreateRoom = () => {
+export const useCreateRoom = (type: 'password' | 'video' = 'password') => {
   const router = useRouter();
 
   const initData = inject(InitDataKey);
@@ -66,10 +66,9 @@ export const useCreateRoom = () => {
   const { isValid } = useRoom(() => roomId.value || '');
 
   const emitCreateRoom = (socket: any) => {
-    console.log('emitCreateRoom');
     socket.emit(SocketEventName.CreateAndJoin, {
       room: roomId.value,
-      type: 'password',
+      type: type,
       password: '',
       nickName: genNickName(),
       langMode: initData?.value.langMode,
@@ -102,7 +101,6 @@ export const useCreateRoom = () => {
   };
 };
 
-// 设置 room 连接的一些处理
 export const useRoomConnect = () => {
   const roomInfo = useGetRoomInfo();
 
@@ -143,23 +141,13 @@ export const useRoomConnect = () => {
     return rtcConnects.get(id) || createRtcConnect(id);
   };
 
-  // room Created事件 创建 peer、创建 offer
-  const roomCreated = async (data: any) => {
-    selfInfo.value = {
-      owner: data.owner,
-      recoderId: data.recoderId,
-      roomId: data.room,
-      socketId: data.id,
-    };
-    const handler = async (peer: any) => {
-      const rtcConnect = getRtcConnect(peer.id);
-      await createOffer(rtcConnect, peer);
-    };
-
-    await Promise.all(data.peers.map(handler));
-    console.log('connect created', data, rtcConnects);
+  const roomJoined = async (data: any) => {
+    createOffer(getRtcConnect(data.id), data);
   };
 
+  /**
+   * @description 这里的 createOffer
+   */
   const createOffer = async (pc: RTCPeerConnection, peer: any) => {
     const offer = await pc.createOffer(initData.value.options);
     await pc.setLocalDescription(offer);
@@ -171,6 +159,9 @@ export const useRoomConnect = () => {
     });
   };
 
+  /**
+   * @description offer 监听事件
+   */
   const roomOffer = async (data: any) => {
     const pc = getRtcConnect(data.from);
     await pc.setRemoteDescription(
@@ -187,9 +178,11 @@ export const useRoomConnect = () => {
     });
   };
 
+  /**
+   * @description answer 监听事件
+   */
   const roomAnswer = async (data: any) => {
     const pc = getRtcConnect(data.from);
-
     await pc.setRemoteDescription(
       new RTCSessionDescription({ type: 'answer', sdp: data.sdp })
     );
@@ -200,7 +193,7 @@ export const useRoomConnect = () => {
 
   const handleRoomConnect = (socket: any) => {
     socketRef.value = socket;
-    socket.on(SocketEventName.RoomCreated, roomCreated);
+    socket.on(SocketEventName.RoomJoin, roomJoined);
     socket.on(SocketEventName.RoomOffer, roomOffer);
     socket.on(SocketEventName.RoomAnswer, roomAnswer);
     socket.on(SocketEventName.RoomCandidate, roomCandidate);
@@ -282,14 +275,11 @@ export const useGetRoomInfo = () => {
   });
 
   const handleRoomInfo = async (socket: any) => {
-    console.log('执行', socket);
     socket.on(SocketEventName.RoomCreated, roomCreated);
     socket.on(SocketEventName.RoomExit, roomExit);
     socket.on(SocketEventName.RoomJoin, roomJoin);
 
     onBeforeUnmount(() => {
-      console.log('unmount');
-      console.log(selfInfo.value);
       socket.emit(SocketEventName.RoomExit, {
         from: selfInfo.value.socketId,
         room: selfInfo.value.roomId,

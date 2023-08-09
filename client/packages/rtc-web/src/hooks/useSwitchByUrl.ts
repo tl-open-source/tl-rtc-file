@@ -1,15 +1,10 @@
 import { useWindowSize } from '@vueuse/core';
-import { useRouteQuery } from '@vueuse/router';
-import { computed, toRefs, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { isNaN } from 'lodash';
+import { computed, watch } from 'vue';
+import { useRouteQueryReactive } from './useRouterReactive';
 
 export const useSwitchMember = () => {
   const { width } = useWindowSize();
-
-  const { query } = toRefs(useRoute());
-
-  const showMembers = useRouteQuery('showMembers', '0', {
+  const showMembers = useRouteQueryReactive('showMembers', '0', {
     transform: Number,
   });
 
@@ -32,23 +27,27 @@ export const useSwitchMember = () => {
     }
   );
 
-  watch(
-    () => query.value.showMembers,
-    (v) => {
-      const nv = Number(v);
-      if (!isNaN(nv)) {
-        showMembers.value = nv;
-      }
-    },
-    {
-      immediate: true,
-      deep: true,
-    }
-  );
-
   return {
     open,
     switchMember,
     isLgScreen,
+  };
+};
+
+export const useSwitchSiderbar = () => {
+  const showSiderbar = useRouteQueryReactive('showSiderbar', '1', {
+    transform: Number,
+  });
+
+  const switchSiderbar = () => {
+    showSiderbar.value = showSiderbar.value === 0 ? 1 : 0;
+  };
+
+  const open = computed(() => showSiderbar.value === 1);
+
+  return {
+    switchSiderbar,
+    open,
+    showSiderbar,
   };
 };

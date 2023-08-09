@@ -1,5 +1,5 @@
-import { useRouteParams } from '@vueuse/router';
-import { Ref, watch } from 'vue';
+import { useRouteParams, useRouteQuery } from '@vueuse/router';
+import { Ref, toRefs, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 export const useRouteParamsReactive = <T extends string>(keys: T[]) => {
@@ -25,4 +25,33 @@ export const useRouteParamsReactive = <T extends string>(keys: T[]) => {
   );
 
   return params;
+};
+
+export const useRouteQueryReactive = (
+  ...args: Parameters<typeof useRouteQuery>
+) => {
+  const { query } = toRefs(useRoute());
+
+  const [key, defaultValue, options] = args;
+  const valueRef = useRouteQuery(key, defaultValue, options);
+
+  watch(
+    () => query.value[key],
+    (v: any) => {
+      const nv = options?.transform?.(v);
+      if (options?.transform === Number) {
+        if (!isNaN(nv as number)) {
+          valueRef.value = nv;
+        }
+      } else {
+        valueRef.value = nv;
+      }
+    },
+    {
+      immediate: true,
+      deep: true,
+    }
+  );
+
+  return valueRef;
 };

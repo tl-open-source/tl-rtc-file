@@ -92,3 +92,5 @@ export function unescapeStr(str: string) {
 export const isItBetween = (num: number, arr: number[]) => {
   return num >= arr[0] && num <= arr[1];
 };
+
+export const resetUrl = () => (window.location.href = window.location.origin);

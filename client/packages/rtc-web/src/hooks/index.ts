@@ -4,3 +4,4 @@ export * from './useInitData';
 export * from './socket-utils';
 export * from './useRouterReactive';
 export * from './useDragChangeSize';
+export * from './useSwitchByUrl';

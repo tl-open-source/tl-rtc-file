@@ -20,6 +20,11 @@ const menuListData = ref([
     icon: 'add-icon',
     label: '聊天',
   },
+  {
+    key: 'video',
+    icon: 'add-icon',
+    label: '视频聊天',
+  },
 ]);
 
 const currentCreateRoomByKey = ref('');

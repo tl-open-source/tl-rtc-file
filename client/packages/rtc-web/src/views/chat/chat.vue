@@ -6,7 +6,7 @@ import { BackPreviousLevel, BackTitle } from '@/components/back';
 import ChatRoomCom from './chat-room.vue';
 import MenuAction from '@/components/menu-action.vue';
 import { ChatAction } from '@/config';
-import { useSwitchMember } from './hooks/useSwitchMember';
+import { useSwitchMember } from '@/hooks';
 
 defineOptions({
   name: 'ChatView',

@@ -1,3 +1,8 @@
+/**
+ * @description 拖拽元素改变大小
+ * 对于一些自由拖拽的元素会有一些问题，比如拉左边进行宽度增加，会造成 width 往右边增加；这里暂时未处理，按理说要同时改变 left
+ */
+
 import { isItBetween } from '@/utils';
 import {
   MaybeElementRef,

@@ -2,7 +2,7 @@
 import { ChatContent, ChatRoomUser, ChatInput } from '@/components/chat-room';
 import MenuAction from '@/components/menu-action.vue';
 import { ChatInputAction } from '@/config';
-import { useSwitchMember } from '@/views/chat/hooks/useSwitchMember';
+import { useSwitchMember } from '@/hooks';
 import { useGetRoomInfo } from '@/hooks/useRoom';
 import { useChat } from './hooks/useChat';
 import { escapeStr } from '@/utils';

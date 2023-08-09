@@ -1,6 +1,7 @@
 import { SetupContext } from 'vue';
 import { SvgIcon, NavIcons } from './base';
 import { MenuSide } from './menu';
+import { resetUrl } from '@/utils';
 
 export const NavHeader = () => {
   return (
@@ -18,11 +19,15 @@ export const NavHeader = () => {
               />
             </label>
           </div>
-          <div class="mx-2 flex-1 px-2">Web-Rtc</div>
+          <div class="mx-2 flex-1 px-2">
+            <span class="cursor-pointer" onClick={resetUrl}>
+              Web-Rtc
+            </span>
+          </div>
           <NavIcons class="flex-none pr-3" />
         </div>
       </div>
-      <div class="drawer-side">
+      <div class="drawer-side z-50">
         <label for="my-drawer-3" class="drawer-overlay"></label>
         <MenuSide class="bg-base-200"></MenuSide>
       </div>
