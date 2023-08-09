@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useSwitchSiderbar, useSwitchMember } from '@/hooks';
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useVideoShare } from './hooks/useVideoCall';
 import VideoControl from './video-control.vue';
 
@@ -11,15 +11,31 @@ defineOptions({
 const { showSiderbar } = useSwitchSiderbar();
 const { open } = useSwitchMember();
 
-const { video, enabled } = useVideoShare();
+const audioInputDevice = ref<MediaDeviceInfo | undefined>();
+
+const { video, setSinkId, switchTrackEnable } = useVideoShare({
+  audio: audioInputDevice,
+});
 
 onMounted(() => {
   showSiderbar.value = 0;
 });
 
 const handleMenuChange = (active: string[]) => {
-  console.log(active);
-  enabled.value = active.includes('camera');
+  const hasVideo = active.includes('camera');
+  const hasAudio = active.includes('audio');
+  switchTrackEnable('audio', hasAudio);
+  switchTrackEnable('video', hasVideo);
+};
+
+const deviceChange = (device: MediaDeviceInfo) => {
+  if (device.kind === 'audioinput') {
+    audioInputDevice.value = device;
+  }
+
+  if (device.kind === 'audiooutput') {
+    setSinkId(device.deviceId);
+  }
 };
 </script>
 
@@ -34,7 +50,10 @@ const handleMenuChange = (active: string[]) => {
         controls
         autoplay
       ></video>
-      <VideoControl @control-menu-change="handleMenuChange" />
+      <VideoControl
+        @control-menu-change="handleMenuChange"
+        @select-device="deviceChange"
+      />
     </div>
 
     <div v-show="open" class="w-[400px]">user 列表</div>

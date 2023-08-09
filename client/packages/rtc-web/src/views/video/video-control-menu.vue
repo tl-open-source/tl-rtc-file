@@ -5,6 +5,10 @@ import { Modal } from '@/components/base';
 import MenuAction from '@/components/menu-action.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useDevicesList } from '@vueuse/core';
+import SelectList from '@/components/list/select-list.vue';
+import { Dropdown } from '@/components/base';
+import { watchEffect } from 'vue';
 
 defineOptions({
   name: 'VideoControlMenu',
@@ -13,11 +17,50 @@ defineOptions({
 const router = useRouter();
 const modalVisible = ref(false);
 
-const emits = defineEmits(['controlMenuChange']);
+const emits = defineEmits(['controlMenuChange', 'selectDevice']);
 
 const menuAction = ref(VideoControlMenuAction);
 
 const activeMenu = ref<Set<string>>(new Set());
+
+const { audioInputs, audioOutputs } = useDevicesList();
+
+const audioDropDownVisible = ref(false);
+
+const audioDeviceRef = ref<MediaDeviceInfo[]>([]);
+
+// 麦克风
+const inputStop = watchEffect(() => {
+  if (audioInputs.value.length) {
+    const findDefault = audioInputs.value.find(
+      (item) => item.deviceId === 'default'
+    );
+    if (findDefault) {
+      selectedAudioDevice(findDefault);
+      inputStop();
+    }
+  }
+});
+
+// 扬声器
+const outputStop = watchEffect(() => {
+  if (audioOutputs.value.length) {
+    const findDefault = audioOutputs.value.find(
+      (item) => item.deviceId === 'default'
+    );
+    if (findDefault) {
+      selectedAudioDevice(findDefault);
+      outputStop();
+    }
+  }
+});
+
+const selectedAudioDevice = (device: MediaDeviceInfo) => {
+  if (device.kind === 'audioinput') audioDeviceRef.value[0] = device;
+  if (device.kind === 'audiooutput') audioDeviceRef.value[1] = device;
+  emits('selectDevice', device);
+  audioDropDownVisible.value = false;
+};
 
 const useActiveMenu = (name: string) => {
   if (activeMenu.value.has(name)) {
@@ -65,18 +108,52 @@ const closeModal = () => {
           class="h-6 w-6"
         />
       </button>
-      <div class="dropdown-top dropdown-end dropdown">
-        <label tabindex="0" class="cursor-pointer">
-          <svg-icon name="up" class="h-4 w-4" color="#707070" />
-        </label>
-        <ul
-          tabindex="0"
-          class="dropdown-content menu rounded-box z-[1] bg-base-100 shadow"
-        >
-          <li><a>Item 1</a></li>
-          <li><a>Item 2</a></li>
-        </ul>
-      </div>
+      <Dropdown v-model:visible="audioDropDownVisible">
+        <svg-icon
+          name="up"
+          class="h-4 w-4 cursor-pointer"
+          color="#707070"
+          @click="audioDropDownVisible = true"
+        />
+        <template #content>
+          <div class="panel">
+            <SelectList
+              title="选择麦克风"
+              :list="audioInputs"
+              @selected="selectedAudioDevice"
+            >
+              <template #default="{ item }">
+                <div
+                  :class="[
+                    audioDeviceRef[0].deviceId === item.deviceId
+                      ? 'text-[#2F54EB]'
+                      : '',
+                  ]"
+                >
+                  {{ item.label }}
+                </div>
+              </template>
+            </SelectList>
+            <SelectList
+              title="选择扬声器"
+              :list="audioOutputs"
+              @selected="selectedAudioDevice"
+            >
+              <template #default="{ item }">
+                <div
+                  :class="[
+                    audioDeviceRef[1].deviceId === item.deviceId
+                      ? 'text-[#2F54EB]'
+                      : '',
+                  ]"
+                >
+                  {{ item.label }}
+                </div>
+              </template>
+            </SelectList>
+          </div>
+        </template>
+      </Dropdown>
     </div>
 
     <MenuAction
