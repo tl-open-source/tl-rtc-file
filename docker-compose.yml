@@ -1,54 +1,105 @@
-## 用于docker-compose部署启动官方镜像
+## 用于docker-compose部署并启动官方镜像
 
 version: '3'
 services:
 
-  ## http
+  #http模式启动api服务
   api-http:
     profiles: ['http']
     container_name: api
     image: iamtsm/tl-rtc-file-api
     env_file:
-    - tlrtcfile.env
+      - ./tlrtcfile.env
     environment:
-    - tl_rtc_file_env_mode=http
+      - tl_rtc_file_env_mode=http
+      - tl_rtc_file_db_open=true
+    command: 
+      - tlapi
     ports:
-    - 9092:9092
-    command: tlapi
+      - 9092:9092
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    volumes:
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
-  socket-http:
-    profiles: ['http']
-    container_name: socket
-    image: iamtsm/tl-rtc-file-socket
-    env_file:
-    - tlrtcfile.env
-    environment:
-    - tl_rtc_file_env_mode=http
-    ports:
-    - 8444:8444
-    command: tlsocket
-
-  #https
+  #https模式启动api服务
   api-https:
     profiles: ['https']
     container_name: api
     image: iamtsm/tl-rtc-file-api
     env_file:
-    - tlrtcfile.env
+      - ./tlrtcfile.env
     environment:
-    - tl_rtc_file_env_mode=https
+      - tl_rtc_file_env_mode=http
+      - tl_rtc_file_db_open=true
+    command: 
+      - tlapi
     ports:
-    - 9092:9092
-    command: tlapi
+      - 9092:9092
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    volumes:
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
-  socket-https:
+  #http模式启动socket服务
+  socket-http:
+    profiles: ['http']
+    container_name: socket
+    image: iamtsm/tl-rtc-file-socket
+    command: 
+      - tlsocket
+    env_file:
+      - ./tlrtcfile.env
+    environment:
+      - tl_rtc_file_env_mode=http
+      - tl_rtc_file_db_open=true
+    ports:
+      - 8444:8444
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    volumes:
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+
+  #https模式启动socket服务
+  socket-htts:
     profiles: ['https']
     container_name: socket
     image: iamtsm/tl-rtc-file-socket
+    command: 
+      - tlsocket
     env_file:
-    - tlrtcfile.env
+      - ./tlrtcfile.env
     environment:
-    - tl_rtc_file_env_mode=https
+      - tl_rtc_file_env_mode=https
+      - tl_rtc_file_db_open=true
     ports:
-    - 8444:8444
-    command: tlsocket
+      - 8444:8444
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    volumes:
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+
+  #mysql服务
+  mysql:
+    profiles: ['http','https']
+    container_name: mysql
+    image: iamtsm/tl-rtc-file-mysql
+    restart: always
+    env_file:
+      - ./docker/mysql/mysql.env
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql/data/mysql.env:/tlrtcfile/docker/mysql/mysql.env
+      - ./docker/mysql/data/db:/var/lib/mysql
+      - ./docker/mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/mysql/data/log:/var/log/mysql
+      - ./docker/mysql/data/init.sql:/docker-entrypoint-initdb.d/init.sql

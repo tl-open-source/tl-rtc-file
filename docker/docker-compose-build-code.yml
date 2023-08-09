@@ -1,29 +1,58 @@
 ## build the image from the Dockerfile in the current directory
-## 1. 用于自己通过代码构建镜像
-## 2. 用于推送到官方dockerhub
+## 用于自己通过代码构建镜像并启动
 
 version: '3'
 services:
-  tl-rtc-file-api:
-    env_file:
-    - ../tlrtcfile.env
-    environment:
-      - tl_rtc_file_node_load_env=false
-    build: 
-      context: ../
-      dockerfile: docker/Dockerfile-build-code
-    ports:
-    - 9092:9092
-    command: tlapi
 
-  tl-rtc-file-socket:
-    env_file:
-    - ../tlrtcfile.env
-    environment:
-      - tl_rtc_file_node_load_env=false
+  api:
+    container_name: api
     build: 
-      context: ../
-      dockerfile: docker/Dockerfile-build-code
+      context: ./../
+      dockerfile: ./Dockerfile
+    env_file:
+      - ../tlrtcfile.env
+    command: 
+      - tlapi
     ports:
-    - 8444:8444
-    command: tlsocket
+      - 9092:9092
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    volumes:
+      - ../tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+
+  socket:
+    container_name: socket
+    build: 
+      context: ./../
+      dockerfile: ./Dockerfile
+    command: 
+      - tlsocket
+    env_file:
+      - ../tlrtcfile.env
+    ports:
+      - 8444:8444
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    volumes:
+      - ../tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+
+  mysql:
+    container_name: mysql
+    restart: always
+    env_file:
+      - ./mysql/mysql.env
+    build: 
+      context: ./mysql/
+      dockerfile: ./Dockerfile
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql/data/mysql.env:/tlrtcfile/docker/mysql/mysql.env
+      - ./mysql/data/db:/var/lib/mysql
+      - ./mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./mysql/data/log:/var/log/mysql
+      - ./mysql/data/init.sql:/docker-entrypoint-initdb.d/init.sql

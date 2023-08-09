@@ -97,7 +97,7 @@ https模式启动后，访问 https://你的机器ip:9092 即可
     ## 是否开启数据库
     tl_rtc_file_db_open=false
     ## 数据库地址
-    tl_rtc_file_db_mysql_host=
+    tl_rtc_file_db_mysql_host=mysql
     ## 数据库端口
     tl_rtc_file_db_mysql_port=3306
     ## 数据库名称
@@ -111,14 +111,13 @@ https模式启动后，访问 https://你的机器ip:9092 即可
 
 前提 : 需要开启数据库配置
 
-修改 `tlrtcfile.env` 中的管理后台相关配置即可
+修改 `tlrtcfile.env` 中的管理后台相关配置即可， 启动后，输入配置的房间号，输入密码，即可进入管理后台
 
     ## 管理后台房间号
     tl_rtc_file_manage_room=tlrtcfile
     ## 管理后台密码
     tl_rtc_file_manage_password=tlrtcfile
 
-访问 : http://localhost:9092 或者 http://本机ip:9092，输入配置的房间号，输入密码，即可进入管理后台
 
 ## 企微通知 (非必须步骤)
 
@@ -218,60 +217,47 @@ ubuntu示例:
 
 ## Docker
 
-### 使用官方镜像 : 
+目前支持 `官方镜像` 和 `自行打包镜像`，使用官方镜像目前支持两种操作方式 `docker脚本启动`，`docker-compose启动`
 
-以下只是最基础参数，更多参数可以参考 `tlrtcfile.env` 
+和自行在 `服务器/电脑部署` 不同的是，docke环境默认开启数据库，coturn服务，无须过多额外操作，启动即可用。
 
-    docker pull iamtsm/tl-rtc-file-api
+### 使用官方镜像(docker脚本启动) : 
 
-    docker run --name=api -p 9092:9092  -e "tl_rtc_file_env_mode=http" -d iamtsm/tl-rtc-file-api tlapi
+按需修改好 `tlrtcfile.env` 配置 (或使用默认配置也可) 后，进入 `bin/` 目录执行脚本 `auto-pull-and-start-docker.sh` 
 
-    docker pull iamtsm/tl-rtc-file-socket
+    1. chmod +x ./auto-pull-and-start-docker.sh
 
-    docker run --name=socket -p 8444:8444 -e "tl_rtc_file_env_mode=http" -d iamtsm/tl-rtc-file-socket tlsocket
+    2. ./auto-pull-and-start-docker.sh
 
-### 使用官方镜像(docker-compose) : 
+### 使用官方镜像(docker-compose启动) : 
 
-http模式启动镜像: `docker-compose --profile=http up -d`
+按需修改好 `tlrtcfile.env` 配置 (或使用默认配置也可) 后，在主目录执行
 
-https模式镜像: `docker-compose --profile=https up -d`
+    docker-compose --profile=http up -d
 
+### 自行打包启动镜像(docker-compose打包启动) : 
 
-### 打包自己的镜像(docker-compose) : 
+确认修改好 `tlrtcfile.env` 配置文件  (或使用默认配置也可) 后， 进入 `docker/` 目录后执行
 
-确认修改好 `tlrtcfile.env` 配置文件后， 进入docker目录后，两种模式选一种操作即可
-
-打包http模式镜像:
-    
-    docker-compose -f docker-compose-build-code.yml --profile=http build
-
-打包https模式镜像:
-
-    docker-compose -f docker-compose-build-code.yml --profile=https build
+    docker-compose -f docker-compose-build-code.yml up -d
 
 ## 其他形式部署 
 
 除了上面的手动安装，docker官方镜像，docker自己打包镜像之外，还支持自动脚本，托管平台一键部署等
 
-下载项目后，可以进入bin/目录，选择对应的系统脚本，直接执行即可
+下载项目后，可以进入 `bin/` 目录，选择对应的系统脚本，直接执行即可
 
-如果linux脚本没权限，可以先修改一下脚本的可执行权限 `chmod +x bin/linux/*.sh` 
+### ubuntu自动脚本
 
-### linux自动脚本
+    1. chmod +x ./ubuntu/*.sh
 
-选一种模式启动即可
+    2. cd ubuntu/
 
-- `auto-check-install-http.sh` : 自动检查安装node环境，并自动运行启动http模式服务
-
-- `auto-check-install-https.sh` : 自动检查安装node环境，并自动运行启动https模式服务
+    3. ./auto-check-install-http.sh 或者 ./auto-check-install-https.sh
 
 ### windows自动脚本
 
-选一种模式启动即可
-
-- `auto-check-install-http.bat` : 自动检查安装node环境，并自动运行启动http模式服务
-
-- `auto-check-install-https.bat` : 自动检查安装node环境，并自动运行启动https模式服务
+    windows/auto-check-install-http.bat 或者 windows/auto-check-install-https.bat 
 
 
 ### zeabur平台一键部署

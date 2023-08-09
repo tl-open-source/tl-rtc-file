@@ -1,4 +1,4 @@
-# tl-rtc-file-tool - Beyond File Transmission, Originating from It
+# tl-rtc-file-tool【From File Transfer, Beyond File Transfer】
 
 [![](https://img.shields.io/badge/webrtc-p2p-blue)](https://webrtc.org.cn/)
 [![](https://img.shields.io/badge/code-simple-green)](https://github.com/iamtsm/tl-rtc-file/)
@@ -7,7 +7,7 @@
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
 
 <p align="center">
-<a href="https://im.iamtsm.cn/file" target="_blank">Experience Here</a> ｜
+<a href="https://im.iamtsm.cn/file" target="_blank">Demo</a> ｜
 <a href="https://hub.docker.com/repositories/iamtsm" target="_blank">DockerHub</a> ｜
 <a href="https://github.com/tl-open-source/tl-rtc-file/blob/master/doc/README_EN.md" target="_blank">EN-DOC</a>
 </p>
@@ -20,102 +20,86 @@
 - [Introduction](#introduction)
 - [Advantages](#advantages)
 - [Extensions](#extensions)
-- [Preparation (Required Steps)](#preparation-required-steps)
-- [Configure Websocket (Required Steps)](#configure-websocket-required-steps)
-- [Startup (Required Steps)](#startup-required-steps)
-- [Configure Database (Optional Steps)](#configure-database-optional-steps)
-- [Admin Panel (Optional Steps)](#admin-panel-optional-steps)
-- [Enterprise WeChat Notification (Optional Steps)](#enterprise-wechat-notification-optional-steps)
-- [OSS Cloud Storage (Optional Steps)](#oss-cloud-storage-optional-steps)
-- [Chat-GPT (Optional Steps)](#chat-gpt-optional-steps)
-- [Configure Turnserver (Local Network - Optional Steps, Public Network - Required Steps)](#configure-turnserver-local-network-optional-steps-public-network-required-steps)
+- [Preparation (Mandatory Steps)](#preparation-mandatory-steps)
+- [Configure Websocket (Mandatory Steps)](#configure-websocket-mandatory-steps)
+- [Startup (Mandatory Steps)](#startup-mandatory-steps)
+- [Configure Database (Optional)](#configure-database-optional)
+- [Admin Panel (Optional)](#admin-panel-optional)
+- [Enterprise WeChat Notifications (Optional)](#enterprise-wechat-notifications-optional)
+- [OSS Cloud Storage (Optional)](#oss-cloud-storage-optional)
+- [Chat-GPT Integration (Optional)](#chat-gpt-integration-optional)
+- [Configure TURN Server (LAN-Optional, WAN-Mandatory)](#configure-turn-server-lan-optional-wan-mandatory)
 - [Docker](#docker)
 - [Other Deployment Methods](#other-deployment-methods)
 - [Overview Diagram](#overview-diagram)
 - [License](#license)
 - [Disclaimer](#disclaimer)
 
-#### Background: Consolidated from the Topic of the 20-year Graduation Project
+#### Background: Developed from the topic of 2020 graduation project
 
-#### Introduction: (tl webrtc datachannel filetools) Transferring files on the web using WebRTC, supporting transmission of large files.
+#### Introduction: (tl webrtc datachannel filetools) Transferring files through WebRTC on the web, supporting transfer of large files.
 
-#### Advantages: Chunked transmission, cross-platform, versatile usage, no speed restrictions on local networks (up to 70+ MB/s in LAN), supports private deployment, supports drag-and-drop sending of multiple files, web-based file preview.
+#### Advantages: Fragmented transfer, cross-platform, platform-independent, easy to use, no internal network speed limit (up to 70+ MB/s in LAN), supports private deployment, supports multi-file drag-and-drop sending, web file preview.
 
-#### Extensions: Many rich additional features have been added, such as local screen recording, remote screen sharing (no latency), remote audio and video calls (no latency), live streaming (no latency), password-protected rooms, OSS cloud storage, relay service configuration, WebRTC detection, WebRTC statistics, text transmission (group chat, private chat), public chat, remote whiteboard, AI chatbot, comprehensive backend management, real-time execution log display, robot alert notifications, and more.
+#### Extensions: Extended with many rich features, such as local screen recording, remote screen sharing (zero-latency), remote audio-video calling (zero-latency), live streaming (zero-latency), password-protected rooms, OSS cloud storage, relay service settings, WebRTC testing, WebRTC statistics, text messaging (group, private), public chat, remote whiteboard, AI chatbot, comprehensive admin dashboard, real-time execution log display, robot alert notifications, etc.
 
-## Preparation (Required Steps)
+## Preparation (Mandatory Steps)
 
-1. Install Node.js 14.21.x or above, and npm. Then, navigate to the project directory and run the following commands:
+1. Install Node.js 14.21.x or above and npm. Then navigate to the project directory and run the following command:
 
-    ```
+    ```bash
     cd svr/
     npm install
     ```
 
-2. For the first run or when developing your own pages, you can use either of the following commands:
+2. For the first run or self-developed pages, you can use one of the following commands:
 
+    ```bash
+    npm run build:dev   # If you need to develop or modify frontend pages
+    npm run build:pro   # If you don't need to develop or modify frontend pages
     ```
-    npm run build:dev  # Use this command if you need to develop/modify frontend pages
-    npm run build:pro  # Use this command if you don't need to develop/modify frontend pages
-    ```
 
-3. Modify the `http.env` and `https.env` configuration files.
+3. Modify the `tlrtcfile.env` configuration file.
 
-## Configure WebSocket (Required Steps)
+## Configure Websocket (Mandatory Steps)
 
-Modify the relevant WebSocket configuration in `http.env` and `https.env` files.
-
-`http.env`
+Modify the corresponding websocket configuration in `tlrtcfile.env`:
 
 ```ini
-## WebSocket server port
+## Websocket server port
 tl_rtc_file_ws_port=8444
 
-## WebSocket server address
+## Websocket server address
 ## "ws://domain or ip:port or domain:port"
-## For socket IP, use LAN IP/public IP. LAN IP can only be accessed within the LAN, public IP can be accessed from the internet
+## For socket ip, use LAN IP for LAN access and public IP for public access
 tl_rtc_file_ws_host=ws://127.0.0.1:8444
 ```
 
-`https.env`
+## Startup (Mandatory Steps)
+
+Start the following two services, choose either mode, the difference between them is that the HTTPS environment is required for audio-video functions, live streaming, and screen sharing, but it won't affect other functionalities.
+
+After starting in HTTP mode, access http://your_machine_ip:9092.
+
+API service: `npm run http-api`
+
+Socket service: `npm run http-socket`
+
+After starting in HTTPS mode, access https://your_machine_ip:9092.
+
+API service: `npm run https-api`
+
+Socket service: `npm run https-socket`
+
+## Configure Database (Optional)
+
+Modify the database-related configuration in `tlrtcfile.env`:
 
 ```ini
-## WebSocket server port
-tl_rtc_file_wss_port=8444
-
-## WebSocket server address
-## "wss://domain or ip:port or domain:port"
-## For socket IP, use LAN IP/public IP. LAN IP can only be accessed within the LAN, public IP can be accessed from the internet
-tl_rtc_file_wss_host=wss://127.0.0.1:8444
-```
-
-## Startup (Required Steps)
-
-Start the following two services; choose one mode to start. The only difference between the two modes is that the HTTPS environment allows the use of audio, video, live streaming, and screen sharing features, while the other functionalities remain unaffected.
-
-For HTTP mode, access http://your-machine-ip:9092.
-
-```
-API service: npm run http-api
-Socket service: npm run http-socket
-```
-
-For HTTPS mode, access https://your-machine-ip:9092.
-
-```
-API service: npm run https-api
-Socket service: npm run https-socket
-```
-
-## Configure Database (Non-Required Step)
-
-Modify the database-related configuration in `http.env` and `https.env`.
-
-```ini
-## Whether to enable the database
+## Enable database
 tl_rtc_file_db_open=false
 ## Database address
-tl_rtc_file_db_mysql_host=
+tl_rtc_file_db_mysql_host=mysql
 ## Database port
 tl_rtc_file_db_mysql_port=3306
 ## Database name
@@ -126,43 +110,43 @@ tl_rtc_file_db_mysql_user=tlrtcfile
 tl_rtc_file_db_mysql_password=tlrtcfile
 ```
 
-## Admin Dashboard (Non-Required Step)
+## Admin Panel (Optional)
 
-Prerequisite: Database configuration must be enabled.
+Prerequisite: Database configuration needs to be enabled.
 
-Modify the admin dashboard-related configuration in `http.env` and `https.env`.
+Modify the admin panel-related configuration in `tlrtcfile.env`. After starting, enter the configured room number and password to access the admin panel:
 
 ```ini
-## Admin dashboard room number
+## Admin panel room number
 tl_rtc_file_manage_room=tlrtcfile
-## Admin dashboard password
+## Admin panel password
 tl_rtc_file_manage_password=tlrtcfile
 ```
 
-Access: http://localhost:9092 or http://your-machine-ip:9092, enter the configured room number and password to access the admin dashboard.
+## Enterprise WeChat Notifications (Optional)
 
-## Enterprise WeChat Notifications (Non-Required Step)
-
-Modify the enterprise WeChat notification-related configuration in `http.env` and `https.env`.
+Modify the Enterprise WeChat notification-related configuration in `tlrtcfile.env`:
 
 ```ini
-# ## Enterprise WeChat notification switch
+## Enterprise WeChat notification switch
 tl_rtc_file_notify_open=false
-## Enterprise WeChat notification robot keys, normal notifications (comma-separated if multiple keys)
+## Enterprise WeChat notification robot key for normal notifications (comma-separated if multiple keys)
 tl_rtc_file_notify_qiwei_normal=
-## Enterprise WeChat notification robot keys, error notifications (comma-separated if multiple keys)
+## Enterprise WeChat notification robot key for error notifications (comma-separated if multiple keys)
 tl_rtc_file_notify_qiwei_error=
 ```
 
-## OSS Cloud Storage (Non-Required Step)
+## OSS Cloud Storage (Optional)
 
-Modify the OSS storage-related configuration in `http.env` and `https.env`.
+Modify the OSS storage-related configuration in `tlrtcfile.env`:
 
 ```ini
 ## oss-seafile storage repository ID
 tl_rtc_file_oss_seafile_repoid=
 ## oss-seafile address
-tl_rtc_file_oss_seafile_host=
+tl
+
+_rtc_file_oss_seafile_host=
 ## oss-seafile username
 tl_rtc_file_oss_seafile_username=
 ## oss-seafile password
@@ -182,9 +166,7 @@ tl_rtc_file_oss_txyun_Secretkey=
 ## oss-txyun storage bucket
 tl_rtc_file_oss_txyun_bucket=
 
-## oss-q
-
-iniuyun storage accessKey
+## oss-qiniuyun storage accessKey
 tl_rtc_file_oss_qiniuyun_AccessKey=
 ## oss-qiniuyun storage SecretKey
 tl_rtc_file_oss_qiniuyun_Secretkey==
@@ -192,122 +174,106 @@ tl_rtc_file_oss_qiniuyun_Secretkey==
 tl_rtc_file_oss_qiniuyun_bucket=
 ```
 
-## Chat-GPT (Non-Required Step)
+## Chat-GPT Integration (Optional)
 
-Modify the OpenAI-related configuration in `http.env` and `https.env`.
+Modify the OpenAI-related configuration in `tlrtcfile.env`:
 
 ```ini
-## OpenAI key(s), comma-separated if multiple keys
+## OpenAI keys (comma-separated if multiple keys)
 tl_rtc_file_openai_keys=
 ```
 
-## Configure TURN Server (Non-Required Step for LAN, Required Step for Public Network)
+## Configure TURN Server (LAN-Optional, WAN-Mandatory)
 
-Currently, there are two ways to generate credentials for using TURN service: fixed credentials (recommended) and credentials with expiration date. Choose one method.
+Currently, two ways are available to generate and use TURN service credentials: fixed credentials (recommended) and temporary credentials with expiration. **Choose one method**.
 
 Example for Ubuntu:
 
-Install Coturn: `sudo apt-get install coturn`
+Install coturn: `sudo apt-get install coturn`
 
-Valid credentials: `docker/coturn/turnserver-with-secret-user.conf`
+Fixed credentials: `docker/coturn/turnserver-with-secret-user.conf`
 
-1. Modify the fields `listening-device`, `listening-ip`, `external-ip`, `static-auth-secret`, and `realm`.
-2. Start TURN server: `turnserver -c /complete/path/to/conf/turn/turnserver-with-secret-user.conf`
+1. Modify fields like `listening-device`, `listening-ip`, `external-ip`, `static-auth-secret`, `realm`.
 
-Fixed credentials: `docker/coturn/turnserver-with-fixed-user.conf`
+2. Start TURN server:
+    
+   `turnserver -c /full/path/to/conf/turn/turnserver-with-secret-user.conf`
 
-1. Modify the fields `listening-device`, `listening-ip`, `external-ip`, `user`, and `realm`.
-2. Generate a user: `turnadmin -a -u username -p password -r realm`
-3. Start TURN server: `turnserver -c /complete/path/to/docker/coturn/turnserver-with-secret-user.conf`
+Temporary credentials: `docker/coturn/turnserver-with-fixed-user.conf`
 
-After deploying Coturn, set up WebRTC-related information in the corresponding `http.env` and `https.env` configurations.
+1. Modify fields like `listening-device`, `listening-ip`, `external-ip`, `user`, `realm`.
+
+2. Generate user credentials:
+    
+   `turnadmin -a -u username -p password -r realm`
+
+3. Start TURN server:
+    
+   `turnserver -c /full/path/to/docker/coturn/turnserver-with-secret-user.conf`
+
+After setting up coturn, configure WebRTC related information in `tlrtcfile.env`:
 
 ```ini
-## Webrtc-stun relay service address
+## webrtc-stun server address
 tl_rtc_file_webrtc_stun_host=
-## Webrtc-turn relay service address
+## webrtc-turn server address
 tl_rtc_file_webrtc_turn_host=
-## Webrtc relay service username
+## webrtc-turn server username
 tl_rtc_file_webrtc_turn_username=tlrtcfile
-## Webrtc relay service password
+## webrtc-turn server password
 tl_rtc_file_webrtc_turn_credential=tlrtcfile
-## Webrtc relay service Secret
+## webrtc-turn server secret
 tl_rtc_file_webrtc_turn_secret=tlrtcfile
-## Webrtc relay service account expiration time (milliseconds)
+## webrtc-turn server account expiration time (milliseconds)
 tl_rtc_file_webrtc_turn_expire=86400000
 ```
 
 ## Docker
 
-### Using Official Images:
+Both `official images` and `self-packaged images` are supported. Using official images allows for two modes of operation: `Docker script startup` and `Docker Compose startup`.
 
-The following are basic parameters; you can refer to `http.env` and `https.env` for more parameters.
+Different from deploying on a server/computer, the Docker environment by default starts the database and coturn service. No additional actions are needed, simply start it.
 
-Pull the API image:
+### Using Official Images (Docker Script Startup):
 
-```bash
-docker pull iamtsm/tl-rtc-file-api
+After modifying the `tlrtcfile.env` configuration (or using the default configuration), navigate to the `bin/` directory and run the script `auto-pull-and-start-docker.sh`:
 
-docker run --name=api -p 9092:9092 \
-    -e "tl_rtc_file_env_mode=http" \
-    -e "tl_rtc_file_ws_port=8444" \
-    -e "tl_rtc_file_ws_host=ws://127.0.0.1:8444" \
-    -d iamtsm/tl-rtc-file-api tlapi
-```
+1. `chmod +x ./auto-pull-and-start-docker.sh`
+2. `./auto-pull-and-start-docker.sh`
 
-Pull the Socket image:
+### Using Official Images (Docker Compose Startup):
+
+After modifying the `tlrtcfile.env` configuration (or using the default configuration), execute the following command in the main directory:
 
 ```bash
-docker pull iamtsm/tl-rtc-file-socket
-
-docker run --name=socket -p 8444:8444 \
-    -e "tl_rtc_file_env_mode=http" \
-    -e "tl_rtc_file_ws_port=8444" \
-    -e "tl_rtc_file_ws_host=ws://127.0.0.1:8444" \
-    -d iamtsm/tl-rtc-file-socket tlsocket
+docker-compose --profile=http up -d
 ```
 
-### Using Official Images (docker-compose):
+### Self-Packaged Image (Docker Compose Packaged Startup):
 
-Start the HTTP mode image: `docker-compose --profile=http up -d`
-
-Start the HTTPS mode image: `docker-compose --profile=https up -d`
-
-### Build Your Own Image (docker-compose):
-
-After configuring `http.env` and `https.env`, go to the `docker` directory, and choose one mode to execute:
-
-Build HTTP mode image:
+After modifying the `tlrtcfile.env` configuration (or using the default configuration), navigate to the `docker/` directory and execute:
 
 ```bash
-docker-compose -f docker-compose-build-code.yml --profile=http build
+docker-compose -f docker-compose-build-code.yml up -d
 ```
 
-Build HTTPS mode image:
+## Other Deployment Methods
+
+Apart from the manual installation, Docker official images, and self-packaged images, there are also options for automatic scripts and one-click deployment on hosting platforms.
+
+After downloading the project, navigate to the `bin/` directory and execute the corresponding system script:
+
+### ubuntu Auto Script
 
 ```bash
-docker-compose -f docker-compose-build-code.yml --profile=https build
+chmod +x ./ubuntu/*.sh
+cd ubuntu/
+./auto-check-install-http.sh  # or ./auto-check-install-https.sh
 ```
 
-## Other Deployment Methods:
+### Windows Auto Script
 
-In addition to the manual installation, using official Docker images, and building Docker images yourself, there are also automatic scripts and one-click deployment options on hosting platforms.
-
-After downloading the project, you can navigate to the `bin/` directory and execute the appropriate script for your system. If the Linux script lacks execution permissions, you can grant it by using the `chmod +x bin/linux/*.sh` command.
-
-### Linux Automatic Scripts
-
-Choose one mode to start:
-
-- `auto-check-install-http.sh`: Automatically check and install Node.js environment, then start HTTP mode service.
-- `auto-check-install-https.sh`: Automatically check and install Node.js environment, then start HTTPS mode service.
-
-### Windows Automatic Scripts
-
-Choose one mode to start:
-
-- `auto-check-install-http.bat`: Automatically check and install Node.js environment, then start HTTP mode service.
-- `auto-check-install-https.bat`: Automatically check and install Node.js environment, then start HTTPS mode service.
+Run `windows/auto-check-install-http.bat` or `windows/auto-check-install-https.bat`.
 
 ### Zeabur Platform One-Click Deployment
 
