@@ -2,53 +2,41 @@
 #########################
 # 一键推送dockerhub的脚本
 # @auther: iamtsm
-# @version: v1.0.0
+# @version: v1.1.0
 #########################
 
 ######################################## start ######################################
-build_version=latest
-hub_version=v10.3.4
+latest_version=latest
 
 ######################################## build ######################################
 ## build by docker-compose-build-code.yml
 docker-compose -f ../docker/docker-compose-build-code.yml build
 
 ######################################## tag ########################################
-# tag hub version
-docker tag docker-api:$build_version iamtsm/tl-rtc-file-api:$hub_version
-docker tag docker-socket:$build_version iamtsm/tl-rtc-file-socket:$hub_version
-docker tag docker-mysql:$build_version iamtsm/tl-rtc-file-mysql:$hub_version
-
 # tag latest version
-docker tag docker-api:$build_version iamtsm/tl-rtc-file-api:$build_version
-docker tag docker-socket:$build_version iamtsm/tl-rtc-file-socket:$build_version
-docker tag docker-mysql:$build_version iamtsm/tl-rtc-file-mysql:$build_version
+docker tag docker-api:$latest_version iamtsm/tl-rtc-file-api:$latest_version
+docker tag docker-socket:$latest_version iamtsm/tl-rtc-file-socket:$latest_version
+docker tag docker-mysql:$latest_version iamtsm/tl-rtc-file-mysql:$latest_version
+docker tag docker-coturn:$latest_version iamtsm/tl-rtc-file-coturn:$latest_version
 
 ######################################## push #######################################
-# push hub version
-docker push iamtsm/tl-rtc-file-api:$hub_version
-docker push iamtsm/tl-rtc-file-socket:$hub_version
-docker push iamtsm/tl-rtc-file-mysql:$hub_version
-
 # push latest version
-docker push iamtsm/tl-rtc-file-api:$build_version
-docker push iamtsm/tl-rtc-file-socket:$build_version
-docker push iamtsm/tl-rtc-file-mysql:$build_version
+docker push iamtsm/tl-rtc-file-api:$latest_version
+docker push iamtsm/tl-rtc-file-socket:$latest_version
+docker push iamtsm/tl-rtc-file-mysql:$latest_version
+docker push iamtsm/tl-rtc-file-coturn:$latest_version
 
 ######################################## del ########################################
 ## del build version
-docker rmi docker-api:$build_version
-docker rmi docker-socket:$build_version
-docker rmi docker-mysql:$build_version
+docker rmi docker-api:$latest_version
+docker rmi docker-socket:$latest_version
+docker rmi docker-mysql:$latest_version
+docker rmi docker-coturn:$latest_version
 
 # # del tag build version
-docker rmi iamtsm/tl-rtc-file-api:$build_version
-docker rmi iamtsm/tl-rtc-file-socket:$build_version
-docker rmi iamtsm/tl-rtc-file-mysql:$build_version
-
-# del tag hub version
-docker rmi iamtsm/tl-rtc-file-api:$hub_version
-docker rmi iamtsm/tl-rtc-file-socket:$hub_version
-docker rmi iamtsm/tl-rtc-file-mysql:$hub_version
+docker rmi iamtsm/tl-rtc-file-api:$latest_version
+docker rmi iamtsm/tl-rtc-file-socket:$latest_version
+docker rmi iamtsm/tl-rtc-file-mysql:$latest_version
+docker rmi iamtsm/tl-rtc-file-coturn:$latest_version
 
 ######################################## done #######################################

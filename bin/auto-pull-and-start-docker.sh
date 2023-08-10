@@ -2,7 +2,7 @@
 #########################
 # 提供一键部署docker的脚本
 # @auther: iamtsm
-# @version: v1.0.0
+# @version: v1.1.0
 #########################
 
 # 检查Docker是否启动
@@ -38,25 +38,33 @@ export tl_rtc_file_db_open=true
 docker pull iamtsm/tl-rtc-file-api
 docker pull iamtsm/tl-rtc-file-socket
 docker pull iamtsm/tl-rtc-file-mysql
+docker pull iamtsm/tl-rtc-file-coturn
 
 if docker images | grep -q "iamtsm/tl-rtc-file-api"; then
     echo "======> check image iamtsm/tl-rtc-file-api exists ok..."
 else
-    echo "======> Image $image_name does not exist. Exiting."
+    echo "======> Image iamtsm/tl-rtc-file-api does not exist. Exiting."
     exit 1
 fi
 
 if docker images | grep -q "iamtsm/tl-rtc-file-socket"; then
     echo "======> check image iamtsm/tl-rtc-file-socket exists ok..."
 else
-    echo "======> Image $image_name does not exist. Exiting."
+    echo "======> Image iamtsm/tl-rtc-file-socket does not exist. Exiting."
     exit 1
 fi
 
 if docker images | grep -q "iamtsm/tl-rtc-file-mysql"; then
     echo "======> check image iamtsm/tl-rtc-file-mysql exists ok..."
 else
-    echo "Image $image_name does not exist. Exiting."
+    echo "Image iamtsm/tl-rtc-file-mysql does not exist. Exiting."
+    exit 1
+fi
+
+if docker images | grep -q "iamtsm/tl-rtc-file-coturn"; then
+    echo "======> check image iamtsm/tl-rtc-file-coturn exists ok..."
+else
+    echo "Image iamtsm/tl-rtc-file-coturn does not exist. Exiting."
     exit 1
 fi
 
@@ -70,8 +78,21 @@ docker run \
   -e MYSQL_DATABASE=webchat \
   -e MYSQL_USER=tlrtcfile \
   -e MYSQL_PASSWORD=tlrtcfile \
+  -v ./../docker/mysql/data/mysql.env:/tlrtcfile/docker/mysql/mysql.env \
+  -v ./../docker/mysql/data/db:/var/lib/mysql \
+  -v ./../docker/mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf \
+  -v ./../docker/mysql/data/log:/var/log/mysql \
+  -v ./../docker/mysql/data/init.sql:/docker-entrypoint-initdb.d/init.sql \
   --restart=always \
   -d iamtsm/tl-rtc-file-mysql
+
+# 启动coturn容器
+docker run \
+  --name=coturn \
+  -p 3478:3478/udp \
+  -p 3478:3478/tcp \
+  -v ./../docker/coturn/turnserver-with-secret-user.conf:/etc/coturn/turnserver.conf \
+  -d iamtsm/tl-rtc-file-coturn
 
 # 启动api容器
 docker run \
@@ -111,6 +132,7 @@ docker run \
   -e tl_rtc_file_notify_open \
   -e tl_rtc_file_notify_qiwei_normal \
   -e tl_rtc_file_notify_qiwei_error \
+  -v ../tlrtcfile.env:/tlrtcfile/tlrtcfile.env \
   --link mysql \
   -d iamtsm/tl-rtc-file-api tlapi
 
@@ -152,5 +174,6 @@ docker run \
   -e tl_rtc_file_notify_open \
   -e tl_rtc_file_notify_qiwei_normal \
   -e tl_rtc_file_notify_qiwei_error \
+  -v ../tlrtcfile.env:/tlrtcfile/tlrtcfile.env \
   --link mysql \
   -d iamtsm/tl-rtc-file-socket tlsocket

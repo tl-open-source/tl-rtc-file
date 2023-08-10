@@ -1,5 +1,5 @@
 {
-	"version": "10.3.4",
+	"version": "10.3.5",
 	"ws": {
 		"port": "请到 http.env 或者 https.env中进行配置",
 		"host": "请到 http.env 或者 https.env中进行配置"

@@ -4,6 +4,7 @@
 version: '3'
 services:
 
+  #api服务
   api:
     container_name: api
     build: 
@@ -19,9 +20,11 @@ services:
       - mysql
     depends_on:
       - mysql
+      - coturn
     volumes:
       - ../tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
+  #socket服务
   socket:
     container_name: socket
     build: 
@@ -37,9 +40,11 @@ services:
       - mysql
     depends_on:
       - mysql
+      - coturn
     volumes:
       - ../tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
+  #mysql服务
   mysql:
     container_name: mysql
     restart: always
@@ -56,3 +61,17 @@ services:
       - ./mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf
       - ./mysql/data/log:/var/log/mysql
       - ./mysql/data/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  #coturn服务
+  coturn:
+    container_name: coturn
+    env_file:
+      - ./coturn/coturn.env
+    build: 
+      context: ./coturn/
+      dockerfile: ./Dockerfile
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+    volumes:
+      - ./coturn/turnserver-with-secret-user.conf:/etc/turnserver.conf

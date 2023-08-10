@@ -1,0 +1,7 @@
+.git
+
+svr/node_modules/
+
+client/packages/rtc-web/
+
+docker/mysql/data/
