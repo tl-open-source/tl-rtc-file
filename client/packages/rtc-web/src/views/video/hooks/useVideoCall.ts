@@ -1,102 +1,174 @@
 import { useUserMedia, useDevicesList } from '@vueuse/core';
-import { Ref, computed, nextTick, onMounted, ref, watchEffect } from 'vue';
+import { Ref, computed, ref, shallowRef, watch, watchEffect } from 'vue';
 
 export type VideoShareOption = {
-  audio: Ref<MediaDeviceInfo | undefined>;
+  audio?: Ref<MediaDeviceInfo | undefined>;
+  speaker?: Ref<string>;
 };
 
-export const useVideoShare = (option: VideoShareOption) => {
-  const { audio: audioRef } = option;
+export const useVideoShare = (option: VideoShareOption = {}) => {
   const currentCamera = ref<string>();
+  const currentAudioInput = ref<string>();
+  const currentAudioOutput = ref<string>();
 
-  const { videoInputs: cameras } = useDevicesList({
+  const audioRef = ref(option.audio);
+  const speakerRef = ref(option.speaker);
+
+  const mediaLoaded = ref(false);
+
+  // 切换 麦克风
+  watch(
+    audioRef,
+    (value) => {
+      currentAudioInput.value = value?.deviceId;
+    },
+    {
+      immediate: true,
+    }
+  );
+
+  // 切换 扬声器
+  watch(
+    speakerRef,
+    (value) => {
+      currentAudioOutput.value = value;
+    },
+    {
+      immediate: true,
+    }
+  );
+
+  watch(currentAudioOutput, (v) => {
+    if (v) {
+      setSinkId(v);
+    }
+  });
+
+  // 收集的错误信息
+  // const errorMsg = ref({
+  //   audio: '',
+  // });
+
+  const {
+    videoInputs: cameras,
+    audioInputs,
+    audioOutputs,
+  } = useDevicesList({
     requestPermissions: true,
     onUpdated() {
+      // 初始化默认 摄像头、扬声器、麦克风
+
       if (!cameras.value.find((i) => i.deviceId === currentCamera.value))
         currentCamera.value = cameras.value[0]?.deviceId;
+
+      if (
+        !audioInputs.value.find((i) => i.deviceId === currentAudioInput.value)
+      )
+        currentAudioInput.value = audioInputs.value[0]?.deviceId;
+
+      if (
+        !audioOutputs.value.find((i) => i.deviceId === currentAudioOutput.value)
+      ) {
+        currentAudioOutput.value = audioOutputs.value[0]?.deviceId;
+      }
     },
   });
 
-  const video = ref<HTMLVideoElement>();
+  const video = shallowRef<HTMLVideoElement>();
 
-  const switchTrackEnable = (type: 'video' | 'audio', flag: boolean) => {
-    if (stream.value) {
-      if (type === 'audio') {
-        const audioStream = stream.value.getAudioTracks();
-        if (audioStream?.length) {
-          audioStream[0].enabled = flag;
-        }
-      }
-      if (type === 'video') {
-        const videoStream = stream.value.getVideoTracks();
-        if (videoStream?.length) {
-          videoStream[0].enabled = flag;
-        }
-      }
-    }
-  };
+  const constraints = computed(() => {
+    const audioDevice = currentAudioInput.value
+      ? { deviceId: currentAudioInput.value }
+      : false;
 
-  const audioEnabled = computed(() => {
-    return stream.value?.getAudioTracks()[0].enabled;
-  });
-
-  const videoEnabled = computed(() => {
-    return stream.value?.getVideoTracks()[0].enabled;
-  });
-
-  const audioDevice = computed(() => {
-    return audioRef.value ? { deviceId: audioRef.value.deviceId } : true;
-  });
-
-  const stop = () => {
-    enabled.value = false;
-  };
-
-  const { stream, enabled } = useUserMedia({
-    constraints: computed(() => {
-      return {
-        audio: audioDevice.value,
-        video: {
-          deviceId: currentCamera.value, // 前后置
+    const videoDevice = currentCamera.value
+      ? {
+          deviceId: currentCamera.value,
           facingMode: 'user',
-          // 码率
           frameRate: {
             ideal: 30,
             max: 60,
           },
-        },
-      };
-    }),
+        }
+      : false;
+    return {
+      audio: audioDevice,
+      video: videoDevice,
+    };
   });
+
+  const { stream, enabled, stop, restart } = useUserMedia({
+    constraints,
+  });
+
+  const audioTracks = ref<MediaStreamTrack[]>([]);
+  const videoTracks = ref<MediaStreamTrack[]>([]);
+
+  const audioEnabled = ref(false);
+  const videoEnabled = ref(false);
+
+  // 切换 video、audio 渲染
+  const switchTrackEnable = (type: 'video' | 'audio', flag: boolean) => {
+    if (stream.value) {
+      if (type === 'audio') {
+        if (audioTracks.value?.length) {
+          audioEnabled.value = flag;
+          audioTracks.value.forEach((item) => (item.enabled = flag));
+        }
+      }
+      if (type === 'video') {
+        if (videoTracks.value?.length) {
+          videoEnabled.value = flag;
+          videoTracks.value.forEach((item) => {
+            item.enabled = flag;
+          });
+        }
+      }
+    }
+  };
 
   const setSinkId = (sinkId: string) => {
     (video.value! as any).setSinkId(sinkId);
   };
 
-  watchEffect(() => {
-    if (video.value) {
-      video.value.srcObject = stream.value!;
-      switchTrackEnable('audio', false);
-      switchTrackEnable('video', false);
+  // 先静音和关闭视频渲染
+  watch(stream, (v) => {
+    if (v) {
+      if (video.value) {
+        video.value.srcObject = stream.value!;
+        if (stream.value) {
+          audioTracks.value = stream.value.getAudioTracks();
+          videoTracks.value = stream.value.getVideoTracks();
+        }
+        switchTrackEnable('audio', false);
+        switchTrackEnable('video', false);
+        mediaLoaded.value = true;
+      }
     }
   });
 
-  watchEffect(() => {
-    if (cameras.value.length) {
-      currentCamera.value = cameras.value[0].deviceId;
+  // 进入页面先连接
+  const watchEnableStop = watchEffect(() => {
+    if (
+      currentAudioInput.value &&
+      currentCamera.value &&
+      currentAudioOutput.value
+    ) {
+      enabled.value = true;
+      watchEnableStop();
     }
-  });
-
-  onMounted(() => {
-    enabled.value = true;
   });
 
   return {
     video,
     setSinkId,
     switchTrackEnable,
+    restart,
     stop,
     audioEnabled,
     videoEnabled,
+    mediaLoaded,
+    currentAudioInput,
+    currentAudioOutput,
   };
 };

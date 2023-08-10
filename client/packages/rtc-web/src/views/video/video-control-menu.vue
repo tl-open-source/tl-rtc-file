@@ -8,10 +8,26 @@ import { useRouter } from 'vue-router';
 import { useDevicesList } from '@vueuse/core';
 import SelectList from '@/components/list/select-list.vue';
 import { Dropdown } from '@/components/base';
-import { watchEffect } from 'vue';
+import { PropType } from 'vue';
+import { computed } from 'vue';
 
 defineOptions({
   name: 'VideoControlMenu',
+});
+
+const props = defineProps({
+  activeControlMenu: {
+    type: Array as PropType<string[]>,
+    default: () => [],
+  },
+  menuDisabled: {
+    type: Boolean as PropType<boolean>,
+    default: false,
+  },
+  selectDevice: {
+    type: Object as PropType<Record<'audioInput' | 'audioOutput', string>>,
+    default: () => ({ audioInput: '', audioOutput: '' }),
+  },
 });
 
 const router = useRouter();
@@ -19,7 +35,13 @@ const modalVisible = ref(false);
 
 const emits = defineEmits(['controlMenuChange', 'selectDevice']);
 
-const menuAction = ref(VideoControlMenuAction);
+const menuAction = computed(() => {
+  return VideoControlMenuAction.map((item) => ({
+    ...item,
+    disabled: props.menuDisabled,
+    color: props.activeControlMenu.includes(item.name) ? '#2F54EB' : undefined,
+  }));
+});
 
 const activeMenu = ref<Set<string>>(new Set());
 
@@ -27,60 +49,13 @@ const { audioInputs, audioOutputs } = useDevicesList();
 
 const audioDropDownVisible = ref(false);
 
-const audioDeviceRef = ref<MediaDeviceInfo[]>([]);
-
-// 麦克风
-const inputStop = watchEffect(() => {
-  if (audioInputs.value.length) {
-    const findDefault = audioInputs.value.find(
-      (item) => item.deviceId === 'default'
-    );
-    if (findDefault) {
-      selectedAudioDevice(findDefault);
-      inputStop();
-    }
-  }
-});
-
-// 扬声器
-const outputStop = watchEffect(() => {
-  if (audioOutputs.value.length) {
-    const findDefault = audioOutputs.value.find(
-      (item) => item.deviceId === 'default'
-    );
-    if (findDefault) {
-      selectedAudioDevice(findDefault);
-      outputStop();
-    }
-  }
-});
-
 const selectedAudioDevice = (device: MediaDeviceInfo) => {
-  if (device.kind === 'audioinput') audioDeviceRef.value[0] = device;
-  if (device.kind === 'audiooutput') audioDeviceRef.value[1] = device;
   emits('selectDevice', device);
   audioDropDownVisible.value = false;
 };
 
-const useActiveMenu = (name: string) => {
-  if (activeMenu.value.has(name)) {
-    activeMenu.value.delete(name);
-  } else {
-    activeMenu.value.add(name);
-  }
-  emits('controlMenuChange', Array.from(activeMenu.value));
-};
-
 const handleClickIcon = (name: string) => {
-  useActiveMenu(name);
-  const menuItem = menuAction.value.find((item) => item.name === name);
-  if (activeMenu.value.has(menuItem?.name || '')) {
-    menuItem!.color = '#2F54EB';
-  } else {
-    menuItem!.color = '#707070';
-  }
-
-  modalVisible.value = activeMenu.value.has('hang-up');
+  emits('controlMenuChange', name);
 };
 
 const confirmExit = () => {
@@ -101,10 +76,16 @@ const closeModal = () => {
 <template>
   <div class="video-control-menu ml-[50%] flex translate-x-[-50%]">
     <div class="control-camera flex">
-      <button class="btn-circle btn" @click="useActiveMenu('audio')">
+      <button
+        class="btn-circle btn"
+        :disabled="menuDisabled"
+        @click="handleClickIcon('audio')"
+      >
         <svg-icon
           name="audio"
-          :color="activeMenu.has('audio') ? '#2F54EB' : '#707070'"
+          :color="
+            props.activeControlMenu.includes('audio') ? '#2F54EB' : '#707070'
+          "
           class="h-6 w-6"
         />
       </button>
@@ -125,7 +106,7 @@ const closeModal = () => {
               <template #default="{ item }">
                 <div
                   :class="[
-                    audioDeviceRef[0].deviceId === item.deviceId
+                    props.selectDevice.audioInput === item.deviceId
                       ? 'text-[#2F54EB]'
                       : '',
                   ]"
@@ -142,7 +123,7 @@ const closeModal = () => {
               <template #default="{ item }">
                 <div
                   :class="[
-                    audioDeviceRef[1].deviceId === item.deviceId
+                    props.selectDevice.audioOutput === item.deviceId
                       ? 'text-[#2F54EB]'
                       : '',
                   ]"

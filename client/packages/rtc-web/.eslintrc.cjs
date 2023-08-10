@@ -18,7 +18,7 @@ module.exports = {
   },
   plugins: ['vue', '@typescript-eslint', 'prettier'],
   rules: {
-    indent: ['error', 2],
+    indent: ['error', 2, { offsetTernaryExpressions: true }],
     semi: ['error', 'always'],
     'vue/attribute-hyphenation': 'off',
     '@typescript-eslint/no-explicit-any': 'off',

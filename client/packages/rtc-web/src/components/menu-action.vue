@@ -12,6 +12,7 @@ type PropTypes = {
     color?: string;
     tipDir?: string;
     btn?: boolean;
+    disabled?: boolean;
   }[];
   gap?: number;
 };
@@ -50,12 +51,16 @@ const handleClick = (name: string) => emits('clickIcon', name);
           @click="handleClick(item.name)"
         />
       </emoji-picker>
-      <button v-else-if="item.btn" class="btn-circle btn">
+      <button
+        v-else-if="item.btn"
+        class="btn-circle btn"
+        :disabled="item.disabled"
+        @click="handleClick(item.name)"
+      >
         <svg-icon
           :color="item.color"
           :name="item.name"
           class="h-6 w-6 cursor-pointer"
-          @click="handleClick(item.name)"
         />
       </button>
       <svg-icon

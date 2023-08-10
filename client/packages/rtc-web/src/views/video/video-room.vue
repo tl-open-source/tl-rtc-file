@@ -3,6 +3,8 @@ import { useSwitchSiderbar, useSwitchMember } from '@/hooks';
 import { onMounted, ref } from 'vue';
 import { useVideoShare } from './hooks/useVideoCall';
 import VideoControl from './video-control.vue';
+import { computed } from 'vue';
+import { watchEffect } from 'vue';
 
 defineOptions({
   name: 'VideoRoom',
@@ -12,20 +14,47 @@ const { showSiderbar } = useSwitchSiderbar();
 const { open } = useSwitchMember();
 
 const audioInputDevice = ref<MediaDeviceInfo | undefined>();
+const speakerRef = ref('');
 
-const { video, setSinkId, switchTrackEnable } = useVideoShare({
+const {
+  video,
+  switchTrackEnable,
+  videoEnabled,
+  audioEnabled,
+  mediaLoaded,
+  currentAudioInput,
+  currentAudioOutput,
+} = useVideoShare({
   audio: audioInputDevice,
+  speaker: speakerRef,
+});
+
+const selectDevice = computed(() => ({
+  audioInput: currentAudioInput.value,
+  audioOutput: currentAudioOutput.value,
+}));
+
+watchEffect(() => {
+  console.log(videoEnabled.value);
+});
+
+const activeControlMenu = computed<string[]>(() => {
+  const arr = [];
+  if (videoEnabled.value) arr.push('camera');
+  if (audioEnabled.value) arr.push('audio');
+  return arr;
 });
 
 onMounted(() => {
   showSiderbar.value = 0;
 });
 
-const handleMenuChange = (active: string[]) => {
-  const hasVideo = active.includes('camera');
-  const hasAudio = active.includes('audio');
-  switchTrackEnable('audio', hasAudio);
-  switchTrackEnable('video', hasVideo);
+const handleMenuChange = (active: string) => {
+  if (active === 'camera' || active === 'audio') {
+    const enabled =
+      active === 'camera' ? videoEnabled.value : audioEnabled.value;
+    switchTrackEnable(active === 'camera' ? 'video' : 'audio', !enabled);
+  }
 };
 
 const deviceChange = (device: MediaDeviceInfo) => {
@@ -34,7 +63,7 @@ const deviceChange = (device: MediaDeviceInfo) => {
   }
 
   if (device.kind === 'audiooutput') {
-    setSinkId(device.deviceId);
+    speakerRef.value = device.deviceId;
   }
 };
 </script>
@@ -51,6 +80,9 @@ const deviceChange = (device: MediaDeviceInfo) => {
         autoplay
       ></video>
       <VideoControl
+        :selectDevice="selectDevice"
+        :menuDisabled="!mediaLoaded"
+        :activeControlMenu="activeControlMenu"
         @control-menu-change="handleMenuChange"
         @select-device="deviceChange"
       />

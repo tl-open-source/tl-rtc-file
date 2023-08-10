@@ -4,6 +4,7 @@ export type MenuActionType = {
   color?: string;
   tipDir?: string;
   btn?: boolean;
+  disabled?: boolean;
 };
 
 export const ChatAction: MenuActionType[] = [
@@ -31,6 +32,7 @@ export const VideoControlMenuAction: MenuActionType[] = [
     color: '#707070',
     tipDir: 'tooltip-top',
     btn: true,
+    disabled: false,
   },
   {
     name: 'mirror-image',
@@ -38,6 +40,7 @@ export const VideoControlMenuAction: MenuActionType[] = [
     color: '#707070',
     tipDir: 'tooltip-top',
     btn: true,
+    disabled: false,
   },
   {
     name: 'hang-up',
@@ -45,5 +48,6 @@ export const VideoControlMenuAction: MenuActionType[] = [
     color: undefined,
     tipDir: 'tooltip-top',
     btn: true,
+    disabled: false,
   },
 ];
