@@ -74,7 +74,11 @@ const deviceChange = (device: MediaDeviceInfo) => {
       <video
         id="video-call"
         ref="video"
-        class="flex-1"
+        style="
+          height: calc(100% - 80px);
+          width: 100%;
+          background-color: #1f1f1f;
+        "
         playsinline
         controls
         autoplay

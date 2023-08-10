@@ -1,5 +1,13 @@
 import { useUserMedia, useDevicesList } from '@vueuse/core';
-import { Ref, computed, ref, shallowRef, watch, watchEffect } from 'vue';
+import {
+  Ref,
+  computed,
+  onBeforeUnmount,
+  ref,
+  shallowRef,
+  watch,
+  watchEffect,
+} from 'vue';
 
 export type VideoShareOption = {
   audio?: Ref<MediaDeviceInfo | undefined>;
@@ -89,6 +97,8 @@ export const useVideoShare = (option: VideoShareOption = {}) => {
             ideal: 30,
             max: 60,
           },
+          width: { ideal: 1920 },
+          height: { ideal: 1280 },
         }
       : false;
     return {
@@ -140,8 +150,12 @@ export const useVideoShare = (option: VideoShareOption = {}) => {
           audioTracks.value = stream.value.getAudioTracks();
           videoTracks.value = stream.value.getVideoTracks();
         }
-        switchTrackEnable('audio', false);
-        switchTrackEnable('video', false);
+        if (!videoEnabled.value) {
+          switchTrackEnable('video', false);
+        }
+        if (!audioEnabled.value) {
+          switchTrackEnable('audio', false);
+        }
         mediaLoaded.value = true;
       }
     }
@@ -157,6 +171,10 @@ export const useVideoShare = (option: VideoShareOption = {}) => {
       enabled.value = true;
       watchEnableStop();
     }
+  });
+
+  onBeforeUnmount(() => {
+    stop();
   });
 
   return {

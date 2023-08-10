@@ -1,21 +1,19 @@
 <script lang="ts" setup>
 import { useRoomConnect, useCreateRoom } from '@/hooks/useRoom';
-import { useRouter } from 'vue-router';
 import { BackPreviousLevel, BackTitle } from '@/components/back';
 import VideoRoom from './video-room.vue';
 import { useNow, useDateFormat } from '@vueuse/core';
+import { resetUrl } from '@/utils';
 
 defineOptions({
   name: 'VideoView',
 });
 
-const router = useRouter();
-
 const { roomId } = useCreateRoom();
 
 useRoomConnect();
 
-const handleBackLevel = () => router.replace('/');
+const handleBackLevel = () => resetUrl();
 
 const formatted = useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss');
 </script>
