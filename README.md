@@ -47,16 +47,14 @@
 ## 准备 (必须步骤)
 
 1.安装node-14.21.x或14.21.x以上，npm后，进入项目目录运行下面命令
-
-    `cd svr/`
-
-    `npm install`
-
+```
+cd svr/
+npm install
+```
 2.首次运行/自行开发页面，用下面两个命令之一即可
 
-    `npm run build:dev`  (如果你需要自己开发/修改前端页面，用这个命令)
-
-    `npm run build:pro`  (不需要开发/修改前端页面，用这个命令)
+`npm run build:dev`  (如果你需要自己开发/修改前端页面，用这个命令)  
+`npm run build:pro`  (不需要开发/修改前端页面，用这个命令)
 
 3.修改 `tlrtcfile.env` 配置文件
 
@@ -79,15 +77,13 @@
 
 http模式启动后，访问 http://你的机器ip:9092 即可
 
-    api服务: `npm run http-api`
-
-    socket服务 : `npm run http-socket`
+- api服务: `npm run http-api`
+- socket服务 : `npm run http-socket`
 
 https模式启动后，访问 https://你的机器ip:9092 即可
 
-    api服务: `npm run https-api`
-
-    socket服务 : `npm run https-socket`
+- api服务: `npm run https-api`
+- socket服务 : `npm run https-socket`
 
 
 ## 配置数据库 (非必须步骤)
@@ -177,26 +173,20 @@ https模式启动后，访问 https://你的机器ip:9092 即可
 
 ubuntu示例:
 
-    安装coturn  `sudo apt-get install coturn`
+- 安装coturn  `sudo apt-get install coturn`
 
 有效帐号密码 : `docker/coturn/turnserver-with-secret-user.conf`
 
-    1. 修改 `listening-device`, `listening-ip`, `external-ip`, `static-auth-secret`, `realm` 几个字段即可
-
-    2. 启动turnserver 
-    
+1. 修改 `listening-device`, `listening-ip`, `external-ip`, `static-auth-secret`, `realm` 几个字段即可
+2. 启动turnserver 
     `turnserver -c  /这个地方路径填完整/conf/turn/turnserver-with-secret-user.conf`
 
 固定帐号密码 : `docker/coturn/turnserver-with-fixed-user.conf`
 
-    1. 修改 `listening-device`, `listening-ip`, `external-ip`, `user`, `realm` 几个字段即可
-
-    2. 生成用户 
-    
+1. 修改 `listening-device`, `listening-ip`, `external-ip`, `user`, `realm` 几个字段即可
+2. 生成用户 
     `turnadmin -a -u 帐号 -p 密码 -r 这个地方填配置文件中的relam`
-
-    3. 启动turnserver  
-    
+3. 启动turnserver  
     `turnserver -c  /这个地方路径填完整/docker/coturn/turnserver-with-secret-user.conf`
 
 部署好coturn后，在对应的 `tlrtcfile.env` 配置中设置好webrtc相关信息即可
@@ -225,21 +215,38 @@ ubuntu示例:
 
 按需修改好 `tlrtcfile.env` 配置 (或使用默认配置也可) 后，进入 `bin/` 目录执行脚本 `auto-pull-and-start-docker.sh` 
 
-    1. chmod +x ./auto-pull-and-start-docker.sh
-
-    2. ./auto-pull-and-start-docker.sh
+```
+chmod +x ./auto-pull-and-start-docker.sh
+./auto-pull-and-start-docker.sh
+```
 
 ### 使用官方镜像(docker-compose启动) : 
 
-按需修改好 `tlrtcfile.env` 配置 (或使用默认配置也可) 后，在主目录执行
+按需修改好 `tlrtcfile.env` 配置 (或使用默认配置也可) 后，根据你的`Docker Compose`版本在主目录执行如下对应的命令
 
-    docker-compose --profile=http up -d
+- 对于`Docker Compose V1`
+```
+docker-compose --profile=http up -d
+```
+    
+- 对于`Docker Compose V2`
+```
+docker compose --profile=http up -d
+```
 
 ### 自行打包启动镜像(docker-compose打包启动) : 
 
-确认修改好 `tlrtcfile.env` 配置文件  (或使用默认配置也可) 后， 进入 `docker/` 目录后执行
+确认修改好 `tlrtcfile.env` 配置文件  (或使用默认配置也可) 后， 进入 `docker/` 目录后根据你的`Docker Compose`版本在主目录执行如下对应的命令
 
-    docker-compose -f docker-compose-build-code.yml up -d
+- 对于`Docker Compose V1`
+```
+docker-compose -f docker-compose-build-code.yml up -d
+```
+    
+- 对于`Docker Compose V2`
+```
+docker compose -f docker-compose-build-code.yml up -d
+```
 
 ## 其他形式部署 
 
@@ -249,16 +256,25 @@ ubuntu示例:
 
 ### ubuntu自动脚本
 
-    1. chmod +x ./ubuntu/*.sh
-
-    2. cd ubuntu/
-
-    3. ./auto-check-install-http.sh 或者 ./auto-check-install-https.sh
+```
+chmod +x ./ubuntu/*.sh
+cd ubuntu/
+./auto-check-install-http.sh
+```
+使用https方式则是执行这个脚本
+```
+./auto-check-install-https.sh
+```
 
 ### windows自动脚本
 
-    windows/auto-check-install-http.bat 或者 windows/auto-check-install-https.bat 
-
+```
+windows/auto-check-install-http.bat
+```
+或者使用https方式则是执行这个脚本
+```
+windows/auto-check-install-https.bat
+```
 
 ### zeabur平台一键部署
 
