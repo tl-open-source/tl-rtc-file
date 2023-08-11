@@ -101,7 +101,7 @@ docker run \
   -e "tl_rtc_file_env_mode=http" \
   -e tl_rtc_file_api_port \
   -e tl_rtc_file_ws_port \
-  -e tl_rtc_file_ws_host \
+  -e tl_rtc_file_socket_host \
   -e tl_rtc_file_webrtc_stun_host \
   -e tl_rtc_file_webrtc_turn_host \
   -e tl_rtc_file_webrtc_turn_username \
@@ -143,7 +143,7 @@ docker run \
   -e "tl_rtc_file_env_mode=http" \
   -e tl_rtc_file_api_port \
   -e tl_rtc_file_ws_port \
-  -e tl_rtc_file_ws_host \
+  -e tl_rtc_file_socket_host \
   -e tl_rtc_file_webrtc_stun_host \
   -e tl_rtc_file_webrtc_turn_host \
   -e tl_rtc_file_webrtc_turn_username \

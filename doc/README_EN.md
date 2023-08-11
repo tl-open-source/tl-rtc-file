@@ -72,7 +72,7 @@ tl_rtc_file_ws_port=8444
 ## Websocket server address
 ## "ws://domain or ip:port or domain:port"
 ## For socket ip, use LAN IP for LAN access and public IP for public access
-tl_rtc_file_ws_host=ws://127.0.0.1:8444
+tl_rtc_file_socket_host=ws://127.0.0.1:8444
 ```
 
 ## Startup (Mandatory Steps)

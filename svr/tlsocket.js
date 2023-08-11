@@ -19,14 +19,14 @@ async function start(){
     let io = null;
 
     if(process.env.tl_rtc_file_env_mode == 'http'){
-        io = socketIO.listen(http.createServer().listen(conf.ws.port));
+        io = socketIO.listen(http.createServer().listen(conf.socket.port));
     }else{
         let options = {
             key: fs.readFileSync('./conf/keys/server.key'),
             cert: fs.readFileSync('./conf/keys/server.crt')
         }
         io = socketIO.listen(
-            https.createServer(options).listen(conf.ws.port)
+            https.createServer(options).listen(conf.socket.port)
         );
     }
 
@@ -40,7 +40,7 @@ async function start(){
     }
 
     utils.tlConsole("socket init done ...")
-    utils.tlConsole("socket ",process.env.tl_rtc_file_env_mode," server listen on ", conf.ws.port, " successful");
+    utils.tlConsole("socket ",process.env.tl_rtc_file_env_mode," server listen on ", conf.socket.port, " successful");
 }
 
 

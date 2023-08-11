@@ -67,7 +67,7 @@ npm install
 
     ## websocket服务地址
     ## "ws://域名 或者 ws://ip:端口 或者 ws://域名:端口"
-    tl_rtc_file_ws_host=ws://127.0.0.1:8444
+    tl_rtc_file_socket_host=ws://127.0.0.1:8444
 
 
 ## 启动 (必须步骤)

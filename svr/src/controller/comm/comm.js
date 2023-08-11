@@ -30,7 +30,7 @@ function initData(req, res) {
 
 		let data = {
 			version : conf.version,
-			wsHost: conf.ws.host || ip,
+			wsHost: conf.socket.host || ip,
 			rtcConfig: { iceServers },
 			options: webrtcConf.options,
 			logo : utils.genClientLogo(),
@@ -41,7 +41,7 @@ function initData(req, res) {
 
 		let data = {
 			version : conf.version,
-			wsHost: conf.ws.host,
+			wsHost: conf.socket.host,
 			rtcConfig: { iceServers },
 			options: webrtcConf.options,
 			logo : utils.genClientLogo(),

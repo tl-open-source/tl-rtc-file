@@ -2,7 +2,7 @@
 #########################
 # 一键推送dockerhub的脚本
 # @auther: iamtsm
-# @version: v1.1.0
+# @version: v1.2.0
 #########################
 
 build_and_push_image() {
