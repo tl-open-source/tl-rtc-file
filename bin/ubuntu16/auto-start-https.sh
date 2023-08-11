@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd ../../svr/
-
 pm2 start npm --name=tl-rtc-file-api -- run https-api
 
 sleep 1
