@@ -1,11 +1,11 @@
 {
 	"version": "10.3.6",
 	"ws": {
-		"port": "请到 http.env 或者 https.env中进行配置",
-		"host": "请到 http.env 或者 https.env中进行配置"
+		"port": "请到 tlrtcfile.env 中进行配置",
+		"host": "请到 tlrtcfile.env 中进行配置"
 	},
 	"api": {
-		"port": "请到 http.env 或者 https.env中进行配置",
+		"port": "请到 tlrtcfile.env 中进行配置",
 		"router": {
 			"filter": {
 				"whiteDir": [],
@@ -19,19 +19,19 @@
 		}
 	},
 	"manage": {
-		"room": "请到 http.env 或者 https.env中进行配置",
-		"password": "请到 http.env 或者 https.env中进行配置"
+		"room": "请到 tlrtcfile.env 中进行配置",
+		"password": "请到 tlrtcfile.env 中进行配置"
 	},
 	"webrtc": {
 		"turn": {
-			"host": "请到 http.env 或者 https.env中进行配置",
-			"secret": "请到 http.env 或者 https.env中进行配置",
-			"username": "请到 http.env 或者 https.env中进行配置",
-			"credential": "请到 http.env 或者 https.env中进行配置",
-			"expire" : "请到 http.env 或者 https.env中进行配置"
+			"host": "请到 tlrtcfile.env 中进行配置",
+			"secret": "请到 tlrtcfile.env 中进行配置",
+			"username": "请到 tlrtcfile.env 中进行配置",
+			"credential": "请到 tlrtcfile.env 中进行配置",
+			"expire" : "请到 tlrtcfile.env 中进行配置"
 		},
 		"stun": {
-			"host": "请到 http.env 或者 https.env中进行配置"
+			"host": "请到 tlrtcfile.env 中进行配置"
 		},
 		"iceTransportPolicy": "all",
 		"options": {
@@ -40,46 +40,46 @@
 		}
 	},
 	"openai": {
-		"keys": [ "请到 http.env 或者 https.env中进行配置" ]
+		"keys": [ "请到 tlrtcfile.env 中进行配置" ]
 	},
 	"oss": {
 		"seafile": {
-			"repoid": "请到 http.env 或者 https.env中进行配置",
-			"host": "请到 http.env 或者 https.env中进行配置",
-			"username": "请到 http.env 或者 https.env中进行配置",
-			"password": "请到 http.env 或者 https.env中进行配置"
+			"repoid": "请到 tlrtcfile.env 中进行配置",
+			"host": "请到 tlrtcfile.env 中进行配置",
+			"username": "请到 tlrtcfile.env 中进行配置",
+			"password": "请到 tlrtcfile.env 中进行配置"
 		},
 		"alyun": {
-			"AccessKey": "请到 http.env 或者 https.env中进行配置",
-			"SecretKey": "请到 http.env 或者 https.env中进行配置",
-			"bucket": "请到 http.env 或者 https.env中进行配置"
+			"AccessKey": "请到 tlrtcfile.env 中进行配置",
+			"SecretKey": "请到 tlrtcfile.env 中进行配置",
+			"bucket": "请到 tlrtcfile.env 中进行配置"
 		},
 		"txyun": {
-			"AccessKey": "请到 http.env 或者 https.env中进行配置",
-			"SecretKey": "请到 http.env 或者 https.env中进行配置",
-			"bucket": "请到 http.env 或者 https.env中进行配置"
+			"AccessKey": "请到 tlrtcfile.env 中进行配置",
+			"SecretKey": "请到 tlrtcfile.env 中进行配置",
+			"bucket": "请到 tlrtcfile.env 中进行配置"
 		},
 		"qiniuyun": {
-			"AccessKey": "请到 http.env 或者 https.env中进行配置",
-			"SecretKey": "请到 http.env 或者 https.env中进行配置",
-			"bucket": "请到 http.env 或者 https.env中进行配置"
+			"AccessKey": "请到 tlrtcfile.env 中进行配置",
+			"SecretKey": "请到 tlrtcfile.env 中进行配置",
+			"bucket": "请到 tlrtcfile.env 中进行配置"
 		}
 	},
 	"notify": {
-		"open": "请到 http.env 或者 https.env中进行配置",
+		"open": "请到 tlrtcfile.env 中进行配置",
 		"qiwei": {
-			"normal": [ "请到 http.env 或者 https.env中进行配置" ],
-			"error": [ "请到 http.env 或者 https.env中进行配置" ]
+			"normal": [ "请到 tlrtcfile.env 中进行配置" ],
+			"error": [ "请到 tlrtcfile.env 中进行配置" ]
 		}
 	},
 	"db": {
-		"open": "请到 http.env 或者 https.env中进行配置",
+		"open": "请到 tlrtcfile.env 中进行配置",
 		"mysql": {
-			"host": "请到 http.env 或者 https.env中进行配置",
-			"port": "请到 http.env 或者 https.env中进行配置",
-			"dbName": "请到 http.env 或者 https.env中进行配置",
-			"user": "请到 http.env 或者 https.env中进行配置",
-			"password": "请到 http.env 或者 https.env中进行配置"
+			"host": "请到 tlrtcfile.env 中进行配置",
+			"port": "请到 tlrtcfile.env 中进行配置",
+			"dbName": "请到 tlrtcfile.env 中进行配置",
+			"user": "请到 tlrtcfile.env 中进行配置",
+			"password": "请到 tlrtcfile.env 中进行配置"
 		}
 	}
 }

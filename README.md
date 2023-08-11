@@ -66,8 +66,7 @@ npm install
     tl_rtc_file_ws_port=8444
 
     ## websocket服务地址
-    ## "ws://域名 或者 ip:port 或者 域名:port"
-    ## socket ip  填局域网ip/公网ip, 局域网ip只能在局域网访问，公网ip可在公网访问
+    ## "ws://域名 或者 ws://ip:端口 或者 ws://域名:端口"
     tl_rtc_file_ws_host=ws://127.0.0.1:8444
 
 
@@ -252,18 +251,26 @@ docker compose -f docker-compose-build-code.yml up -d
 
 除了上面的手动安装，docker官方镜像，docker自己打包镜像之外，还支持自动脚本，托管平台一键部署等
 
-下载项目后，可以进入 `bin/` 目录，选择对应的系统脚本，直接执行即可
+下载项目后，可以进入 `bin/` 目录，选择对应的系统脚本，直接执行即可，会自动检测安装环境，自动安装依赖，自动启动服务
 
-### ubuntu自动脚本
+**注意 : 执行之前可以先修改好配置，如使用默认配置，后续修改需要重启两个服务才能生效**，重启可以先执行 `停止服务脚本`，然后再次执行 `自动脚本` 即可
+
+### ubuntu自动脚本 (比如ubuntu16)
 
 ```
-chmod +x ./ubuntu/*.sh
-cd ubuntu/
+chmod +x ./ubuntu16/*.sh
+
+cd ubuntu16/
+
 ./auto-check-install-http.sh
 ```
 使用https方式则是执行这个脚本
 ```
 ./auto-check-install-https.sh
+```
+停止服务脚本 : 
+```
+./auto-stop.sh
 ```
 
 ### windows自动脚本
