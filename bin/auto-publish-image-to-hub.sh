@@ -5,38 +5,52 @@
 # @version: v1.1.0
 #########################
 
-######################################## start ######################################
+build_and_push_image() {
+    local image_name=$1
+    local tag=$2
+    local target_name=$3
+  
+    echo "###################################### build iamtsm/tl-rtc-file-$target_name:$tag"
+    ## build by docker-compose-build-code.yml
+    docker-compose -f ../docker/docker-compose-build-code.yml build $image_name
+
+    echo "###################################### tag iamtsm/tl-rtc-file-$target_name:$tag"
+    docker tag docker-$image_name:$tag iamtsm/tl-rtc-file-$target_name:$tag
+
+    echo "###################################### push iamtsm/tl-rtc-file-$target_name:$tag"
+    # docker push iamtsm/tl-rtc-file-$target_name:$tag
+
+    echo "###################################### del iamtsm/tl-rtc-file-$target_name:$tag"
+    ## del build version
+    docker rmi docker-$image_name:$tag
+    ## del tag build version
+    docker rmi iamtsm/tl-rtc-file-$target_name:$tag
+}
+
 latest_version=latest
 
-######################################## build ######################################
-## build by docker-compose-build-code.yml
-docker-compose -f ../docker/docker-compose-build-code.yml build
-
-######################################## tag ########################################
-# tag latest version
-docker tag docker-api:$latest_version iamtsm/tl-rtc-file-api:$latest_version
-docker tag docker-socket:$latest_version iamtsm/tl-rtc-file-socket:$latest_version
-docker tag docker-mysql:$latest_version iamtsm/tl-rtc-file-mysql:$latest_version
-docker tag docker-coturn:$latest_version iamtsm/tl-rtc-file-coturn:$latest_version
-
-######################################## push #######################################
-# push latest version
-docker push iamtsm/tl-rtc-file-api:$latest_version
-docker push iamtsm/tl-rtc-file-socket:$latest_version
-docker push iamtsm/tl-rtc-file-mysql:$latest_version
-docker push iamtsm/tl-rtc-file-coturn:$latest_version
-
-######################################## del ########################################
-## del build version
-docker rmi docker-api:$latest_version
-docker rmi docker-socket:$latest_version
-docker rmi docker-mysql:$latest_version
-docker rmi docker-coturn:$latest_version
-
-# # del tag build version
-docker rmi iamtsm/tl-rtc-file-api:$latest_version
-docker rmi iamtsm/tl-rtc-file-socket:$latest_version
-docker rmi iamtsm/tl-rtc-file-mysql:$latest_version
-docker rmi iamtsm/tl-rtc-file-coturn:$latest_version
-
-######################################## done #######################################
+if [ $# -eq 0 ]; then
+    # 如果没有传入参数，默认执行所有镜像的打包发布逻辑
+    echo "Please input args"
+else
+  # 有传入参数时，遍历处理每个参数
+  for image_arg in "$@"; do
+    case $image_arg in
+      api)
+        build_and_push_image "api" $latest_version "api"
+        ;;
+      socket)
+        build_and_push_image "socket" $latest_version "socket"
+        ;;
+      mysql)
+        build_and_push_image "mysql" $latest_version "mysql"
+        ;;
+      coturn)
+        build_and_push_image "coturn" $latest_version "coturn"
+        ;;
+      *)
+        echo "Invalid argument: $image_arg"
+        ;;
+    esac
+  done
+fi
