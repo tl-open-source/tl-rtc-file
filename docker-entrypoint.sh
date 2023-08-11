@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pm2 start npm --name=tlapi -- run lapi
+pm2 start npm --name=tlapi -- run http-api
 
 npm run build:pro
 

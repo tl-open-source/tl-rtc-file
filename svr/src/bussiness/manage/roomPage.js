@@ -1,5 +1,6 @@
 const daoRoom = require("./../../dao/room/room")
-const cfg = require("../../../conf/cfg.json");
+const {inject_env_config} = require("../../../conf/env_config")
+const cfg = inject_env_config(require("../../../conf/cfg.json"));
 const dbOpen = cfg.db.open
 
 /**

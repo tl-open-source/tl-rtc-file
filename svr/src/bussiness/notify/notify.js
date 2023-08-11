@@ -1,4 +1,5 @@
-const conf = require("../../../conf/cfg.json");
+const {inject_env_config} = require("../../../conf/env_config");
+const conf = inject_env_config(require("../../../conf/cfg.json"));
 const request = require('request');
 const qiweiNormal = conf.notify.qiwei.normal;
 const qiweiError = conf.notify.qiwei.error;

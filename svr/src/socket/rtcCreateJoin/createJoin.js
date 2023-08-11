@@ -2,7 +2,8 @@ const daoRoom = require("./../../dao/room/room")
 const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const rtcCount = require("./../rtcCount/count");
 const utils = require("./../../utils/utils");
-const cfg = require("./../../../conf/cfg.json")
+const {inject_env_config} = require("./../../../conf/env_config");
+const cfg = inject_env_config(require("./../../../conf/cfg.json"))
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
 const check = require("../../bussiness/check/content");
@@ -114,7 +115,7 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
         }
 
         //流媒体房间只允许两个人同时在线
-        if((type === 'screen' || type === 'video') && numClients >= 4){
+        if((type === 'screen' || type === 'video') && numClients >= 2){
             socket.emit(rtcClientEvent.tips, {
                 room : data.room,
                 to : socket.id,

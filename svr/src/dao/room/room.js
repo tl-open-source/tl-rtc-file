@@ -1,6 +1,7 @@
 
 const utils = require("../../utils/utils");
-const cfg = require("../../../conf/cfg.json")
+const {inject_env_config} = require("../../../conf/env_config");
+const cfg = inject_env_config(require("../../../conf/cfg.json"))
 const manageConfig = cfg.manage;
 const dbOpen = cfg.db.open;
 

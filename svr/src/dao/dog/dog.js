@@ -1,5 +1,6 @@
 const utils = require("../../utils/utils");
-const dbOpen = require("../../../conf/cfg.json").db.open;
+const {inject_env_config} = require("../../../conf/env_config")
+const dbOpen = inject_env_config(require("../../../conf/cfg.json")).db.open;
 
 
 /**

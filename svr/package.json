@@ -4,14 +4,13 @@
 	"description": "webrtc, p2p, file, screen, video, live, draw, chat",
 	"main": "main.js",
 	"scripts": {
-		"lapi": "cross-env ENV_MODE=local node localapi",
-		"lsocket": "cross-env ENV_MODE=local node localsocket",
-		"sapi": "cross-env ENV_MODE=server node serverapi",
-		"ssocket": "cross-env ENV_MODE=server node serversocket",
+		"http-api": "cross-env tl_rtc_file_env_mode=http node tlapi",
+		"http-socket": "cross-env tl_rtc_file_env_mode=http node tlsocket",
+		"https-api": "cross-env tl_rtc_file_env_mode=https node tlapi",
+		"https-socket": "cross-env tl_rtc_file_env_mode=https node tlsocket",
 		"test": "cross-env mocha ./test/test.js",
 		"build:dev": "vite build --watch",
-		"build:pro": "vite build",
-		"build:vercel": "cross-env concurrently \"npm run build:pro\" \"npm run lapi\" \"npm run lsocket\""
+		"build:pro": "vite build"
 	},
 	"repository": {
 		"type": "git",
@@ -27,6 +26,7 @@
 		"@grpc/proto-loader": "^0.6.0",
 		"concurrently": "^8.2.0",
 		"cross-env": "^5.2.0",
+		"dotenv": "^16.3.1",
 		"express": "^4.17.1",
 		"glob": "^10.3.1",
 		"google-protobuf": "^3.0.0",

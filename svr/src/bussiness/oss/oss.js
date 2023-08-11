@@ -2,7 +2,8 @@ const aly = require('./aly');
 const tx = require('./tx');
 const qiniu = require('./qiniu');
 const seafile = require('./seafile');
-const cfg = require('./../../../conf/cfg.json');
+const {inject_env_config} = require("./../../../conf/env_config");
+const cfg = inject_env_config(require('./../../../conf/cfg.json'));
 
 const oss = {
     aly,
