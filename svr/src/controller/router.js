@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const cfg = require("../../conf/cfg.json");
+const {inject_env_config} = require("../../conf/env_config");
+const cfg = inject_env_config(require("../../conf/cfg.json"));
 const utils = require("../../src/utils/utils");
 
 module.exports = () => {

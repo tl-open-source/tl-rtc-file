@@ -47,11 +47,9 @@ svr/res/css/*.min.*
 
 dist/
 
-svr/res/dist
-
-svr/dist
-
 client/dist
 
 package-lock.json
 
+
+docker/mysql/data/*

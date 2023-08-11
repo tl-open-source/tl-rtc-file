@@ -80,8 +80,7 @@ function setApiKeyStatus( key ){
 function getApiKey( roomId ){
     // init
     if(Object.keys(keysMap).length === 0){
-        let apiKeys = openai.apiKeys;
-        apiKeys.forEach((key)=>{
+        openai.keys.forEach((key)=>{
             keysMap[key] = {
                 used : 0
             }

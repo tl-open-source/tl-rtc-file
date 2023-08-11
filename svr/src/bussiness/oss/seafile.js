@@ -4,7 +4,8 @@
  */
 
 const request = require('request');
-const seafile = require('../../../conf/cfg.json').oss.seafile
+const {inject_env_config} = require("../../../conf/env_config");
+const seafile = inject_env_config(require('../../../conf/cfg.json')).oss.seafile
 
 /**
  * 获取token

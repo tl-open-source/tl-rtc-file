@@ -1,41 +1,122 @@
+## 用于docker-compose部署并启动官方镜像
+
 version: '3'
 services:
-  api-local:
-    profiles: ['local']
-    container_name: tl-rtc-file-api-local
-    image: iamtsm/tl-rtc-file-api-local
-    env_file:
-    - docker/local.env
-    ports:
-    - 9092:9092
-    command: localapi
 
-  socket-local:
-    profiles: ['local']
-    container_name: tl-rtc-file-socket-local
-    image: iamtsm/tl-rtc-file-socket-local
+  #http模式启动api服务
+  api-http:
+    profiles: ['http']
+    container_name: api
+    image: iamtsm/tl-rtc-file-api
     env_file:
-    - docker/local.env
+      - ./tlrtcfile.env
+    environment:
+      - tl_rtc_file_env_mode=http
+      - tl_rtc_file_db_open=true
+    command: 
+      - tlapi
     ports:
-    - 8444:8444
-    command: localsocket
+      - 9092:9092
+    links:
+      - mysql
+    depends_on:
+      - mysql
+      - coturn
+    volumes:
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
-  api-server:
-    profiles: ['server']
-    container_name: tl-rtc-file-api-server
-    image: iamtsm/tl-rtc-file-api-server
+  #https模式启动api服务
+  api-https:
+    profiles: ['https']
+    container_name: api
+    image: iamtsm/tl-rtc-file-api
     env_file:
-    - docker/server.env
+      - ./tlrtcfile.env
+    environment:
+      - tl_rtc_file_env_mode=https
+      - tl_rtc_file_db_open=true
+    command: 
+      - tlapi
     ports:
-    - 9092:9092
-    command: serverapi
+      - 9092:9092
+    links:
+      - mysql
+    depends_on:
+      - mysql
+      - coturn
+    volumes:
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
-  socket-server:
-    profiles: ['server']
-    container_name: tl-rtc-file-socket-server
-    image: iamtsm/tl-rtc-file-socket-server
+  #http模式启动socket服务
+  socket-http:
+    profiles: ['http']
+    container_name: socket
+    image: iamtsm/tl-rtc-file-socket
+    command: 
+      - tlsocket
     env_file:
-    - docker/server.env
+      - ./tlrtcfile.env
+    environment:
+      - tl_rtc_file_env_mode=http
+      - tl_rtc_file_db_open=true
     ports:
-    - 8444:8444
-    command: serversocket
+      - 8444:8444
+    links:
+      - mysql
+    depends_on:
+      - mysql
+      - coturn
+    volumes:
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+
+  #https模式启动socket服务
+  socket-https:
+    profiles: ['https']
+    container_name: socket
+    image: iamtsm/tl-rtc-file-socket
+    command: 
+      - tlsocket
+    env_file:
+      - ./tlrtcfile.env
+    environment:
+      - tl_rtc_file_env_mode=https
+      - tl_rtc_file_db_open=true
+    ports:
+      - 8444:8444
+    links:
+      - mysql
+    depends_on:
+      - mysql
+      - coturn
+    volumes:
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+
+  #mysql服务
+  mysql:
+    profiles: ['http','https']
+    container_name: mysql
+    image: iamtsm/tl-rtc-file-mysql
+    restart: always
+    env_file:
+      - ./docker/mysql/mysql.env
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql/data/mysql.env:/tlrtcfile/docker/mysql/mysql.env
+      - ./docker/mysql/data/db:/var/lib/mysql
+      - ./docker/mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/mysql/data/log:/var/log/mysql
+      - ./docker/mysql/data/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  #coturn服务
+  coturn:
+    profiles: ['http','https']
+    container_name: coturn
+    image: iamtsm/tl-rtc-file-coturn
+    env_file:
+      - ./docker/coturn/coturn.env
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+    volumes:
+      - ./docker/coturn/turnserver-with-secret-user.conf:/etc/turnserver.conf
