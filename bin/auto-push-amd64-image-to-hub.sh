@@ -11,7 +11,7 @@ build_and_push_image() {
     local tag=$2
     local target_name=$3
     local image_prefix="iamtsm/tl-rtc-file"
-    local arch="x8664"
+    local arch="amd64"
   
     echo "###################################### build $image_prefix-$target_name-$arch:$tag"
     ## build by docker-compose-build-code.yml

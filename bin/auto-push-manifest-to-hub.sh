@@ -11,12 +11,12 @@ build_and_push_manifest() {
     local target_name=$3
     local image_prefix="iamtsm/tl-rtc-file"
     local arch_arm64="arm64"
-    local arch_x8664="x8664"
+    local arch_amd64="amd64"
   
     echo "###################################### craete manifest $image_prefix-$target_name:$tag"
     docker manifest create $image_prefix-$target_name:$tag \
                         $image_prefix-$target_name-$arch_arm64:$tag \
-                        $image_prefix-$target_name-$arch_x8664:$tag --amend
+                        $image_prefix-$target_name-$arch_amd64:$tag --amend
 
     echo "###################################### push manifest $image_prefix-$target_name:$tag"
     docker manifest push $image_prefix-$target_name:$tag
