@@ -1,7 +1,7 @@
 #!/bin/bash
 #########################
 # 一键推送dockerhub的脚本
-# for x86_64
+# for arm64
 # @auther: iamtsm
 # @version: v1.2.0
 #########################
@@ -10,23 +10,24 @@ build_and_push_image() {
     local image_name=$1
     local tag=$2
     local target_name=$3
-    local image_prefix="iamtsm/tl-rtc-file-x8664"
+    local image_prefix="iamtsm/tl-rtc-file"
+    local arch="x8664"
   
-    echo "###################################### build $image_prefix-$target_name:$tag"
+    echo "###################################### build $image_prefix-$target_name-$arch:$tag"
     ## build by docker-compose-build-code.yml
     docker-compose -f ../docker/docker-compose-build-code.yml build $image_name
 
-    echo "###################################### tag $image_prefix-$target_name:$tag"
-    docker tag docker-$image_name:$tag $image_prefix-$target_name:$tag
+    echo "###################################### tag $image_prefix-$target_name-$arch:$tag"
+    docker tag docker-$image_name:$tag $image_prefix-$target_name-$arch:$tag
 
-    echo "###################################### push $image_prefix-$target_name:$tag"
-    docker push $image_prefix-$target_name:$tag
+    echo "###################################### push $image_prefix-$target_name-$arch:$tag"
+    docker push $image_prefix-$target_name-$arch:$tag
 
-    echo "###################################### del $image_prefix-$target_name:$tag"
+    echo "###################################### del $image_prefix-$target_name-$arch:$tag"
     ## del build version
     docker rmi docker-$image_name:$tag
     ## del tag build version
-    docker rmi $image_prefix-$target_name:$tag
+    docker rmi $image_prefix-$target_name-$arch:$tag
 }
 
 latest_version=latest
