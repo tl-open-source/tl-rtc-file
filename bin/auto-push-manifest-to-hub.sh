@@ -13,10 +13,13 @@ build_and_push_manifest() {
     local arch_arm64="arm64"
     local arch_x8664="x8664"
   
-    echo "###################################### push $image_prefix-$target_name:$tag"
+    echo "###################################### craete manifest $image_prefix-$target_name:$tag"
     docker manifest create $image_prefix-$target_name:$tag \
                         $image_prefix-$target_name-$arch_arm64:$tag \
                         $image_prefix-$target_name-$arch_x8664:$tag --amend
+
+    echo "###################################### push manifest $image_prefix-$target_name:$tag"
+    docker manifest push $image_prefix-$target_name:$tag
 }
 
 latest_version=latest
@@ -29,16 +32,16 @@ else
   for image_arg in "$@"; do
     case $image_arg in
       api)
-        build_and_push_image "api" $latest_version "api"
+        build_and_push_manifest "api" $latest_version "api"
         ;;
       socket)
-        build_and_push_image "socket" $latest_version "socket"
+        build_and_push_manifest "socket" $latest_version "socket"
         ;;
       mysql)
-        build_and_push_image "mysql" $latest_version "mysql"
+        build_and_push_manifest "mysql" $latest_version "mysql"
         ;;
       coturn)
-        build_and_push_image "coturn" $latest_version "coturn"
+        build_and_push_manifest "coturn" $latest_version "coturn"
         ;;
       *)
         echo "Invalid argument: $image_arg"
