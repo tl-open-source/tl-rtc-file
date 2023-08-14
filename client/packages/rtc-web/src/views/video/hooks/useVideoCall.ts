@@ -1,3 +1,4 @@
+import { useRoomConnect } from '@/hooks';
 import { useUserMedia, useDevicesList } from '@vueuse/core';
 import {
   Ref,
@@ -10,11 +11,14 @@ import {
 } from 'vue';
 
 export type VideoShareOption = {
+  immeately?: boolean;
   audio?: Ref<MediaDeviceInfo | undefined>;
   speaker?: Ref<string>;
 };
 
-export const useVideoShare = (option: VideoShareOption = {}) => {
+export const useMediaSetting = (
+  option: VideoShareOption = { immeately: true }
+) => {
   const currentCamera = ref<string>();
   const currentAudioInput = ref<string>();
   const currentAudioOutput = ref<string>();
@@ -107,15 +111,15 @@ export const useVideoShare = (option: VideoShareOption = {}) => {
     };
   });
 
-  const { stream, enabled, stop, restart } = useUserMedia({
+  const { stream, stop, restart, start } = useUserMedia({
     constraints,
   });
 
   const audioTracks = ref<MediaStreamTrack[]>([]);
   const videoTracks = ref<MediaStreamTrack[]>([]);
 
-  const audioEnabled = ref(false);
-  const videoEnabled = ref(false);
+  const audioEnabled = ref(true);
+  const videoEnabled = ref(true);
 
   // 切换 video、audio 渲染
   const switchTrackEnable = (type: 'video' | 'audio', flag: boolean) => {
@@ -151,10 +155,10 @@ export const useVideoShare = (option: VideoShareOption = {}) => {
           videoTracks.value = stream.value.getVideoTracks();
         }
         if (!videoEnabled.value) {
-          switchTrackEnable('video', false);
+          // switchTrackEnable('video', false);
         }
         if (!audioEnabled.value) {
-          switchTrackEnable('audio', false);
+          // switchTrackEnable('audio', false);
         }
         mediaLoaded.value = true;
       }
@@ -162,22 +166,33 @@ export const useVideoShare = (option: VideoShareOption = {}) => {
   });
 
   // 进入页面先连接
-  const watchEnableStop = watchEffect(() => {
-    if (
-      currentAudioInput.value &&
-      currentCamera.value &&
-      currentAudioOutput.value
-    ) {
-      enabled.value = true;
-      watchEnableStop();
-    }
-  });
+  const startGetMedia = () => {
+    return new Promise<MediaStream | undefined>((resolve) => {
+      const watchEnableStop = watchEffect(async () => {
+        if (
+          currentAudioInput.value &&
+          currentCamera.value &&
+          currentAudioOutput.value
+        ) {
+          const stream = await start();
+          watchEnableStop();
+          resolve(stream);
+        }
+      });
+    });
+  };
+
+  if (option.immeately) {
+    startGetMedia();
+  }
 
   onBeforeUnmount(() => {
     stop();
   });
 
   return {
+    startGetMedia,
+    stream,
     video,
     setSinkId,
     switchTrackEnable,
@@ -189,4 +204,52 @@ export const useVideoShare = (option: VideoShareOption = {}) => {
     currentAudioInput,
     currentAudioOutput,
   };
+};
+
+export const useMediaConnect = (
+  connect: { onTrack?: (track: MediaStreamTrack, id: string) => void } = {},
+  ...args: Parameters<typeof useMediaSetting>
+) => {
+  const { startGetMedia, ...mediaResult } = useMediaSetting(...args);
+
+  let stream: MediaStream | undefined = undefined;
+  useRoomConnect({
+    async roomCreated() {
+      console.log('ccccreated');
+      stream = await startGetMedia();
+    },
+    roomJoined: async (_, pc) => {
+      let innerStream = stream;
+      stream = undefined;
+      if (!innerStream) {
+        innerStream = await startGetMedia();
+        console.log('jjjjjjoined');
+      }
+      if (pc && innerStream) {
+        innerStream.getTracks().forEach((track) => {
+          pc.addTrack(track, innerStream);
+        });
+      }
+    },
+    onBeforeCreateAnswer: async (_, pc) => {
+      let innerStream = stream;
+      stream = undefined;
+      if (!innerStream) {
+        innerStream = await startGetMedia();
+      }
+      if (pc && innerStream) {
+        innerStream.getTracks().forEach((track) => {
+          pc.addTrack(track, innerStream);
+        });
+      }
+    },
+    onTrack(e: any, id: string) {
+      console.log(e);
+      if (e.track.kind === 'video') {
+        connect.onTrack?.(e.streams[0], id);
+      }
+    },
+  });
+
+  return { ...mediaResult };
 };

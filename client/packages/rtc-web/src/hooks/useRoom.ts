@@ -40,6 +40,16 @@ export type OwnerInfo = {
   owner: boolean;
 };
 
+export type ConnectOption = {
+  roomJoined?: (...args: any[]) => Promise<void>;
+  roomCreated?: (data: any) => Promise<void>;
+  onAddRtcPeer?: (id: string, pc: any) => Promise<void>;
+  onConnectComplete?: (...args: any[]) => void;
+  onBeforeCreateOffer?: (...args: any[]) => Promise<void>;
+  onBeforeCreateAnswer?: (...args: any[]) => Promise<void>;
+  onTrack?: (...args: any[]) => void;
+};
+
 export const useRoom = (value: MaybeRef<string> | CommonFnType) => {
   const realValue = resolveRef(value);
   const roomIdReg = /^[a-zA-Z0-9]{4,32}$/;
@@ -101,13 +111,15 @@ export const useCreateRoom = (type: 'password' | 'video' = 'password') => {
   };
 };
 
-export const useRoomConnect = () => {
+export const useRoomConnect = (option: ConnectOption = {}) => {
   const roomInfo = useGetRoomInfo();
 
   const { members, selfInfo } = roomInfo;
   const rtcConnects = new Map<string, RTCPeerConnection>();
+  const dataChanelMap = new Map<string, RTCDataChannel>();
   const initData = inject(InitDataKey)!;
   const socketRef = shallowRef();
+  const completed = ref(false);
 
   watchArray(
     () => members.value,
@@ -116,8 +128,10 @@ export const useRoomConnect = () => {
 
       // 处理 exit
       if (removed.length) {
-        removed.forEach((peer) => {
+        removed.forEach(async (peer) => {
           if (peer.id) {
+            const rtcConnect = await getRtcConnect(peer.id);
+            rtcConnect.close();
             rtcConnects.delete(peer.id);
           }
         });
@@ -125,32 +139,79 @@ export const useRoomConnect = () => {
     }
   );
 
-  const createRtcConnect = (id: string) => {
-    const pc = new RTCPeerConnection(initData.value.config);
+  const createRtcConnect = async (id: string) => {
+    // const pc = new RTCPeerConnection(initData.value.config);
+    const pc = new RTCPeerConnection();
+    pc.onicecandidate = (event) => {
+      if (event.candidate != null) {
+        const message = {
+          from: selfInfo.value.socketId,
+          to: id,
+          room: selfInfo.value.roomId,
+          sdpMid: event.candidate.sdpMid,
+          sdpMLineIndex: event.candidate.sdpMLineIndex,
+          sdp: event.candidate.candidate,
+        };
+        socketRef.value.emit('candidate', message);
+      }
+    };
 
-    pc.onicecandidate = () => {
-      // console.log('on candidate', e);
+    const dataChanel = pc.createDataChannel('datachanel');
+    dataChanelMap.set(id, dataChanel);
+
+    dataChanel.onopen = () => {
+      // dataChanel.send('aaa');
+    };
+
+    pc.ondatachannel = (e) => {
+      const chanel = e.channel;
+      if (chanel.label === 'datachanel') {
+        chanel.onmessage = (e: any) => {
+          // console.log('接受', e.data);
+        };
+      }
+    };
+
+    pc.onconnectionstatechange = (e) => {
+      if (pc.connectionState === 'connected') {
+        // console.log('完成');
+        completed.value = true;
+      }
+    };
+
+    pc.ontrack = (e) => {
+      option?.onTrack?.(e, id);
     };
 
     rtcConnects.set(id, pc);
+    await option.onAddRtcPeer?.(id, pc);
 
     return pc;
   };
 
-  const getRtcConnect = (id: string) => {
-    return rtcConnects.get(id) || createRtcConnect(id);
+  const getRtcConnect = async (id: string) => {
+    return rtcConnects.get(id) || (await createRtcConnect(id));
+  };
+
+  const roomCreated = async (data: any) => {
+    await option?.roomCreated?.(data);
   };
 
   const roomJoined = async (data: any) => {
-    createOffer(getRtcConnect(data.id), data);
+    const peer = await getRtcConnect(data.id);
+
+    await option?.roomJoined?.(data.id, peer);
+    createOffer(peer, data);
   };
 
   /**
    * @description 这里的 createOffer
    */
   const createOffer = async (pc: RTCPeerConnection, peer: any) => {
+    await option?.onBeforeCreateOffer?.(peer.id, pc);
     const offer = await pc.createOffer(initData.value.options);
     await pc.setLocalDescription(offer);
+    console.log('create offer - send');
     socketRef.value.emit(SocketEventName.RoomOffer, {
       from: selfInfo.value.socketId,
       to: peer.id,
@@ -163,13 +224,14 @@ export const useRoomConnect = () => {
    * @description offer 监听事件
    */
   const roomOffer = async (data: any) => {
-    const pc = getRtcConnect(data.from);
+    const pc = await getRtcConnect(data.from);
     await pc.setRemoteDescription(
       new RTCSessionDescription({ type: 'offer', sdp: data.sdp })
     );
+    await option?.onBeforeCreateAnswer?.(data.from, pc);
     const answer = await pc.createAnswer(initData.value.options);
     await pc.setLocalDescription(answer);
-
+    console.log('receive offer - send answer');
     socketRef.value.emit(SocketEventName.RoomAnswer, {
       from: selfInfo.value.socketId,
       to: data.from,
@@ -182,25 +244,37 @@ export const useRoomConnect = () => {
    * @description answer 监听事件
    */
   const roomAnswer = async (data: any) => {
-    const pc = getRtcConnect(data.from);
+    const pc = await getRtcConnect(data.from);
+    console.log('receive answer');
     await pc.setRemoteDescription(
       new RTCSessionDescription({ type: 'answer', sdp: data.sdp })
     );
   };
-  const roomCandidate = () => {
-    //
+  const roomCandidate = async (data: any) => {
+    const pc = await getRtcConnect(data.from);
+    const rtcIceCandidate = new RTCIceCandidate({
+      candidate: data.sdp,
+      sdpMid: data.sdpMid,
+      sdpMLineIndex: data.sdpMLineIndex,
+    });
+    await pc.addIceCandidate(rtcIceCandidate);
   };
 
   const handleRoomConnect = (socket: any) => {
     socketRef.value = socket;
-    socket.on(SocketEventName.RoomJoin, roomJoined);
-    socket.on(SocketEventName.RoomOffer, roomOffer);
-    socket.on(SocketEventName.RoomAnswer, roomAnswer);
-    socket.on(SocketEventName.RoomCandidate, roomCandidate);
+    startConnect();
+  };
+
+  const startConnect = () => {
+    socketRef.value.on(SocketEventName.RoomCreated, roomCreated);
+    socketRef.value.on(SocketEventName.RoomJoin, roomJoined);
+    socketRef.value.on(SocketEventName.RoomOffer, roomOffer);
+    socketRef.value.on(SocketEventName.RoomAnswer, roomAnswer);
+    socketRef.value.on(SocketEventName.RoomCandidate, roomCandidate);
   };
   useSocket(handleRoomConnect);
 
-  return { ...roomInfo };
+  return { ...roomInfo, rtcConnects, dataChanelMap, completed, startConnect };
 };
 
 // 获取房间的一些信息，例如 peer 等信息

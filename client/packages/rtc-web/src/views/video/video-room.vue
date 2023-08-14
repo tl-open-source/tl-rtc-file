@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { useSwitchSiderbar, useSwitchMember } from '@/hooks';
 import { onMounted, ref } from 'vue';
-import { useVideoShare } from './hooks/useVideoCall';
+import { useMediaConnect } from './hooks/useVideoCall';
 import VideoControl from './video-control.vue';
 import { computed } from 'vue';
-import { watchEffect } from 'vue';
 
 defineOptions({
   name: 'VideoRoom',
@@ -16,6 +15,8 @@ const { open } = useSwitchMember();
 const audioInputDevice = ref<MediaDeviceInfo | undefined>();
 const speakerRef = ref('');
 
+const otherVideo = ref();
+
 const {
   video,
   switchTrackEnable,
@@ -24,19 +25,34 @@ const {
   mediaLoaded,
   currentAudioInput,
   currentAudioOutput,
-} = useVideoShare({
-  audio: audioInputDevice,
-  speaker: speakerRef,
-});
+} = useMediaConnect(
+  {
+    onTrack(track, id) {
+      console.log('id', id);
+      otherVideo.value.srcObject = track;
+      // otherVideo.value?.play?.();
+    },
+  },
+  {
+    immeately: false,
+    audio: audioInputDevice,
+    speaker: speakerRef,
+  }
+);
+
+console.log('执行');
+
+const handleClick = () => {
+  // const aa = members.value[1]?.id;
+  // const peer = dataChanelMap.get(aa!);
+  // console.log('click', peer, dataChanelMap);
+  // peer?.send('asdas');
+};
 
 const selectDevice = computed(() => ({
   audioInput: currentAudioInput.value,
   audioOutput: currentAudioOutput.value,
 }));
-
-watchEffect(() => {
-  console.log(videoEnabled.value);
-});
 
 const activeControlMenu = computed<string[]>(() => {
   const arr = [];
@@ -80,7 +96,6 @@ const deviceChange = (device: MediaDeviceInfo) => {
           background-color: #1f1f1f;
         "
         playsinline
-        controls
         autoplay
       ></video>
       <VideoControl
@@ -92,6 +107,8 @@ const deviceChange = (device: MediaDeviceInfo) => {
       />
     </div>
 
-    <div v-show="open" class="w-[400px]">user 列表</div>
+    <div v-show="open" class="w-[400px]" @click="handleClick">
+      <video ref="otherVideo" playsinline autoplay />
+    </div>
   </div>
 </template>

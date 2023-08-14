@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useRoomConnect, useCreateRoom } from '@/hooks/useRoom';
+import { useCreateRoom } from '@/hooks/useRoom';
 import { BackPreviousLevel, BackTitle } from '@/components/back';
 import VideoRoom from './video-room.vue';
 import { useNow, useDateFormat } from '@vueuse/core';
@@ -10,8 +10,6 @@ defineOptions({
 });
 
 const { roomId } = useCreateRoom();
-
-useRoomConnect();
 
 const handleBackLevel = () => resetUrl();
 

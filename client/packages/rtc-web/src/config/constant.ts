@@ -34,14 +34,14 @@ export const VideoControlMenuAction: MenuActionType[] = [
     btn: true,
     disabled: false,
   },
-  {
-    name: 'mirror-image',
-    tip: '开启镜像',
-    color: '#707070',
-    tipDir: 'tooltip-top',
-    btn: true,
-    disabled: false,
-  },
+  // {
+  //   name: 'mirror-image',
+  //   tip: '开启镜像',
+  //   color: '#707070',
+  //   tipDir: 'tooltip-top',
+  //   btn: true,
+  //   disabled: false,
+  // },
   {
     name: 'hang-up',
     tip: '结束通话',

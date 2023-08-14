@@ -4,12 +4,12 @@ import { Modal } from '@/components/base';
 
 import MenuAction from '@/components/menu-action.vue';
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useDevicesList } from '@vueuse/core';
 import SelectList from '@/components/list/select-list.vue';
 import { Dropdown } from '@/components/base';
 import { PropType } from 'vue';
 import { computed } from 'vue';
+import { resetUrl } from '@/utils';
 
 defineOptions({
   name: 'VideoControlMenu',
@@ -30,7 +30,6 @@ const props = defineProps({
   },
 });
 
-const router = useRouter();
 const modalVisible = ref(false);
 
 const emits = defineEmits(['controlMenuChange', 'selectDevice']);
@@ -43,8 +42,6 @@ const menuAction = computed(() => {
   }));
 });
 
-const activeMenu = ref<Set<string>>(new Set());
-
 const { audioInputs, audioOutputs } = useDevicesList();
 
 const audioDropDownVisible = ref(false);
@@ -55,20 +52,13 @@ const selectedAudioDevice = (device: MediaDeviceInfo) => {
 };
 
 const handleClickIcon = (name: string) => {
+  if (name === 'hang-up') {
+    modalVisible.value = true;
+  }
   emits('controlMenuChange', name);
 };
 
-const confirmExit = () => {
-  router.replace({
-    path: '/',
-    query: {
-      showSiderbar: 1,
-    },
-  });
-};
-
 const closeModal = () => {
-  activeMenu.value.delete('hang-up');
   modalVisible.value = false;
 };
 </script>
@@ -151,7 +141,7 @@ const closeModal = () => {
         <button class="btn-neutral btn mr-4" @click.prevent="closeModal">
           取消
         </button>
-        <button class="btn-info btn" @click.prevent="confirmExit">确定</button>
+        <button class="btn-info btn" @click.prevent="resetUrl()">确定</button>
       </div>
     </template>
   </Modal>
