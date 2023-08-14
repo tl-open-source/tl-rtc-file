@@ -62,7 +62,7 @@ npm install
 Modify the corresponding websocket configurations in `tlrtcfile.env`:
 
     ## Websocket server port
-    tl_rtc_file_ws_port=8444
+    tl_rtc_file_socket_port=8444
 
     ## Websocket server address
     ## "ws://domain or ws://ip:port or ws://domain:port"

@@ -63,7 +63,7 @@ npm install
 修改 `tlrtcfile.env` 中相应websocket配置
 
     ## websocket服务端口
-    tl_rtc_file_ws_port=8444
+    tl_rtc_file_socket_port=8444
 
     ## websocket服务地址
     ## "ws://域名 或者 ws://ip:端口 或者 ws://域名:端口"

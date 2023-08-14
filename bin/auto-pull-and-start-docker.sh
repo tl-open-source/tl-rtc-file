@@ -100,7 +100,7 @@ docker run \
   -p $tl_rtc_file_api_port:$tl_rtc_file_api_port \
   -e "tl_rtc_file_env_mode=http" \
   -e tl_rtc_file_api_port \
-  -e tl_rtc_file_ws_port \
+  -e tl_rtc_file_socket_port \
   -e tl_rtc_file_socket_host \
   -e tl_rtc_file_webrtc_stun_host \
   -e tl_rtc_file_webrtc_turn_host \
@@ -139,10 +139,10 @@ docker run \
 # 启动socket容器
 docker run \
   --name=socket \
-  -p $tl_rtc_file_ws_port:$tl_rtc_file_ws_port \
+  -p $tl_rtc_file_socket_port:$tl_rtc_file_socket_port \
   -e "tl_rtc_file_env_mode=http" \
   -e tl_rtc_file_api_port \
-  -e tl_rtc_file_ws_port \
+  -e tl_rtc_file_socket_port \
   -e tl_rtc_file_socket_host \
   -e tl_rtc_file_webrtc_stun_host \
   -e tl_rtc_file_webrtc_turn_host \
