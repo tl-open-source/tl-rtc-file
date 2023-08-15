@@ -1,4 +1,6 @@
-## 用于docker-compose部署并启动官方镜像
+## !!!!!!用于docker-compose部署并启动官方镜像!!!!!!
+## !!!!!!挂载配置的形式启动，方便修改配置!!!!!!!!!!!!
+## !!!!!!需要依赖项目配置文件!!!!!!!!!!!!!!!!!!!!!!
 
 version: '3'
 services:
@@ -6,10 +8,10 @@ services:
   #http模式启动api服务
   api-http:
     profiles: ['http']
-    container_name: api
     image: iamtsm/tl-rtc-file-api
+    container_name: api
     env_file:
-      - ./tlrtcfile.env
+      - tlrtcfile.env
     environment:
       - tl_rtc_file_env_mode=http
       - tl_rtc_file_db_open=true
@@ -23,15 +25,15 @@ services:
       - mysql
       - coturn
     volumes:
-      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+      - tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
   #https模式启动api服务
   api-https:
     profiles: ['https']
-    container_name: api
     image: iamtsm/tl-rtc-file-api
+    container_name: api
     env_file:
-      - ./tlrtcfile.env
+      - tlrtcfile.env
     environment:
       - tl_rtc_file_env_mode=https
       - tl_rtc_file_db_open=true
@@ -45,17 +47,17 @@ services:
       - mysql
       - coturn
     volumes:
-      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+      - tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
   #http模式启动socket服务
   socket-http:
     profiles: ['http']
-    container_name: socket
     image: iamtsm/tl-rtc-file-socket
+    container_name: socket
     command: 
       - tlsocket
     env_file:
-      - ./tlrtcfile.env
+      - tlrtcfile.env
     environment:
       - tl_rtc_file_env_mode=http
       - tl_rtc_file_db_open=true
@@ -67,17 +69,17 @@ services:
       - mysql
       - coturn
     volumes:
-      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+      - tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
   #https模式启动socket服务
   socket-https:
     profiles: ['https']
-    container_name: socket
     image: iamtsm/tl-rtc-file-socket
+    container_name: socket
     command: 
       - tlsocket
     env_file:
-      - ./tlrtcfile.env
+      - tlrtcfile.env
     environment:
       - tl_rtc_file_env_mode=https
       - tl_rtc_file_db_open=true
@@ -89,20 +91,26 @@ services:
       - mysql
       - coturn
     volumes:
-      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+      - tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
   #mysql服务
   mysql:
     profiles: ['http','https']
-    container_name: mysql
     image: iamtsm/tl-rtc-file-mysql
+    container_name: mysql
     restart: always
-    env_file:
-      - ./docker/mysql/mysql.env
+    environment:
+      #设置root密码
+      - MYSQL_ROOT_PASSWORD=tlrtcfile
+      #设置数据库
+      - MYSQL_DATABASE=webchat
+      #设置用户
+      - MYSQL_USER=tlrtcfile
+      #设置用户密码
+      - MYSQL_PASSWORD=tlrtcfile
     ports:
       - 3306:3306
     volumes:
-      - ./docker/mysql/data/mysql.env:/tlrtcfile/docker/mysql/mysql.env
       - ./docker/mysql/data/db:/var/lib/mysql
       - ./docker/mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf
       - ./docker/mysql/data/log:/var/log/mysql
@@ -111,10 +119,8 @@ services:
   #coturn服务
   coturn:
     profiles: ['http','https']
-    container_name: coturn
     image: iamtsm/tl-rtc-file-coturn
-    env_file:
-      - ./docker/coturn/coturn.env
+    container_name: coturn
     ports:
       - "3478:3478/udp"
       - "3478:3478/tcp"

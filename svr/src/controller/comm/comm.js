@@ -28,9 +28,11 @@ function initData(req, res) {
 			ip = "127.0.0.1"
 		}
 
+		let wsHost = conf.socket.host || ip;
+
 		let data = {
 			version : conf.version,
-			wsHost: conf.socket.host || ip,
+			wsHost: "ws://" + wsHost + ":" + conf.socket.port,
 			rtcConfig: { iceServers },
 			options: webrtcConf.options,
 			logo : utils.genClientLogo(),
@@ -39,9 +41,11 @@ function initData(req, res) {
 		res.json(data)
 	}else{
 
+		let wsHost = conf.socket.host || ip;
+
 		let data = {
 			version : conf.version,
-			wsHost: conf.socket.host,
+			wsHost: "wss://" + wsHost + ":" + conf.socket.port,
 			rtcConfig: { iceServers },
 			options: webrtcConf.options,
 			logo : utils.genClientLogo(),

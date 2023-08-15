@@ -65,8 +65,8 @@ Modify the corresponding websocket configurations in `tlrtcfile.env`:
     tl_rtc_file_socket_port=8444
 
     ## Websocket server address
-    ## "ws://domain or ws://ip:port or ws://domain:port"
-    tl_rtc_file_socket_host=ws://127.0.0.1:8444
+    ## "domain or ip:port or domain:port"
+    tl_rtc_file_socket_host=127.0.0.1
 
 ## Startup (Essential Steps)
 
