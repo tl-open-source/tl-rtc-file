@@ -1,10 +1,11 @@
-# tl-rtc-file-tool
+# tl-rtc-file-tool （tl webrtc file tools）
 
 [![](https://img.shields.io/badge/webrtc-p2p-blue)](https://webrtc.org.cn/)
 [![](https://img.shields.io/badge/code-simple-green)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/large%20file-support-green)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/deployment-private-yellow)](https://github.com/iamtsm/tl-rtc-file/)
 [![](https://img.shields.io/badge/platform-unlimited-coral)](https://github.com/iamtsm/tl-rtc-file/)
+
 
 <p align="center">
 <a href="https://im.iamtsm.cn/file" target="_blank">体验地址</a> ｜
@@ -35,7 +36,7 @@
 
 ### 背景-简介
 
-20年毕设的题目相关整理出来的，（tl webrtc datachannel filetools）用webrt在web端传输文件，支持传输超大文件。
+20年毕设的题目相关整理出来的，用webrt在web端传输文件，支持传输超大文件。
 
 ### 优点-扩展
 
