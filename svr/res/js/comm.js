@@ -483,6 +483,23 @@ window.tlrtcfile = {
             callback("keyup", event)
         })
     },
+     getRoomTypeZh: function (type){
+        if(type === 'file'){
+            return "文件房间"
+        }else if(type === 'live'){
+            return "直播房间"
+        }else if(type === 'video'){
+            return "音视频房间"
+        }else if(type === 'screen'){
+            return "屏幕共享房间"
+        }else if(type === 'password'){
+            return "密码房间"
+        }else if(type === 'audio'){
+            return "语音连麦房间"
+        }else{
+            return "未知类型房间"
+        }
+    },
     scrollToBottom: function (dom, duration, timeout) {
         let start = dom.scrollTop;
         let end = dom.scrollHeight - dom.clientHeight;

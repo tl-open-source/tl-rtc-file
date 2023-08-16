@@ -15,6 +15,7 @@ const defaultSwitchData = {
 	openGetCodeFile: true,
 	openVideoShare: true,
 	openLiveShare: true,
+	openAudioShare: true,
 	openRemoteDraw: true,
 	openPasswordRoom: true,
 	openScreenShare: true,

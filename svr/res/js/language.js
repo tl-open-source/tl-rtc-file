@@ -8,6 +8,14 @@
 
 const local_lang = {
     "en": {
+        "audioing" : "Audioing",
+        "audio_sharing" : "Audio sharing",
+        "expand_audio" : "Expand audio panel",
+        "collapse_audio" : "Collapse audio panel",
+        "start_audio_sharing" : "Start audio sharing",
+        "end_audio_sharing" : "End audio sharing",
+        "in_audioing" : "In audioing",
+        "start_audio" : "Start audio",
         "audience" : "Audience",
         "webrtc_check_init" : "Webrtc check init",
         "webrtc_check_init_done" : "Webrtc check init done",
@@ -184,6 +192,7 @@ const local_lang = {
         "please_enter_password": "Please enter the password room password",
         "please_enter_right_code": "Please enter the correct pickup code",
         "please_enter_room_num": "Please fill in the room number first",
+        "please_enter_audio_sharing_room_num" : "Please enter the audio sharing room number",
         "please_enter_screen_sharing_room_num": "Please enter the screen sharing room number",
         "please_enter_video_call_room_num": "Please enter the audio and video call room number",
         "please_exit_then_join_live": "Please exit the room first and then enter the live room",
@@ -329,6 +338,14 @@ const local_lang = {
         "webrtc_ice_state" : "webrtc state"
     },
     "zh": {
+        "audioing" : "语音中",
+        "audio_sharing" : "语音连麦",
+        "expand_audio" : "展开音频面板",
+        "collapse_audio" : "收起音频面板",
+        "start_audio_sharing" : "开始语音连麦",
+        "end_audio_sharing" : "结束语言连麦",
+        "in_audioing" : "正在语音中",
+        "start_audio" : "语音连麦",
         "audience" : "观众",
         "webrtc_check_init" : "Webrtc检测初始化",
         "webrtc_check_init_done" : "Webrtc检测初始化完成",
@@ -515,6 +532,7 @@ const local_lang = {
         "please_enter_password": "请输入密码房间密码",
         "please_enter_right_code": "请输入正确的取件码",
         "please_enter_room_num": "请先填写房间号",
+        "please_enter_audio_sharing_room_num" : "请输入语音连麦房间号",
         "please_enter_screen_sharing_room_num": "请输入屏幕共享房间号",
         "please_enter_video_call_room_num": "请输入音视频通话房间号",
         "please_exit_then_join_live": "请先退出房间，然后进入直播间",

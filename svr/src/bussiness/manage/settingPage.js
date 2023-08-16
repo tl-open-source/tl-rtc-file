@@ -82,6 +82,11 @@ async function getSettingPageHtml(data) {
                             </div>
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
+                                    <input type="checkbox" name="openAudioShare" title="开启语音连麦" lay-skin="primary">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
                                     <input type="checkbox" name="openRemoteDraw" title="开启远程画笔" lay-skin="primary">
                                 </div>
                             </div>

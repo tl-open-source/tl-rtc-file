@@ -28,7 +28,7 @@ function initData(req, res) {
 			ip = "127.0.0.1"
 		}
 
-		let wsHost = conf.socket.host || ip + ":" + conf.socket.port;
+		let wsHost = conf.socket.host || ip + conf.socket.port;
 
 		let data = {
 			version : conf.version,

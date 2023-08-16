@@ -37,7 +37,7 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
         langMode = 'zh'
     }
 
-    if(['file', 'screen', 'video', 'password', 'live'].indexOf(type) === -1){
+    if(['file', 'screen', 'video', 'password', 'live', 'audio'].indexOf(type) === -1){
         type = 'file'
     }
 
@@ -114,8 +114,8 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
             return
         }
 
-        //流媒体房间只允许两个人同时在线
-        if((type === 'screen' || type === 'video') && numClients >= 2){
+        //流媒体房间只允许3个人同时在线
+        if((type === 'screen' || type === 'video' || type === 'audio') && numClients >= 3){
             socket.emit(rtcClientEvent.tips, {
                 room : data.room,
                 to : socket.id,
@@ -235,6 +235,8 @@ function getRoomTypeZh(type){
         return "屏幕共享"
     }else if(type === 'password'){
         return "密码"
+    }else if(type === 'audio'){
+        return "语音连麦"
     }else{
         return "未知类型"
     }

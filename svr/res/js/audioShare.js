@@ -1,20 +1,17 @@
 // --------------------------- //
-// --     videoShare.js     -- //
+// --     audioShare.js     -- //
 // --   version : 1.0.0     -- //
-// --   date : 2023-06-22   -- //
+// --   date : 2023-08-15   -- //
 // --------------------------- //
 
-var videoShare = new Vue({
-    el: '#videoShareApp',
+var audioShare = new Vue({
+    el: '#audioShareApp',
     data: function () {
         return {
             stream: null,
             times: 0,
             interverlId: 0,
             track: null,
-            videoDeviceList: [], // 摄像头列表
-            audioDeviceList: [], // 麦克风列表
-            loudspeakerDeviceList: [], // 扬声器列表
         }
     },
     methods: {
@@ -24,28 +21,7 @@ var videoShare = new Vue({
                 // 音频轨道
                 audio:true,
                 // 视频轨道
-                video: {
-                    // 前后置
-                    facingMode: true ? "user" : "environment",
-                    // 分辨率
-                    width: {
-                        ideal : 200,
-                        max : 200,
-                        min : 100
-                    }, 
-                    height: {
-                        ideal : 150,
-                        max : 150,
-                        min : 150
-                    },
-                    // 码率
-                    frameRate: {
-                        ideal: 100,
-                        max: 100
-                    },
-                    // 指定设备
-                    // deviceId: "",
-                },
+                video: false
             };
             if(constraints){
                 defaultConstraints = constraints
@@ -67,17 +43,17 @@ var videoShare = new Vue({
             }
             return media
         },
-        startVideoShare: async function (constraints, callback) {
+        startAudioShare: async function (callback) {
             let that = this;
 
             let msgData = {
-                "Requested device not found" : "没有检测到摄像头或麦克风"
+                "Requested device not found" : "没有检测到麦克风"
             }
             let msg = "获取设备权限失败";
 
             if (this.stream == null) {
                 try {
-                    this.stream = await this.getMediaPlay(constraints);
+                    this.stream = await this.getMediaPlay();
                 } catch (error) {
                     console.log(error)
                     msg = msgData[error.message]
@@ -88,12 +64,12 @@ var videoShare = new Vue({
                 if (window.layer) {
                     layer.msg("获取设备权限失败")
                 }
-                window.Bus.$emit("changeVideoShareState", false)
+                window.Bus.$emit("changeAudioShareState", false)
                 callback && callback()
                 return;
             }
 
-            const video = document.querySelector("#selfMediaShareVideo");
+            const video = document.querySelector("#selfMediaShareAudio");
             video.addEventListener('loadedmetadata', function() {
                 window.Bus.$emit("addSysLogs", "loadedmetadata")
                 // ios 微信浏览器兼容问题
@@ -113,18 +89,18 @@ var videoShare = new Vue({
             //计算时间
             this.interverlId = setInterval(() => {
                 that.times += 1;
-                window.Bus.$emit("changeVideoShareTimes", that.times)
+                window.Bus.$emit("changeAudioShareTimes", that.times)
                 
-                $("#videoShareIcon").css("color", "#fb0404")
-                $("#videoShareTimes").css("color", "#fb0404")
+                $("#audioShareIcon").css("color", "#fb0404")
+                $("#audioShareTimes").css("color", "#fb0404")
                 setTimeout(() => {
-                    $("#videoShareIcon").css("color", "#000000")
-                    $("#videoShareTimes").css("color", "#000000")
+                    $("#audioShareIcon").css("color", "#000000")
+                    $("#audioShareTimes").css("color", "#000000")
                 }, 500)
             }, 1000);
 
             if (window.layer) {
-                layer.msg("开始音视频通话，再次点击按钮即可挂断")
+                layer.msg("开始语音连麦，再次点击按钮即可挂断")
             }
 
             this.stream.getTracks().forEach(function (track) {
@@ -132,20 +108,20 @@ var videoShare = new Vue({
                 callback && callback(track, that.stream)
             });
         },
-        stopVideoShare: function () {
+        stopAudioShare: function () {
             if (this.stream) {
                 this.stream.getTracks().forEach(track => track.stop());
             }
 
             clearInterval(this.interverlId);
 
-            window.Bus.$emit("changeVideoShareTimes", 0);
+            window.Bus.$emit("changeAudioShareTimes", 0);
 
             if (window.layer) {
-                layer.msg("音视频通话结束，本次通话时长 " + this.times + "秒")
+                layer.msg("语音连麦结束，本次连麦时长 " + this.times + "秒")
             }
             setTimeout(() => {
-                $("#videoShareIcon").css("color", "#000000")
+                $("#audioShareIcon").css("color", "#000000")
             }, 1000);
 
             this.stream = null;
@@ -153,33 +129,13 @@ var videoShare = new Vue({
 
             return;
         },
-        getDeviceList : async function(){
-            const list = await new Promise((resolve, reject) => {
-                navigator.mediaDevices && navigator.mediaDevices.enumerateDevices().then((devices) => {
-                    const videoDeviceList = devices.filter((device) => device.kind === "videoinput" && device.deviceId !== "default");
-                    const audioDeviceList = devices.filter((device) => device.kind === "audioinput" && device.deviceId !== "default");
-                    const loudspeakerDeviceList = devices.filter((device) => device.kind === "audiooutput" && device.deviceId !== "default");
-                    resolve({
-                        videoDeviceList, audioDeviceList, loudspeakerDeviceList
-                    })
-                }, (err) => {
-                    console.error("getDeviceList error !")
-                    reject({
-                        videoDeviceList : [], audioDeviceList : [], loudspeakerDeviceList : []
-                    })
-                });
-            })
-            this.audioDeviceList = list.audioDeviceList;
-            this.videoDeviceList = list.videoDeviceList;
-            this.loudspeakerDeviceList = list.loudspeakerDeviceList;
-        },
-        changeVideoShareDevice: async function ({constraints, kind, rtcConnect}) {
+        changeAudioShareDevice: async function ({kind, rtcConnect}) {
             //重新获取流
             let newStream = null;
             try{
-                newStream = await this.getMediaPlay(constraints);
+                newStream = await this.getMediaPlay();
             }catch(e){
-                console.log("changeVideoShareMediaTrackAndStream error! ", e)
+                console.log("changeAudioShareMediaTrackAndStream error! ", e)
             }
 
             //获取流/权限失败
@@ -203,21 +159,6 @@ var videoShare = new Vue({
                 }
             }
 
-            if(kind === 'video'){
-                newStream.getVideoTracks()[0].enabled = true;
-                if(rtcConns){//远程track替换
-                    for(let id in rtcConns){
-                        const senders = rtcConns[id].getSenders();
-                        const sender = senders.find((sender) => (sender.track ? sender.track.kind === 'video' : false));
-                        if(!sender){
-                            console.error("changeDevice find sender error! ");
-                            return
-                        }
-                        sender.replaceTrack(newStream.getVideoTracks()[0]);
-                    }
-                }
-            }
-
             const video = document.querySelector("#selfMediaShareVideo");
             video.addEventListener('loadedmetadata', function() {
                 // ios 微信浏览器兼容问题
@@ -233,25 +174,19 @@ var videoShare = new Vue({
                 video.play();
             }, false);
 
-            //替换本地流
-            this.stream = new MediaStream([newStream.getVideoTracks()[0], this.stream.getAudioTracks()[0]]);
+            //替换本地音频流
+            this.stream = new MediaStream([this.stream.getAudioTracks()[0]]);
             video.srcObject = this.stream;
             video.play();
         },
-        getVideoShareTrackAndStream: function (callback) {
+        getAudioShareTrackAndStream: function (callback) {
             callback(this.track, this.stream)
         },
-        getVideoShareDeviceList : function(callback){
-            callback(this.videoDeviceList, this.audioDeviceList, this.loudspeakerDeviceList)
-        }
     },
     mounted: async function () {
-        //获取设备列表
-        await this.getDeviceList();
-        window.Bus.$on("startVideoShare", this.startVideoShare);
-        window.Bus.$on("stopVideoShare", this.stopVideoShare);
-        window.Bus.$on("getVideoShareTrackAndStream", this.getVideoShareTrackAndStream);
-        window.Bus.$on("changeVideoShareDevice", this.changeVideoShareDevice);
-        window.Bus.$on("getVideoShareDeviceList", this.getVideoShareDeviceList);
+        window.Bus.$on("startAudioShare", this.startAudioShare);
+        window.Bus.$on("stopAudioShare", this.stopAudioShare);
+        window.Bus.$on("getAudioShareTrackAndStream", this.getAudioShareTrackAndStream);
+        window.Bus.$on("changeAudioShareDevice", this.changeAudioShareDevice);
     }
 })

@@ -1204,3 +1204,18 @@ body {
 @media screen and (min-width: 765px) {
     
 }
+
+/** 语音连麦动画覆盖 */
+@keyframes layui-scale-spring {
+    0% {
+        transform: scale(.3);
+    }
+    80% {
+        opacity: .8;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+}

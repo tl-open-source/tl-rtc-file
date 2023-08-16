@@ -69,6 +69,10 @@ let rtcServerMessageEvent = {
     startVideoShare : "startVideoShare",
     //结束音视频
     stopVideoShare : "stopVideoShare",
+    //开始语音连麦
+    startAudioShare : "startAudioShare",
+    //结束语音连麦
+    stopAudioShare : "stopAudioShare",
     //开始直播
     startLiveShare : "startLiveShare",
     //结束直播

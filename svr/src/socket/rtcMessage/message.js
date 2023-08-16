@@ -15,6 +15,8 @@ let rtcEventOpName = {
     "stopScreenShare": "停止屏幕共享",
     "startVideoShare": "开始音视频通话",
     "stopVideoShare": "停止音视频通话",
+    "startAudioShare": "开始语音连麦",
+    "stopAudioShare": "停止语音连麦",
     "startLiveShare": "开启直播",
     "stopLiveShare": "关闭直播",
     "startRemoteDraw": "开启远程画笔",
@@ -129,6 +131,26 @@ async function message(io, socket, tables, dbClient, data){
         if (emitType === rtcServerMessageEvent.stopVideoShare) {
             bussinessNotify.sendStopVideoShareNotify({
                 title: rtcEventOpName.stopVideoShare,
+                userAgent: data.userAgent,
+                cost: data.cost,
+                userAgent: userAgent,
+                ip: ip,
+                room: data.room
+            })
+        }
+
+        if (emitType === rtcServerMessageEvent.startAudioShare) {
+            bussinessNotify.sendStartAudioShareNotify({
+                title: rtcEventOpName.startAudioShare,
+                userAgent: userAgent,
+                ip: ip,
+                room: data.room
+            })
+        }
+
+        if (emitType === rtcServerMessageEvent.stopAudioShare) {
+            bussinessNotify.sendStopAudioShareNotify({
+                title: rtcEventOpName.stopAudioShare,
                 userAgent: data.userAgent,
                 cost: data.cost,
                 userAgent: userAgent,

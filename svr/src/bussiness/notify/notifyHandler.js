@@ -162,6 +162,35 @@ function sendStopVideoShareNotify(data) {
 
 
 /**
+ * 发送开始语音连麦通知
+ * @param {*} data 
+ */
+function sendStartAudioShareNotify(data) {
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
+    notify.requestMsg(notifyMsg)
+}
+
+
+/**
+ * 发送停止语音连麦通知
+ * @param {*} data 
+ */
+function sendStopAudioShareNotify(data) {
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
+        `连麦时长: ${data.cost}秒\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
+    notify.requestMsg(notifyMsg)
+}
+
+
+/**
  * 发送开始直播通知
  * @param {*} data 
  */
@@ -461,6 +490,8 @@ module.exports = {
     sendStartVideoShareNotify,
     sendStartLiveShareNotify,
     sendStopLiveShareNotify,
+    sendStartAudioShareNotify,
+    sendStopAudioShareNotify,
     sendChatingRoomNotify,
     sendCodeFileNotify,
     sendFileDoneNotify,

@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "867298",
+      "name": "HOT",
+      "font_class": "hot1",
+      "unicode": "e677",
+      "unicode_decimal": 58999
+    },
+    {
+      "icon_id": "10305614",
+      "name": "热门hot",
+      "font_class": "remenhot",
+      "unicode": "e624",
+      "unicode_decimal": 58916
+    },
+    {
+      "icon_id": "1727449",
+      "name": "214声波、语音消息",
+      "font_class": "shengboyuyinxiaoxi",
+      "unicode": "e8c4",
+      "unicode_decimal": 59588
+    },
+    {
+      "icon_id": "17605450",
+      "name": "语音",
+      "font_class": "yuyin",
+      "unicode": "e813",
+      "unicode_decimal": 59411
+    },
+    {
       "icon_id": "2076200",
       "name": "翻转镜头",
       "font_class": "fanzhuanjingtou",

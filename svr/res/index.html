@@ -98,6 +98,10 @@
                     v-show="isLiveShare && owner">
                     {{lang.living}}: {{liveShareTimes < 10 ? '0' + liveShareTimes :
                         liveShareTimes}}{{lang.second}} </b>
+                <b style="transition: color 0.8s;margin-right: 5px;" id="audioShareTimes"
+                    v-show="isAudioShare && owner">
+                    {{lang.audioing}}: {{audioShareTimes < 10 ? '0' + audioShareTimes :
+                        audioShareTimes}}{{lang.second}} </b>
                 <b style="transition: color 0.8s;margin-right: 5px;" id="screenTimes"></b>
             </a>
         </div>
@@ -208,7 +212,10 @@
                         </svg>
                         <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.chat_comm}}</b>
                         <span v-show="receiveChatCommList.length > 0" class="layui-badge tl-rtc-file-msg-dot"
-                            style="right: 5px; top: 4px; width: 7px; height: 7px;position: relative;"></span>
+                            style="right: 2px; top: 2px; width: 7px; height: 7px;position: relative;"></span>
+                        <!-- <svg class="icon tl-rtc-file-msg-dot" aria-hidden="true" style="width: 20px;height: 20px;">
+                            <use xlink:href="#icon-rtc-file-remenhot"></use> -->
+                        </svg>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="startScreenShare"
@@ -254,6 +261,21 @@
                             <use xlink:href="#icon-rtc-file-zhibo"></use>
                         </svg>
                         <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.start_live}}</b>
+                    </div>
+                </div>
+                <div class="layui-col-xs3 swiper-slide" @click="startAudioShare"
+                    :class="switchData.openAudioShare ? '':'tl-rtc-file-tool-disabled'">
+                    <div class="tl-rtc-file-tool " v-if="isAudioShare" :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="audioShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-guaduandianhua"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.start_audio}}</b>
+                    </div>
+                    <div class="tl-rtc-file-tool" v-else :class="clientWidth < 450 ? 'tl-rtc-file-tool-mobile' : ''">
+                        <svg id="audioShareIcon" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                            <use xlink:href="#icon-rtc-file-yuyin"></use>
+                        </svg>
+                        <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.start_audio}}</b>
                     </div>
                 </div>
                 <div class="layui-col-xs3 swiper-slide" @click="getCodeFile"
@@ -315,8 +337,8 @@
                         </svg>
                         <div class="tl-rtc-file-user-body-left">
                             <b class="tl-rtc-file-user-body-left-nick">
-                                <b v-show="owner" style="color: #7375e9;">【{{lang.owner}}】-</b>
-                                【{{lang.self}}】- {{nickName}}
+                                <b v-show="owner" style="color: #51d788;">【{{roomTypeName}}】-</b>
+                                <b v-show="owner" style="color: #7375e9;">【{{lang.owner}}】-</b>【{{lang.self}}】- {{nickName}}
                             </b>
                             <b class="tl-rtc-file-user-body-left-id">
                                 {{socketId}}
@@ -1137,6 +1159,51 @@
                 </div>
             </div>
         </div>
+
+        <!-- 语音连麦 -->
+        <div id="audioMask" class="tl-rtc-file-mask-media-list" :style="{left: mediaAudioMaskHeightNum + '%'}">
+            <div class="layui-col-sm2" style="width: 100%;">
+                <div class="layui-card">
+                    <div class="layui-card-header" style="text-align: left;">
+                        {{lang.audio_sharing}}
+                    </div>
+                </div>
+                <div class="layui-card">
+                    <div :style="{height: logsHeight + 80 +'px',overflowY: 'auto'}">
+                        <div class="layui-card-body">
+                            <div class="tl-rtc-file-mask-media-container" id="mediaAudioRoomList"> 
+                                <div class="tl-rtc-file-mask-media-video">
+                                    <video v-show="false" id="selfMediaShareAudio" 
+                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
+                                        playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" 
+                                        x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
+                                    <svg v-show="isAudioEnabled" class="icon layui-anim layui-anim-scaleSpring layui-anim-loop" aria-hidden="true" style="width: 100%;height: 100%;animation-duration:.7s;max-width:50%;color:cadetblue;">
+                                        <use xlink:href="#icon-rtc-file-shengboyuyinxiaoxi"></use>
+                                    </svg>
+                                    <svg v-show="!isAudioEnabled" class="icon" aria-hidden="true" style="width: 100%;height: 100%;max-width:50%">
+                                        <use xlink:href="#icon-rtc-file-shengboyuyinxiaoxi"></use>
+                                    </svg>
+                                </div>
+                                <div class="tl-rtc-file-mask-media-video-tool">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('audio','audio')">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use v-if="isAudioEnabled" xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
+                                            <use v-else xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
+                                        </svg>
+                                    </div>
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="startAudioShare()">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use xlink:href="#icon-rtc-file-guaduandianhua"></use>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script type="text/javascript" src="/js/language.min.js"></script>
@@ -1144,6 +1211,7 @@
     <script type="text/javascript" src="/js/draw.min.js"></script>
     <script type="text/javascript" src="/js/videoShare.min.js"></script>
     <script type="text/javascript" src="/js/liveShare.min.js"></script>
+    <script type="text/javascript" src="/js/audioShare.min.js"></script>
     <script type="text/javascript" src="/js/screen.min.js"></script>
     <script type="text/javascript" src="/js/screenShare.min.js"></script>
     <script type="text/javascript" src="/js/index.min.js"></script>
