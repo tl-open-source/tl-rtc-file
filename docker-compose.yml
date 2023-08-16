@@ -11,7 +11,7 @@ services:
     image: iamtsm/tl-rtc-file-api
     container_name: api
     env_file:
-      - tlrtcfile.env
+      - ./tlrtcfile.env
     environment:
       - tl_rtc_file_env_mode=http
       - tl_rtc_file_db_open=true
@@ -25,7 +25,7 @@ services:
       - mysql
       - coturn
     volumes:
-      - tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
   #https模式启动api服务
   api-https:
@@ -33,7 +33,7 @@ services:
     image: iamtsm/tl-rtc-file-api
     container_name: api
     env_file:
-      - tlrtcfile.env
+      - ./tlrtcfile.env
     environment:
       - tl_rtc_file_env_mode=https
       - tl_rtc_file_db_open=true
@@ -47,7 +47,7 @@ services:
       - mysql
       - coturn
     volumes:
-      - tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
   #http模式启动socket服务
   socket-http:
@@ -57,7 +57,7 @@ services:
     command: 
       - tlsocket
     env_file:
-      - tlrtcfile.env
+      - ./tlrtcfile.env
     environment:
       - tl_rtc_file_env_mode=http
       - tl_rtc_file_db_open=true
@@ -69,7 +69,7 @@ services:
       - mysql
       - coturn
     volumes:
-      - tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
   #https模式启动socket服务
   socket-https:
@@ -79,7 +79,7 @@ services:
     command: 
       - tlsocket
     env_file:
-      - tlrtcfile.env
+      - ./tlrtcfile.env
     environment:
       - tl_rtc_file_env_mode=https
       - tl_rtc_file_db_open=true
@@ -91,7 +91,7 @@ services:
       - mysql
       - coturn
     volumes:
-      - tlrtcfile.env:/tlrtcfile/tlrtcfile.env
+      - ./tlrtcfile.env:/tlrtcfile/tlrtcfile.env
 
   #mysql服务
   mysql:
