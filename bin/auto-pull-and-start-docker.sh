@@ -78,11 +78,11 @@ docker run \
   -e MYSQL_DATABASE=webchat \
   -e MYSQL_USER=tlrtcfile \
   -e MYSQL_PASSWORD=tlrtcfile \
-  -v ./../docker/mysql/data/mysql.env:/tlrtcfile/docker/mysql/mysql.env \
-  -v ./../docker/mysql/data/db:/var/lib/mysql \
-  -v ./../docker/mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf \
-  -v ./../docker/mysql/data/log:/var/log/mysql \
-  -v ./../docker/mysql/data/init.sql:/docker-entrypoint-initdb.d/init.sql \
+  -v $(dirname "$PWD")/docker/mysql/data/mysql.env:/tlrtcfile/docker/mysql/mysql.env \
+  -v $(dirname "$PWD")/docker/mysql/data/db:/var/lib/mysql \
+  -v $(dirname "$PWD")/docker/mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf \
+  -v $(dirname "$PWD")/docker/mysql/data/log:/var/log/mysql \
+  -v $(dirname "$PWD")/docker/mysql/data/init.sql:/docker-entrypoint-initdb.d/init.sql \
   --restart=always \
   -d iamtsm/tl-rtc-file-mysql
 
@@ -91,7 +91,7 @@ docker run \
   --name=coturn \
   -p 3478:3478/udp \
   -p 3478:3478/tcp \
-  -v ./../docker/coturn/turnserver-with-secret-user.conf:/etc/coturn/turnserver.conf \
+  -v $(dirname "$PWD")/docker/coturn/turnserver-with-secret-user.conf:/etc/coturn/turnserver.conf \
   -d iamtsm/tl-rtc-file-coturn
 
 # 启动api容器
@@ -132,7 +132,7 @@ docker run \
   -e tl_rtc_file_notify_open \
   -e tl_rtc_file_notify_qiwei_normal \
   -e tl_rtc_file_notify_qiwei_error \
-  -v ../tlrtcfile.env:/tlrtcfile/tlrtcfile.env \
+  -v $(dirname "$PWD")/tlrtcfile.env:/tlrtcfile/tlrtcfile.env \
   --link mysql \
   -d iamtsm/tl-rtc-file-api tlapi
 
@@ -174,6 +174,6 @@ docker run \
   -e tl_rtc_file_notify_open \
   -e tl_rtc_file_notify_qiwei_normal \
   -e tl_rtc_file_notify_qiwei_error \
-  -v ../tlrtcfile.env:/tlrtcfile/tlrtcfile.env \
+  -v $(dirname "$PWD")/tlrtcfile.env:/tlrtcfile/tlrtcfile.env \
   --link mysql \
   -d iamtsm/tl-rtc-file-socket tlsocket
