@@ -87,7 +87,7 @@
                     <use xlink:href="#icon-rtc-file-duoyuyan"></use>
                 </svg>
             </a>
-            <a :title="lang.timer" style="position: relative;top: -5px;">
+            <a :title="lang.timer" style="position: relative;top: -3px;">
                 <b style="transition: color 0.8s;margin-right: 5px;" id="screenShareTimes" v-show="isScreenShare">
                     {{lang.sharing}}: {{screenShareTimes < 10 ? '0' + screenShareTimes :
                         screenShareTimes}}{{lang.second}} </b>
@@ -1024,6 +1024,7 @@
                     <div :style="{height: logsHeight + 80 +'px',overflowY: 'auto'}">
                         <div class="layui-card-body">
                             <div class="tl-rtc-file-mask-media-container" id="mediaVideoRoomList"> 
+                                <div style="text-align: center;font-weight: bold;">{{nickName}}</div>
                                 <div class="tl-rtc-file-mask-media-video">
                                     <video v-show="isCameraEnabled" id="selfMediaShareVideo" 
                                         preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
@@ -1071,6 +1072,7 @@
                     <div :style="{height: logsHeight + 80 +'px',overflowY: 'auto'}">
                         <div class="layui-card-body">
                             <div class="tl-rtc-file-mask-media-container" id="mediaScreenRoomList"> 
+                                <div style="text-align: center;font-weight: bold;">{{nickName}}</div>
                                 <div class="tl-rtc-file-mask-media-video">
                                     <video v-show="isCameraEnabled" id="selfMediaShareScreen" 
                                         preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
@@ -1112,6 +1114,7 @@
                     <div :style="{height: logsHeight + 80 +'px',overflowY: 'auto'}">
                         <div class="layui-card-body">
                             <div class="tl-rtc-file-mask-media-container" id="mediaLiveRoomList"> 
+                                <div v-show="isLiveShare && owner" style="text-align: center;font-weight: bold;">{{nickName}}</div>
                                 <div class="tl-rtc-file-mask-media-video" v-show="owner">
                                     <video v-show="isCameraEnabled" id="selfMediaShareLive" 
                                         preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
@@ -1172,6 +1175,7 @@
                     <div :style="{height: logsHeight + 80 +'px',overflowY: 'auto'}">
                         <div class="layui-card-body">
                             <div class="tl-rtc-file-mask-media-container" id="mediaAudioRoomList"> 
+                                <div style="text-align: center;font-weight: bold;">{{nickName}}</div>
                                 <div class="tl-rtc-file-mask-media-video">
                                     <video v-show="false" id="selfMediaShareAudio" 
                                         preload="auto" autoplay="autoplay" x-webkit-airplay="true" 

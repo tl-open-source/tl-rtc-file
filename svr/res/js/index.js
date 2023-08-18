@@ -1,5 +1,5 @@
 // --------------------------- //
-// --       index.js         -- //
+// --       index.js        -- //
 // --   version : 1.0.0     -- //
 // --   date : 2023-06-22   -- //
 // --------------------------- //
@@ -93,8 +93,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 nickName: "", //本人名称
                 socketId: 0, //本人的id
                 roomId: "10086", //房间号
-                roomType : "file", //房间类型
+                roomType : "file", //房间类型 video, live, audio ,file
                 liveShareMode : "video", //直播类型 video, screen
+                liveShareRole : "owner", //直播身份 owner: 主播, viwer:观众
                 codeId: "", //取件码
                 recoderId: 0, //记录id
                 rtcConns: {}, //远程连接
@@ -1000,7 +1001,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     content: content,
                     btn : this.lang.confirm,
                     shadeClose : true
-                });   
+                });
             },
             // 打开ai窗口
             openaiChat: function () {
@@ -1541,59 +1542,126 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     that.socket.emit('message', {
                         emitType: "startLiveShare",
                         room: that.roomId,
-                        to : that.socketId
+                        to : that.socketId,
+                        liveShareMode : that.liveShareMode,
+                        liveShareRole : that.liveShareRole
                     });
                     that.clickMediaLive();
                     that.isLiveShare = !that.isLiveShare;
                     that.addUserLogs(that.lang.start_live);
                 }else{
-                    layer.prompt({
-                        formType: 0,
-                        title: this.lang.please_enter_live_room_num,
-                        btn : ['视频直播', '屏幕直播', '取消'],
-                        yes: function (index, layero) {
-                            const value = $('#layui-layer'+index + " .layui-layer-input").val();
-                            if(value === ''){
-                                return
-                            }
-                            that.roomId = value;
-                            that.liveShareMode = "video";
-                            that.createMediaRoom("live");
-                            layer.close(index)
+                    layer.open({
+                        title: that.lang.chooseRoleEnter,
+                        content: `
+                            <div style="text-align: center;"> 
+                                <div style="display: inline-flex;">
+                                    <div class="tl-rtc-file-live-user-choose" id="liveOwner">
+                                        <svg class="icon" aria-hidden="true">
+                                            <use xlink:href="#icon-rtc-file-laoshi"></use>
+                                        </svg>
+                                        <div> ${that.lang.iamLiveOwner} </div>
+                                    </div>
+                                    <div class="tl-rtc-file-live-user-choose" id="liveViewer">
+                                        <svg class="icon" aria-hidden="true">
+                                            <use xlink:href="#icon-rtc-file-navbar_guanzhong"></use>
+                                        </svg>
+                                        <div > ${that.lang.iamLiveViewer} </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        btn : false,
+                        shadeClose : true,
+                        success : function(layero, index){
+                            document.querySelector("#liveOwner").addEventListener("click", function(){
+                                layer.close(index);
+                                layer.prompt({
+                                    formType: 0,
+                                    title: that.lang.please_enter_live_room_num,
+                                    btn : [that.lang.videoLiveShare, that.lang.screenLiveShare, that.lang.cancel],
+                                    yes: function (index, layero) {
+                                        const value = $('#layui-layer'+index + " .layui-layer-input").val();
+                                        if(value === ''){
+                                            return
+                                        }
+                                        that.roomId = value;
+                                        that.liveShareMode = "video";
+                                        that.createMediaRoom("live");
+                                        layer.close(index)
+            
+                                        that.socket.emit('message', {
+                                            emitType: "startLiveShare",
+                                            room: that.roomId,
+                                            to : that.socketId,
+                                            liveShareMode : that.liveShareMode,
+                                            liveShareRole : that.liveShareRole
+                                        });
+                                        that.clickMediaLive();
+                                        that.isLiveShare = !that.isLiveShare;
+                                        that.addUserLogs(that.lang.start_live);
+                                        return false
+                                    },
+                                    btn2: function (index, layero) {
+                                        const value = $('#layui-layer'+index + " .layui-layer-input").val();
+                                        if(value === ''){
+                                            return false
+                                        }
+                                        that.roomId = value;
+                                        that.liveShareMode = "screen";
+                                        that.createMediaRoom("live");
+                                        layer.close(index)
+            
+                                        that.socket.emit('message', {
+                                            emitType: "startLiveShare",
+                                            room: that.roomId,
+                                            to : that.socketId,
+                                            liveShareMode : that.liveShareMode,
+                                            liveShareRole : that.liveShareRole
+                                        });
+                                        that.clickMediaLive();
+                                        that.isLiveShare = !that.isLiveShare;
+                                        that.addUserLogs(that.lang.start_live);
+                                        return false
+                                    }
+                                });
+                            })
 
-                            that.socket.emit('message', {
-                                emitType: "startLiveShare",
-                                room: that.roomId,
-                                to : that.socketId,
-                                liveShareMode : that.liveShareMode
-                            });
-                            that.clickMediaLive();
-                            that.isLiveShare = !that.isLiveShare;
-                            that.addUserLogs(that.lang.start_live);
-                            return false
-                        },
-                        btn2: function (index, layero) {
-                            const value = $('#layui-layer'+index + " .layui-layer-input").val();
-                            if(value === ''){
-                                return false
-                            }
-                            that.roomId = value;
-                            that.liveShareMode = "screen";
-                            that.createMediaRoom("live");
-                            layer.close(index)
-
-                            that.socket.emit('message', {
-                                emitType: "startLiveShare",
-                                room: that.roomId,
-                                to : that.socketId,
-                                liveShareMode : that.liveShareMode
-                            });
-                            that.clickMediaLive();
-                            that.isLiveShare = !that.isLiveShare;
-                            that.addUserLogs(that.lang.start_live);
-                            return false
+                            document.querySelector("#liveViewer").addEventListener("click", function(){
+                                layer.close(index);
+                                layer.prompt({
+                                    formType: 0,
+                                    title: that.lang.please_enter_live_room_num,
+                                    btn : [that.lang.confirm, that.lang.cancel],
+                                    yes: function (index, layero) {
+                                        const value = $('#layui-layer'+index + " .layui-layer-input").val();
+                                        if(value === ''){
+                                            return
+                                        }
+                                        that.roomId = value;
+                                        that.liveShareRole = "viewer"
+                                        //观众进入的时候，用不上这个直播模式值，可以清空，也可以保持默认值不动
+                                        that.liveShareMode = "";
+                                        that.createMediaRoom("live");
+                                        layer.close(index)
+            
+                                        that.socket.emit('message', {
+                                            emitType: "startLiveShare",
+                                            room: that.roomId,
+                                            to : that.socketId,
+                                            liveShareMode : that.liveShareMode,
+                                            liveShareRole : that.liveShareRole
+                                        });
+                                        that.clickMediaLive();
+                                        that.isLiveShare = !that.isLiveShare;
+                                        that.addUserLogs(that.lang.start_live);
+                                        return false
+                                    }
+                                });
+                            })
                         }
                     });
+
+                    
                 }
             },
             // 创建/加入语音连麦房间
@@ -2142,10 +2210,15 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         area: ['350px', '380px'],
                         title: that.lang.share_join_room,
                         success: function (layero, index) {
-                            let content = window.tlrtcfile.addUrlHashParams({
+                            let shareArgs = {
                                 r : that.roomId,
                                 t : that.roomType
-                            });
+                            };
+                            if(that.roomType === 'live'){
+                                shareArgs.lsm = that.liveShareMode;
+                                shareArgs.lsr = that.liveShareRole;
+                            }
+                            let content = window.tlrtcfile.addUrlHashParams(shareArgs);
                             document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
                             document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
                             document.querySelector(".layui-layer").style.borderRadius = "8px";
@@ -2204,46 +2277,62 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             handlerJoinShareRoom: function () {
                 let that = this;
                 let hash = window.location.hash || "";
-                if (hash && hash.includes("#") && hash.includes("r=")) {
-                    //房间号
-                    let roomIdArgs = tlrtcfile.getRequestHashArgs("r")
-                    if (!roomIdArgs) {
-                        return
-                    }
-                    //房间类型
-                    let typeArgs = tlrtcfile.getRequestHashArgs("t")
-                    this.roomId = (roomIdArgs + "").replace(/\s*/g, "").substring(0, 15);
-                    if (window.layer) {
-                        layer.confirm(this.lang.join_room + this.roomId, (index) => {
-                            window.location.hash = "";
-                            layer.close(index)
-                            that.openRoomInput = true;
-                            that.isShareJoin = true;
-                            if(typeArgs && ['screen','live','video','audio'].includes(typeArgs)){
-                                if(typeArgs === 'screen'){
-                                    that.startScreenShare();
-                                }else if(typeArgs === 'live'){
-                                    that.startLiveShare();
-                                }else if(typeArgs === 'video'){
-                                    that.startVideoShare();
-                                }else if(typeArgs === 'audio'){
-                                    that.startAudioShare();
-                                }
-                            }else{
-                                that.createFileRoom();
-                            }
-                        }, (index) => {
-                            that.roomId = "";
-                            window.location.hash = "";
-                            layer.close(index)
-                        })
-                    }
-                    this.addPopup({
-                        title : this.lang.share_join_room,
-                        msg : this.lang.you_join_room + this.roomId
-                    });
-                    this.addUserLogs(this.lang.you_join_room + this.roomId);
+                if (!hash || !hash.includes("#") || !hash.includes("r=")) {
+                    return   
                 }
+
+                if (!window.layer) {
+                    return
+                }
+
+                //房间号
+                let roomIdArgs = tlrtcfile.getRequestHashArgs("r");
+                if (!roomIdArgs) {
+                    return
+                }
+                this.roomId = (roomIdArgs + "").replace(/\s*/g, "").substring(0, 15);
+
+                //房间类型
+                let typeArgs = tlrtcfile.getRequestHashArgs("t");
+
+                layer.confirm(this.lang.join_room + this.roomId, (index) => {
+                    window.location.hash = "";
+                    layer.close(index)
+                    that.openRoomInput = true;
+                    that.isShareJoin = true;
+                    if(typeArgs && ['screen','live','video','audio'].includes(typeArgs)){
+                        if(typeArgs === 'screen'){
+                            that.startScreenShare();
+                        }else if(typeArgs === 'live'){
+                            //直播房间模式
+                            let lsm = tlrtcfile.getRequestHashArgs("lsm");
+                            if(['video', 'live', ''].includes(lsm)){
+                                that.liveShareMode = lsm;
+                            }
+                            //直播房间身份
+                            let lsr = tlrtcfile.getRequestHashArgs("lsr");
+                            if(['owner', 'viewer'].includes(lsr)){
+                                that.liveShareRole = lsr;
+                            }
+                            that.startLiveShare();
+                        }else if(typeArgs === 'video'){
+                            that.startVideoShare();
+                        }else if(typeArgs === 'audio'){
+                            that.startAudioShare();
+                        }
+                    }else{
+                        that.createFileRoom();
+                    }
+                }, (index) => {
+                    that.roomId = "";
+                    window.location.hash = "";
+                    layer.close(index)
+                })
+                this.addPopup({
+                    title : this.lang.share_join_room,
+                    msg : this.lang.you_join_room + this.roomId
+                });
+                this.addUserLogs(this.lang.you_join_room + this.roomId);
             },
             // 赞助面板
             coffee: function () {
@@ -2509,7 +2598,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         nickName : this.nickName,
                         langMode : this.langMode,
                         ua: this.isMobile ? 'mobile' : 'pc',
-                        network : this.network
+                        network : this.network,
+                        liveShareRole : this.liveShareRole
                     });
                     this.isJoined = true;
                     this.roomType = type;
@@ -2676,6 +2766,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 
                 let video = null;
 
+                const remoteRtc = this.getRemoteInfo(id);
+                const remoteName = remoteRtc.nickName || "";
+
                 if(event.track.kind === 'audio'){
                     // audio-track事件，除了语音连麦房间之外，其他都可以跳过，因为音视频/直播/屏幕共享他们的音频流都并入了video-track了
                     if(that.roomType !== 'audio'){
@@ -2684,6 +2777,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                     //连麦房间，只有音频数据
                     $(`#mediaAudioRoomList`).append(`
+                        <div style="text-align: center;font-weight: bold;">${remoteName}</div>
                         <div class="tl-rtc-file-mask-media-video">
                             <video id="otherMediaAudioShare${id}" preload="auto" autoplay="autoplay" x-webkit-airplay="true" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint" ></video>
                             <svg id="otherMediaAudioShareAudioOpenAnimSvg${id}" class="icon layui-anim layui-anim-scaleSpring layui-anim-loop" aria-hidden="true" style="width: auto; height: auto; position: absolute;animation-duration:.7s;max-width:50%;color:cadetblue;">
@@ -2705,6 +2799,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                 if(this.roomType === 'video'){
                     $(`#mediaVideoRoomList`).append(`
+                        <div style="text-align: center;font-weight: bold;">${remoteName}</div>
                         <div class="tl-rtc-file-mask-media-video">
                             <video id="otherMediaVideoShare${id}" preload="auto" autoplay="autoplay" x-webkit-airplay="true" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint" ></video>
                             <svg id="otherMediaVideoShareVideoSvg${id}" class="icon" aria-hidden="true" style="width: 100%;height: 100%;display:none;">
@@ -2721,6 +2816,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     video = document.querySelector(`#otherMediaVideoShare${id}`);
                 } else if(this.roomType === 'screen'){
                     $(`#mediaScreenRoomList`).append(`
+                        <div style="text-align: center;font-weight: bold;">${remoteName}</div>
                         <div class="tl-rtc-file-mask-media-video">
                             <video id="otherMediaScreenShare${id}" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint" ></video>
                             <svg id="otherMediaScreenShareVideoSvg${id}" class="icon" aria-hidden="true" style="width: 100%;height: 100%;display:none;">
@@ -2730,25 +2826,12 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     `);
                     video = document.querySelector(`#otherMediaScreenShare${id}`);
                 } else if(this.roomType === 'live'){
-                    if(this.liveShareMode === 'video'){
+
+                    if(this.liveShareRole === 'viewer'){
                         $(`#mediaLiveRoomList`).append(`
+                            <div style="text-align: center;font-weight: bold;">${remoteName}</div>
                             <div class="tl-rtc-file-mask-media-video">
                                 <video id="otherMediaLiveShare${id}" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint" ></video>
-                                <svg id="otherMediaLiveShareVideoSvg${id}" class="icon" aria-hidden="true" style="width: 100%;height: 100%;display:none;">
-                                    <use xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
-                                </svg>
-                                <svg id="otherMediaLiveShareAudioOpenSvg${id}" class="tl-rtc-file-mask-media-video-other-audio" aria-hidden="true">
-                                    <use xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
-                                </svg>
-                                <svg id="otherMediaLiveShareAudioCloseSvg${id}" class="tl-rtc-file-mask-media-video-other-audio" aria-hidden="true" style="display:none;">
-                                    <use xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
-                                </svg>
-                            </div>
-                        `);
-                    }else if(this.liveShareMode === 'screen'){
-                        $(`#mediaLiveRoomList`).append(`
-                            <div class="tl-rtc-file-mask-media-video">
-                                <video id="otherMediaLiveShare${id}" playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
                                 <svg id="otherMediaLiveShareVideoSvg${id}" class="icon" aria-hidden="true" style="width: 100%;height: 100%;display:none;">
                                     <use xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
                                 </svg>
@@ -3329,7 +3412,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         }
                         if(data.type === 'live'){
                             window.Bus.$emit("startLiveShare", {
-                                liveShareMode : that.liveShareMode
+                                liveShareMode : that.liveShareMode,
+                                liveShareRole : that.liveShareRole
                             });
                         }
                     }

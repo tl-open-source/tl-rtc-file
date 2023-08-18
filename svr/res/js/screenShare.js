@@ -72,8 +72,14 @@ var screenShare = new Vue({
                 window.Bus.$emit("addSysLogs", "WeixinJSBridgeReady")
                 video.play();
             }, false);
-            video.srcObject = this.stream;
-            video.play();
+            try{
+                video.srcObject = this.stream;
+                video.play();
+            }catch(e){
+                setTimeout(() => {
+                    video.play();
+                }, 1000);
+            }
 
             //计算时间
             this.interverlId = setInterval(() => {

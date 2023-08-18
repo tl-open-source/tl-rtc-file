@@ -107,8 +107,14 @@ var videoShare = new Vue({
                 window.Bus.$emit("addSysLogs", "WeixinJSBridgeReady")
                 video.play();
             }, false);
-            video.srcObject = this.stream;
-            video.play();
+            try{
+                video.srcObject = this.stream;
+                video.play();
+            }catch(e){
+                setTimeout(() => {
+                    video.play();
+                }, 1000);
+            }
 
             //计算时间
             this.interverlId = setInterval(() => {
@@ -235,8 +241,14 @@ var videoShare = new Vue({
 
             //替换本地流
             this.stream = new MediaStream([newStream.getVideoTracks()[0], this.stream.getAudioTracks()[0]]);
-            video.srcObject = this.stream;
-            video.play();
+            try{
+                video.srcObject = this.stream;
+                video.play();
+            }catch(e){
+                setTimeout(() => {
+                    video.play();
+                }, 1000);
+            }
         },
         getVideoShareTrackAndStream: function (callback) {
             callback(this.track, this.stream)

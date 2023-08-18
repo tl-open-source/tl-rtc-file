@@ -22,7 +22,7 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
 
     let {
         room, type = 'file', nickName = '', password = '', 
-        langMode = 'zh', ua = '', network = ''
+        langMode = 'zh', ua = '', network = '', liveShareRole = ''
     } = data;
 
     if (room && room.length > 15) {
@@ -43,6 +43,10 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
 
     if(['pc', 'mobile'].indexOf(ua) === -1){
         ua = 'pc';
+    }
+
+    if(['owner', 'viewer'].indexOf(liveShareRole) === -1){
+        liveShareRole = 'owner';
     }
 
     if(['wifi', '4g', '3g', '2g', '5g'].indexOf(network) === -1){
@@ -79,6 +83,18 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
     let numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
 
     if (numClients === 0) {
+
+        //直播房间，如果是观众身份进入时，房间没人，提示退出
+        if(type === 'live' && liveShareRole === 'viewer'){
+            socket.emit(rtcClientEvent.tips, {
+                room : data.room,
+                to : socket.id,
+                msg : "当前房间暂无直播",
+                reload : true
+            });
+            return
+        }
+
         socket.join(room);
 
         socket.emit(rtcClientEvent.created, {
@@ -120,6 +136,17 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
                 room : data.room,
                 to : socket.id,
                 msg : "当前房间已满，请开启其他房间号发起操作"
+            });
+            return
+        }
+
+        //直播房间，如果是主播身份进入时房间已经有人了，提示退出
+        if(type === 'live' && liveShareRole === 'owner'){
+            socket.emit(rtcClientEvent.tips, {
+                room : data.room,
+                to : socket.id,
+                msg : "当前房间正在直播中，请更换房间号直播，或以观众身份进入此房间",
+                reload : true
             });
             return
         }

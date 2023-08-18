@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "22960451",
+      "name": "老师",
+      "font_class": "laoshi",
+      "unicode": "e81f",
+      "unicode_decimal": 59423
+    },
+    {
+      "icon_id": "11341738",
+      "name": "11navbar_观众",
+      "font_class": "navbar_guanzhong",
+      "unicode": "e625",
+      "unicode_decimal": 58917
+    },
+    {
+      "icon_id": "32228198",
+      "name": "主播中心",
+      "font_class": "zhubozhongxin",
+      "unicode": "e627",
+      "unicode_decimal": 58919
+    },
+    {
       "icon_id": "867298",
       "name": "HOT",
       "font_class": "hot1",

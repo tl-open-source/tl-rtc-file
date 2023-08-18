@@ -8,6 +8,12 @@
 
 const local_lang = {
     "en": {
+        "iamLiveViewer" : "i am live viewer",
+        "iamLiveOwner" : "i am Live Owner",
+        "chooseRoleEnter" : "Choose role enter",
+        "cancel" : "Cancel",
+        "screenLiveShare" : "Screen live share",
+        "videoLiveShare" : "Video live share",
         "audioing" : "Audioing",
         "audio_sharing" : "Audio sharing",
         "expand_audio" : "Expand audio panel",
@@ -338,6 +344,12 @@ const local_lang = {
         "webrtc_ice_state" : "webrtc state"
     },
     "zh": {
+        "iamLiveViewer" : "我是观众",
+        "iamLiveOwner" : "我是主播",
+        "chooseRoleEnter" : "选择身份进入",
+        "cancel" : "取消",
+        "screenLiveShare" : "屏幕直播",
+        "videoLiveShare" : "视频直播",
         "audioing" : "语音中",
         "audio_sharing" : "语音连麦",
         "expand_audio" : "展开音频面板",

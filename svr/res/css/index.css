@@ -767,7 +767,7 @@ body {
 }
 
 .tl-rtc-file-mask-media-container {
-    /* display: flex; */
+    margin-bottom: 20px;
 }
 
 .tl-rtc-file-mask-media-video {
@@ -816,7 +816,6 @@ body {
     width: 22px;
     height: 22px;
     position: absolute;
-    bottom: 25px;
     left: 30px;
 }
 
@@ -1163,6 +1162,24 @@ body {
     -webkit-transform: scale(0.6) !important;
 }
 
+.tl-rtc-file-live-user-choose{
+    padding: 0px 20px 0px 20px;
+    margin: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.5s;
+    font-weight: bold;
+    color: #595252e3;
+}
+
+.tl-rtc-file-live-user-choose svg{
+    font-size: 3rem;
+    margin-bottom: 5px;
+}
+
+.tl-rtc-file-live-user-choose:hover{
+    color: black;
+}
 
 /* 500px以下 */
 @media screen and (max-width: 500px) {

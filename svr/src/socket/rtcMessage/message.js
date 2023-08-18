@@ -36,7 +36,7 @@ let rtcEventOpName = {
  */
 async function message(io, socket, tables, dbClient, data){
     try {
-        let {emitType, room, from, to} = data;
+        let {emitType, room, from, to, liveShareMode = '', liveShareRole = ''} = data;
 
         let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
@@ -162,6 +162,8 @@ async function message(io, socket, tables, dbClient, data){
         if (emitType === rtcServerMessageEvent.startLiveShare) {
             bussinessNotify.sendStartLiveShareNotify({
                 title: rtcEventOpName.startLiveShare,
+                liveShareMode : liveShareMode,
+                liveShareRole : liveShareRole,
                 userAgent: userAgent,
                 ip: ip,
                 room: data.room
@@ -172,6 +174,8 @@ async function message(io, socket, tables, dbClient, data){
             bussinessNotify.sendStopLiveShareNotify({
                 title: rtcEventOpName.stopLiveShare,
                 userAgent: data.userAgent,
+                liveShareMode : liveShareMode,
+                liveShareRole : liveShareRole,
                 cost: data.cost,
                 userAgent: userAgent,
                 ip: ip,
