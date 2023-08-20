@@ -44,6 +44,10 @@ const rtcServerEvent = {
     addCodeFile : "addCodeFile",
     //获取取件码文件
     getCodeFile : "getCodeFile",
+    //心跳
+    heartbeat : "heartbeat",
+    //修改昵称
+    changeNickName : "changeNickName",
 }
 
 /**
@@ -124,6 +128,10 @@ let rtcClientEvent = {
     addCodeFile : "addCodeFile",
     //获取取件码文件
     getCodeFile : "getCodeFile",
+    //心跳
+    heartbeat : "heartbeat",
+    //修改昵称
+    changeNickName : "changeNickName",
 }
 
 /**

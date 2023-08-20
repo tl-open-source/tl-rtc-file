@@ -15,6 +15,8 @@ const rtcChatingRoom = require("./rtcChatingRoom/chatingRoom");
 const rtcOpenai = require("./rtcOpenai/openai");
 const rtcDraw = require("./rtcDraw/draw");
 const rtcPrepareCodeFile = require("./rtcCodeFile/prepareCodeFile");
+const rtcChangeNickName = require("./rtcChangeNickName/changeNickName")
+const rtcHeartbeat = require("./rtcHeartbeat/heartbeat");
 const rtcAddCodeFile = require("./rtcCodeFile/addCodeFile");
 const rtcGetCodeFile = require("./rtcCodeFile/getCodeFile");
 const rtcServerEvent = require("./rtcConstant").rtcServerEvent
@@ -117,5 +119,15 @@ module.exports = (io, socket, tables, dbClient) => {
     // 获取取件码文件
     socket.on(rtcServerEvent.getCodeFile, (data) => {
         rtcGetCodeFile.getCodeFile(io, socket, tables, dbClient, data)
+    });
+
+    // 心跳
+    socket.on(rtcServerEvent.heartbeat, (data) => {
+        rtcHeartbeat.heartbeat(io, socket, tables, dbClient, data)
+    });
+
+    // 修改昵称
+    socket.on(rtcServerEvent.changeNickName, (data) => {
+        rtcChangeNickName.changeNickName(io, socket, tables, dbClient, data)
     });
 }

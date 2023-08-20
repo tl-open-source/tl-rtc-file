@@ -179,7 +179,7 @@ var videoShare = new Vue({
             this.videoDeviceList = list.videoDeviceList;
             this.loudspeakerDeviceList = list.loudspeakerDeviceList;
         },
-        changeVideoShareDevice: async function ({constraints, kind, rtcConnect}) {
+        changeVideoShareMediaTrackAndStream: async function ({constraints, kind, rtcConns, callback}) {
             //重新获取流
             let newStream = null;
             try{
@@ -263,7 +263,7 @@ var videoShare = new Vue({
         window.Bus.$on("startVideoShare", this.startVideoShare);
         window.Bus.$on("stopVideoShare", this.stopVideoShare);
         window.Bus.$on("getVideoShareTrackAndStream", this.getVideoShareTrackAndStream);
-        window.Bus.$on("changeVideoShareDevice", this.changeVideoShareDevice);
+        window.Bus.$on("changeVideoShareMediaTrackAndStream", this.changeVideoShareMediaTrackAndStream);
         window.Bus.$on("getVideoShareDeviceList", this.getVideoShareDeviceList);
     }
 })

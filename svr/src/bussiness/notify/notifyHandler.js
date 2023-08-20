@@ -59,6 +59,23 @@ function sendFileDoneNotify(data) {
 
 
 /**
+ * 发送修改昵称通知
+ * @param {*} data 
+ */
+function sendChangeNickNameNotify(data) {
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font>` +
+        ` - <font color="comment">${data.room}</font>\n` +
+        `库记录ID: ${data.recoderId}\n` +
+        `旧的昵称: ${data.oldNickName}\n` +
+        `新的昵称: ${data.nickName}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n` +
+        `访问IP: ${data.ip}\n` +
+        `访问设备: ${data.userAgent}\n`;
+    notify.requestMsg(notifyMsg)
+}
+
+
+/**
  * 发送文本内容通知
  * @param {*} data 
  */
@@ -507,5 +524,6 @@ module.exports = {
     prepareCodeFileNotify,
     sendSystemErrorMsg,
     sendStartRemoteDrawNotify,
-    sendStopRemoteDrawNotify
+    sendStopRemoteDrawNotify,
+    sendChangeNickNameNotify
 }

@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "3405264",
+      "name": "相机反转",
+      "font_class": "xiangjifanzhuan",
+      "unicode": "e6de",
+      "unicode_decimal": 59102
+    },
+    {
+      "icon_id": "6162508",
+      "name": "奖杯7-3",
+      "font_class": "jiangbei-",
+      "unicode": "e6bc",
+      "unicode_decimal": 59068
+    },
+    {
+      "icon_id": "12592991",
+      "name": "奖杯",
+      "font_class": "jiangbei",
+      "unicode": "e6ea",
+      "unicode_decimal": 59114
+    },
+    {
       "icon_id": "22960451",
       "name": "老师",
       "font_class": "laoshi",

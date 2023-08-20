@@ -330,11 +330,13 @@
         <!-- 自己 -->
         <div class="layui-row" style="margin-top: 30px;" v-show="socketId !== 0">
             <div class="layui-col-xs12 tl-rtc-file-user-list">
-                <div class="tl-rtc-file-user">
-                    <div class="tl-rtc-file-user-body">
-                        <svg class="icon" aria-hidden="true" style="width: 32px;height: 32px;">
-                            <use xlink:href="#icon-rtc-file-icon-test"></use>
-                        </svg>
+                <div class="tl-rtc-file-user" style="background: #f6fdff;">
+                    <div class="tl-rtc-file-user-body" @click="changeNickName()">
+                        <div>
+                            <svg class="icon" aria-hidden="true" style="width: 32px;height: 32px;">
+                                <use xlink:href="#icon-rtc-file-jiangbei-"></use>
+                            </svg>
+                        </div>
                         <div class="tl-rtc-file-user-body-left">
                             <b class="tl-rtc-file-user-body-left-nick">
                                 <b v-show="owner" style="color: #51d788;">【{{roomTypeName}}】-</b>
@@ -1035,13 +1037,18 @@
                                     </svg>
                                 </div>
                                 <div class="tl-rtc-file-mask-media-video-tool">
-                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('video','video')">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeVideoShareMediaTrackAndStream()">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use xlink:href="#icon-rtc-file-xiangjifanzhuan"></use>
+                                        </svg>
+                                    </div>
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStreamSwitch('video','video')">
                                         <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
                                             <use v-if="isCameraEnabled" xlink:href="#icon-rtc-file-shexiangtou"></use>
                                             <use v-else xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
                                         </svg>
                                     </div>
-                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('video','audio')">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStreamSwitch('video','audio')">
                                         <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
                                             <use v-if="isAudioEnabled" xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
                                             <use v-else xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
@@ -1083,7 +1090,7 @@
                                     </svg>
                                 </div>
                                 <div class="tl-rtc-file-mask-media-video-tool">
-                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('screen','video')">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStreamSwitch('screen','video')">
                                         <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
                                             <use v-if="isCameraEnabled" xlink:href="#icon-rtc-file-pingmugongxiang"></use>
                                             <use v-else xlink:href="#icon-rtc-file-guanbipingmu"></use>
@@ -1126,6 +1133,11 @@
                                     </svg>
                                 </div>
                                 <div class="tl-rtc-file-mask-media-video-tool" v-show="owner">
+                                    <div v-show="liveShareMode === 'video'" class="tl-rtc-file-mask-media-video-tool-item" @click="changeLiveVideoShareMediaTrackAndStream()">
+                                        <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
+                                            <use xlink:href="#icon-rtc-file-xiangjifanzhuan"></use>
+                                        </svg>
+                                    </div>
                                     <div v-show="changeLiveShareMediaTrackAndStreamTime === 0" class="tl-rtc-file-mask-media-video-tool-item" @click="changeLiveShareMediaTrackAndStream()">
                                         <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
                                             <use xlink:href="#icon-rtc-file-fanzhuanjingtou"></use>
@@ -1134,7 +1146,7 @@
                                     <div v-show="changeLiveShareMediaTrackAndStreamTime > 0" class="tl-rtc-file-mask-media-video-tool-item layui-disabled" style="padding: 2px 10px 2px 10px">
                                         {{changeLiveShareMediaTrackAndStreamTime}}
                                     </div>
-                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('live', 'video')">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStreamSwitch('live', 'video')">
                                         <svg v-if="liveShareMode === 'video'" class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
                                             <use v-if="isCameraEnabled" xlink:href="#icon-rtc-file-shexiangtou"></use>
                                             <use v-else xlink:href="#icon-rtc-file-shexiangtou_guanbi"></use>
@@ -1144,7 +1156,7 @@
                                             <use v-else xlink:href="#icon-rtc-file-guanbipingmu"></use>
                                         </svg>
                                     </div>
-                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('live','audio')">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStreamSwitch('live','audio')">
                                         <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
                                             <use v-if="isAudioEnabled" xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
                                             <use v-else xlink:href="#icon-rtc-file-guanbimaikefeng"></use>
@@ -1189,7 +1201,7 @@
                                     </svg>
                                 </div>
                                 <div class="tl-rtc-file-mask-media-video-tool">
-                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStream('audio','audio')">
+                                    <div class="tl-rtc-file-mask-media-video-tool-item" @click="changeShareStreamSwitch('audio','audio')">
                                         <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;">
                                             <use v-if="isAudioEnabled" xlink:href="#icon-rtc-file-maikefeng-XDY"></use>
                                             <use v-else xlink:href="#icon-rtc-file-guanbimaikefeng"></use>

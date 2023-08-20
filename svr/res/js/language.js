@@ -8,6 +8,9 @@
 
 const local_lang = {
     "en": {
+        "changeNickNameTo" : "Change nickname to",
+        "changeNickNameLimit" : "The nickname can only be Chinese or English within 10 characters",
+        "changeNickName" : "Change nickname",
         "iamLiveViewer" : "i am live viewer",
         "iamLiveOwner" : "i am Live Owner",
         "chooseRoleEnter" : "Choose role enter",
@@ -201,6 +204,7 @@ const local_lang = {
         "please_enter_audio_sharing_room_num" : "Please enter the audio sharing room number",
         "please_enter_screen_sharing_room_num": "Please enter the screen sharing room number",
         "please_enter_video_call_room_num": "Please enter the audio and video call room number",
+        "please_exit_then_join_audio": "Please exit the room first and then enter the audio room",
         "please_exit_then_join_live": "Please exit the room first and then enter the live room",
         "please_exit_then_join_password_room": "Please exit the room first and then enter the password room",
         "please_exit_then_join_screen": "Please exit the room first and then initiate screen sharing",
@@ -344,6 +348,9 @@ const local_lang = {
         "webrtc_ice_state" : "webrtc state"
     },
     "zh": {
+        "changeNickNameTo" : "更新了昵称为",
+        "changeNickName" : "修改昵称",
+        "changeNickNameLimit" : "昵称长度限制为10个以内中英文字符",
         "iamLiveViewer" : "我是观众",
         "iamLiveOwner" : "我是主播",
         "chooseRoleEnter" : "选择身份进入",
@@ -547,6 +554,7 @@ const local_lang = {
         "please_enter_audio_sharing_room_num" : "请输入语音连麦房间号",
         "please_enter_screen_sharing_room_num": "请输入屏幕共享房间号",
         "please_enter_video_call_room_num": "请输入音视频通话房间号",
+        "please_exit_then_join_audio": "请先退出房间，然后进入语音连麦房间",
         "please_exit_then_join_live": "请先退出房间，然后进入直播间",
         "please_exit_then_join_password_room": "请先退出房间，然后进入密码房间",
         "please_exit_then_join_screen": "请先退出房间，然后发起屏幕共享",

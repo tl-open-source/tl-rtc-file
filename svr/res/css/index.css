@@ -258,7 +258,6 @@ body {
 .tl-rtc-file-user {
     padding: 10px 20px 0px 10px;
     cursor: pointer;
-    background-color: rgb(248, 253, 255);
     border-radius: 10px;
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 3px;
     transition: box-shadow 0.3s;
@@ -1081,7 +1080,6 @@ body {
     user-select: none;
 }
 
-
 .chating_input_body{
     bottom: 0px; 
     position: absolute; 
@@ -1110,7 +1108,6 @@ body {
 .chating_send_body_button{
     border-radius: 5px;
 }
-
 
 .remote_user_info{
     text-align: left;
@@ -1142,7 +1139,7 @@ body {
     max-width: 40px;
     width: 5% !important;
     margin-left: 50% !important;
- }
+}
 
 .tl-rtc-file-tool-mobile {
     padding: 5px !important;
@@ -1157,7 +1154,7 @@ body {
     word-break: keep-all !important;
     margin: 0 !important;
     bottom: 0 !important;
-    -webkit-transform-origin-x: 0 !important; 
+    -webkit-transform-origin-x: 0 !important;
     transform: scale(0.6) !important;
     -webkit-transform: scale(0.6) !important;
 }
@@ -1167,18 +1164,18 @@ body {
     margin: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.5s;
+    transition: all 0.3s;
     font-weight: bold;
-    color: #595252e3;
+    color: black;
 }
 
 .tl-rtc-file-live-user-choose svg{
-    font-size: 3rem;
+    font-size: 2rem;
     margin-bottom: 5px;
 }
 
 .tl-rtc-file-live-user-choose:hover{
-    color: black;
+    color: #79b0e8;
 }
 
 /* 500px以下 */

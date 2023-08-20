@@ -135,6 +135,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 aiAnsweringTxtIntervalId: 0, //实现等待动画
                 aiAnsweringTxt: "思考中...", //ai思考中的文字
                 logsFilter: "", //日志过滤参数
+
                 changeLiveShareMediaTrackAndStreamTimeLimit : 9, //切换直播媒体流的时间限制, 允许9s内切换一次
                 changeLiveShareMediaTrackAndStreamTime : 0, //可以下一次切换直播媒体流的时间
                 changeLiveShareMediaTrackAndStreamIntervalId : 0, //切换直播媒体流的时间间隔id
@@ -245,15 +246,85 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             }
         },
         methods: {
+            changeNickName : function(){
+                let that = this;
+                layer.prompt({
+                    formType: 0,
+                    title: that.lang.changeNickName,
+                    value: "",
+                }, function (value, index, elem) {
+                    if(value.length > 10 || tlrtcfile.containSymbol(value)){
+                        layer.msg(that.lang.changeNickNameLimit)
+                        return
+                    }
+                    
+                    that.socket.emit("changeNickName", {
+                        room: that.roomId,
+                        from : that.socketId,
+                        nickName : value,
+                        preNickName : that.nickName
+                    })
+
+                    that.nickName = value;
+                    layer.close(index);
+                    that.addUserLogs(that.lang.changeNickName + "," + value);
+                    return false
+                });
+            },
+            //切换音视频场景下的摄像头前后置
+            //切换媒体流之前，先将已关闭的媒体流打开之后再进行切换
+            changeVideoShareMediaTrackAndStream : async function(){
+                await this.changeShareStreamSwitch('video', 'video', 'open')
+                await this.changeShareStreamSwitch('video', 'audio', 'open')
+
+                //切换摄像头前后置
+                this.facingMode = this.facingMode === 'user' ? 'environment' : 'user'
+
+                let that = this;
+                window.Bus.$emit("changeVideoShareMediaTrackAndStream", {
+                    kind : 'video',
+                    constraints : this.videoConstraints,
+                    rtcConns : this.rtcConns,
+                    callback : (success) => {
+                        if(!success){ //没有成功，切换回来
+                            this.facingMode = this.facingMode === 'user' ? 'environment' : 'user'
+                        }
+                    }
+                });
+            },
+            //切换直播场景下的视频摄像头前后置媒体流
+            //切换媒体流之前，先将已关闭的媒体流打开之后再进行切换
+            changeLiveVideoShareMediaTrackAndStream : async function(){
+                await this.changeShareStreamSwitch('live', 'video', 'open')
+                await this.changeShareStreamSwitch('live', 'audio', 'open')
+
+                //切换摄像头前后置
+                this.facingMode = this.facingMode === 'user' ? 'environment' : 'user'
+
+                let that = this;
+
+                window.Bus.$emit("changeLiveShareMediaTrackAndStream", {
+                    type : 'video',
+                    kind : 'video',
+                    constraints : this.videoConstraints,
+                    rtcConns : this.rtcConns,
+                    callback : (success) => {
+                        if(!success){ //没有成功，切换回来
+                            that.facingMode = that.facingMode === 'user' ? 'environment' : 'user'
+                        }
+                    }
+                });
+            },
+            //切换直播媒体流，比如切换视频流和屏幕共享流
+            //切换媒体流之前，先将已关闭的媒体流打开之后再进行切换
             changeLiveShareMediaTrackAndStream : async function(){
-                //切换媒体流之前，先将已关闭的媒体流打开之后再进行切换
                 if(this.liveShareMode === 'live'){
                     //屏幕共享流只需要打开video通道即可
-                    await this.changeShareStream('live', 'video', 'open')
+                    await this.changeShareStreamSwitch('live', 'video', 'open')
                 }else if(this.liveShareMode === 'video'){
                     //视频流需要打开video和audio通道
-                    await this.changeShareStream('live', 'video', 'open')
-                    await this.changeShareStream('live', 'audio', 'open')
+                    await this.changeShareStreamSwitch('live', 'video', 'open')
+                    await this.changeShareStreamSwitch('live', 'audio', 'open')
                 }
 
                 let that = this;
@@ -282,7 +353,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     }, 1000);
                 }
             },
-            changeShareStream : async function(type, kind, value){
+            //改变媒体流开关状态
+            changeShareStreamSwitch : async function(type, kind, value){
                 let stream = null;
 
                 if(type === 'video'){
@@ -333,6 +405,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         this.isAudioEnabled = !this.isAudioEnabled
                     }
                 }
+
                 this.socket.emit('message', {
                     emitType: "openCamera",
                     room: this.roomId,
@@ -342,7 +415,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     isCameraEnabled : this.isCameraEnabled,
                     isAudioEnabled : this.isAudioEnabled
                 });
-                
             },
             updateRemoteRtcState : async function(){
                 for(let id in this.remoteMap){
@@ -1660,8 +1732,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             })
                         }
                     });
-
-                    
                 }
             },
             // 创建/加入语音连麦房间
@@ -1693,8 +1763,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     return   
                 }
                 if (this.isJoined) {
-                    layer.msg(this.lang.please_exit_then_join_screen)
-                    this.addUserLogs(this.lang.please_exit_then_join_screen)
+                    layer.msg(this.lang.please_exit_then_join_audio)
+                    this.addUserLogs(this.lang.please_exit_then_join_audio)
                     return
                 }
                 let that = this;
@@ -3381,10 +3451,19 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             socketListener: function () {
                 let that = this;
 
+                this.socket.on("heartbeat", data => {
+                    if(data.status === 'ok'){
+                        that.addSysLogs("心跳检查正常 : " + data.status);   
+                    }else{
+                        that.addSysLogs("socket心跳检查失败，" + JSON.stringify(data));
+                    }
+                })
+
                 this.socket.on('connect_error', error => {
                     console.error('connect_error', error);
                     if(error){
                         layer.msg("socket服务连接失败，请检查socket服务是否正常启动 " + error.message);
+                        that.addSysLogs("socket服务连接失败，请检查socket服务是否正常启动" + error.message);
                     }
                 });
 
@@ -3769,6 +3848,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 this.socket.on('count', function (data) {
                     that.allManCount = data.mc;
                     that.addSysLogs(that.lang.current_number + ":" + data.mc + that.lang.online_number)
+                });
+
+                //更新昵称
+                this.socket.on('changeNickName', function (data) {
+                    that.setRemoteInfo(data.from, {
+                        nickName : data.nickName
+                    })
+                    that.addSysLogs(data.from + + that.lang.changeNickNameTo + " : " + data.nickName)
                 });
 
                 //提示
@@ -4338,6 +4425,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 await this.updateRemoteRtcState()
             }, 5000);
             this.addSysLogs(this.lang.webrtc_check_init_done);
+
+            setInterval(async () => {
+                this.socket.emit("heartbeat", {})
+            }, 10000);
 
             this.addSysLogs(this.lang.message_box_init);
             this.startPopUpMsg()
