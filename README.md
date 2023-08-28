@@ -236,7 +236,7 @@ After setting up coturn, configure the WebRTC-related information in the corresp
 
 ## Overview Diagram
 
-![image](tl-rtc-file-tool.jpg)
+![image](doc/tl-rtc-file-tool.jpg)
 
 ## License
 

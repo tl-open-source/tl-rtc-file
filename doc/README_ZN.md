@@ -248,7 +248,7 @@ turnserver -c  /这个地方路径填完整/docker/coturn/turnserver-with-secret
 
 ## 概述图
 
-![image](doc/tl-rtc-file-tool.jpg)
+![image](tl-rtc-file-tool.jpg)
 
 ## License
 
