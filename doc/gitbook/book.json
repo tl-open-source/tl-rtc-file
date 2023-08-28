@@ -1,0 +1,14 @@
+{
+    "title": "tl-rtc-file",
+    "language": "zh-hans",
+    "author": "iamtsm",
+    "links": {
+      "sidebar": {
+        "iamtsm": "https://im.iamtsm.cn"
+      }
+    },
+    "plugins": [
+      "-search",
+      "-sharing"
+    ]
+  }

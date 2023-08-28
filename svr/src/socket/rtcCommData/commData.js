@@ -89,7 +89,7 @@ function setChatingComm(data){
  * @returns 
  */
 function getCacheSwitchData(){
-    return cacheSwitchData;
+    return cacheSwitchData || {};
 }
 
 /**

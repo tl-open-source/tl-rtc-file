@@ -26,6 +26,8 @@ async function changeNickName(io, socket, tables, dbClient, data){
             nickName = nickName.toString().substr(0, 9);
         }
 
+        data.nickName = check.contentFilter(nickName);
+
         await daoDog.addDogData({
             name: "修改个人昵称",
             roomId: data.room || "",
@@ -37,8 +39,6 @@ async function changeNickName(io, socket, tables, dbClient, data){
             ip: ip
         }, tables, dbClient);
 
-        data.nickName = check.contentFilter(nickName);
-
         bussinessNotify.sendChangeNickNameNotify({
             title: "修改个人昵称",
             room: data.room,
@@ -49,7 +49,7 @@ async function changeNickName(io, socket, tables, dbClient, data){
         })
 
         //更新下服务端存下的昵称
-        io.sockets.connected[socket.id].nickName = nickName;
+        io.sockets.connected[socket.id].nickName = data.nickName;
 
         // 指定发送
         if(data.to && data.to !== ''){

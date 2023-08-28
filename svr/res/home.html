@@ -39,8 +39,7 @@
     .tl-rtc-file-github-logo{
         width: 24px;
         height: 24px;
-        position: absolute;
-        top: 16px;
+        margin-top: 16px;
         margin-left: -30px;
     }
     .tl-rtc-file-intro-content{
@@ -129,13 +128,25 @@
         border-bottom-left-radius: 8px;
     }
 
+    .layui-nav .layui-nav-item a {
+        padding: 0 10px;
+    }
+
+    .layui-nav{
+        padding: 0;
+    }
+
 </style>
 
 <body class="layui-layout-body">
 
     <a href="#" class="tl-rtc-file-logo" > tl-rtc-file </a>
     <ul class="layui-nav">
-        <li class="layui-nav-item"><a target="_blank" onclick="donate()" style="color: black; font-weight: bold;">获取捐赠版</a></li>
+        <li class="layui-nav-item" ><a style="color: black; font-weight: bold;" href="/document">文档</a></li>
+        <li class="layui-nav-item"><a target="_blank" onclick="donate()" style="color: black; font-weight: bold;">捐赠</a></li>
+        <li class="layui-nav-item"><a target="_blank" onclick="donateDev()" style="color: black; font-weight: bold;">定制开发</a></li>
+        <li class="layui-nav-item" ><a style="color: black; font-weight: bold;" href="home_en.html">EN</a></li>
+
         <li class="layui-nav-item">
             <a href="https://github.com/iamtsm/tl-rtc-file" style="margin-left: 20px;" target="_blank">
                 <svg class="tl-rtc-file-github-logo" viewBox="0 0 1024 1024" p-id="1341" width="128" height="128">
@@ -143,7 +154,6 @@
                 </svg>
             </a>
         </li>
-        <li class="layui-nav-item" ><a style="color: black; font-weight: bold;" href="home_en.html">EN</a></li>
     </ul>
 
     <div class="tl-rtc-file-intro-content">
@@ -189,6 +199,20 @@
         window.layer = layui.layer;
     });
     window.donate = function(){
+        if(window.layer){
+            layer.open({
+                type: 1
+                , title: false
+                , closeBtn: false
+                , area: ["300px","300px"]
+                , shade: 0.5
+                , shadeClose : true
+                , id: 'layui-info-msg'
+                , content: '<img src="https://im.iamtsm.cn/image/coffee.jpeg" style="width: 100%; height: 100%;"></img>'
+            });
+        }
+    }
+    window.donateDev = function(){
         if(window.layer){
             layer.open({
                 type: 2

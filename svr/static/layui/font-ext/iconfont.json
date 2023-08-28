@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "4292650",
+      "name": "书",
+      "font_class": "shu",
+      "unicode": "e762",
+      "unicode_decimal": 59234
+    },
+    {
       "icon_id": "3405264",
       "name": "相机反转",
       "font_class": "xiangjifanzhuan",

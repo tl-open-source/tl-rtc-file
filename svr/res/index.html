@@ -108,12 +108,18 @@
 
         <!-- 侧边图标 -->
         <div class="tl-rtc-file-side-tool">
+            
+            <a href="https://im.iamtsm.cn/document" target="_blank">
+                <svg class="icon" aria-hidden="true" style="width: 24px;height: 24px;margin-right: 10px;">
+                    <use xlink:href="#icon-rtc-file-shu"></use>
+                </svg>
+            </a>
 
             <a :title="lang.notice" @click="clickNotice" v-show="switchData.openNotice">
                 <i class="layui-icon layui-icon-notice">
                     <span v-show="switchData.noticeMsgList && switchData.noticeMsgList.length > 0"
                         class="layui-badge tl-rtc-file-msg-dot"
-                        style="right: 7px;top: 20px; width: 7px; height: 7px;"></span>
+                        style="right: 7px;top: 65px; width: 7px; height: 7px;"></span>
                 </i>
             </a>
 
@@ -343,7 +349,9 @@
                                 <b v-show="owner" style="color: #7375e9;">【{{lang.owner}}】-</b>【{{lang.self}}】- {{nickName}}
                             </b>
                             <b class="tl-rtc-file-user-body-left-id">
-                                {{socketId}}
+                                {{socketId}} - {{lang.websocketState}} :
+                                <b v-if="socketHeartbeatFaild > 0" style="font-weight: bold;color: red;">{{lang.websocketDisConnected}}</b>
+                                <b v-else style="font-weight: bold;color: #69d31e;">{{lang.websocketConnected}}</b>
                             </b>
                         </div>
                     </div>
@@ -529,14 +537,14 @@
                                                 style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.sending}}]</span>
                                         </a>
 
-                                        <a v-show="!file.done && file.progress === 0 && !isSending && !isSendAllWaiting"
+                                        <a v-show="!file.done && file.progress === 0 && !isSending && !chooseFileRecoderAutoNext"
                                             :title="lang.send_alone" @click="sendFileToSingle(file)">
                                             <i class="layui-icon layui-icon-release"></i>
                                             <span
                                                 style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.send}}]</span>
                                         </a>
 
-                                        <a v-show="!file.done && file.progress === 0 && (isSending || isSendAllWaiting)"
+                                        <a v-show="!file.done && file.progress === 0 && (isSending || chooseFileRecoderAutoNext)"
                                             :title="lang.send_alone">
                                             <i class="layui-icon layui-icon-release layui-disabled"></i>
                                             <span class="layui-disabled"
@@ -604,8 +612,8 @@
             <!-- 一键发送 -->
             <div>
                 <div v-show="canSendFile">
-                    <button v-if="!isSending && !isSendAllWaiting" class="tl-rtc-file-send-file-list-btn"
-                        @click="initSendFile">
+                    <button v-if="!isSending && !chooseFileRecoderAutoNext" class="tl-rtc-file-send-file-list-btn"
+                        @click="sendFileToAll()">
                         <i class="layui-icon layui-icon-release"></i>
                         <div>{{lang.send_all}}</div>
                     </button>
@@ -867,7 +875,7 @@
                                         {{lang.file_from}}: {{file.nickName}} - {{file.id}} - {{file.progress}}% -
                                         {{file.cost}}s
                                     </b>
-                                    <b class="tl-rtc-file-send-body-left-icon">
+                                    <b class="tl-rtc-file-send-body-left-icon" v-if="file.done">
                                         <a :href="file.href" :download="file.name" :title="lang.download">
                                             <i class="layui-icon layui-icon-download-circle"></i>
                                             <span
@@ -877,6 +885,14 @@
                                             <i class="layui-icon layui-icon-camera" style="font-size: 18px;"></i>
                                             <span
                                                 style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.preview}}]</span>
+                                        </a>
+                                    </b>
+                                    <b class="tl-rtc-file-send-body-left-icon layui-disabled" v-else>
+                                        <a :title="lang.wait_for_file">
+                                            <i
+                                                class="layui-icon layui-disabled layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
+                                            <span class="layui-disabled"
+                                                style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.wait_for_file}}]</span>
                                         </a>
                                     </b>
                                 </div>
@@ -1029,7 +1045,7 @@
                                 <div style="text-align: center;font-weight: bold;">{{nickName}}</div>
                                 <div class="tl-rtc-file-mask-media-video">
                                     <video v-show="isCameraEnabled" id="selfMediaShareVideo" 
-                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
+                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" controls
                                         playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" 
                                         x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
                                     <svg v-show="!isCameraEnabled" class="icon" aria-hidden="true" style="width: 100%;height: 100%;">
@@ -1082,7 +1098,7 @@
                                 <div style="text-align: center;font-weight: bold;">{{nickName}}</div>
                                 <div class="tl-rtc-file-mask-media-video">
                                     <video v-show="isCameraEnabled" id="selfMediaShareScreen" 
-                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
+                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" controls 
                                         playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" 
                                         x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
                                     <svg v-show="!isCameraEnabled" class="icon" aria-hidden="true" style="width: 100%;height: 100%;">
@@ -1124,7 +1140,7 @@
                                 <div v-show="isLiveShare && owner" style="text-align: center;font-weight: bold;">{{nickName}}</div>
                                 <div class="tl-rtc-file-mask-media-video" v-show="owner">
                                     <video v-show="isCameraEnabled" id="selfMediaShareLive" 
-                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
+                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" controls 
                                         playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" 
                                         x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
                                     <svg v-show="!isCameraEnabled" class="icon" aria-hidden="true" style="width: 100%;height: 100%;">
@@ -1190,7 +1206,7 @@
                                 <div style="text-align: center;font-weight: bold;">{{nickName}}</div>
                                 <div class="tl-rtc-file-mask-media-video">
                                     <video v-show="false" id="selfMediaShareAudio" 
-                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" 
+                                        preload="auto" autoplay="autoplay" x-webkit-airplay="true" controls 
                                         playsinline ="true" webkit-playsinline ="true" x5-video-player-type="h5" 
                                         x5-video-player-fullscreen="true" x5-video-orientation="portraint"></video>
                                     <svg v-show="isAudioEnabled" class="icon layui-anim layui-anim-scaleSpring layui-anim-loop" aria-hidden="true" style="width: 100%;height: 100%;animation-duration:.7s;max-width:50%;color:cadetblue;">

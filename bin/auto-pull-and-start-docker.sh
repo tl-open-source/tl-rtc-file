@@ -78,7 +78,6 @@ docker run \
   -e MYSQL_DATABASE=webchat \
   -e MYSQL_USER=tlrtcfile \
   -e MYSQL_PASSWORD=tlrtcfile \
-  -v $(dirname "$PWD")/docker/mysql/data/mysql.env:/tlrtcfile/docker/mysql/mysql.env \
   -v $(dirname "$PWD")/docker/mysql/data/db:/var/lib/mysql \
   -v $(dirname "$PWD")/docker/mysql/data/my.cnf:/etc/mysql/conf.d/my.cnf \
   -v $(dirname "$PWD")/docker/mysql/data/log:/var/log/mysql \
@@ -132,7 +131,6 @@ docker run \
   -e tl_rtc_file_notify_open \
   -e tl_rtc_file_notify_qiwei_normal \
   -e tl_rtc_file_notify_qiwei_error \
-  -v $(dirname "$PWD")/tlrtcfile.env:/tlrtcfile/tlrtcfile.env \
   --link mysql \
   -d iamtsm/tl-rtc-file-api tlapi
 
@@ -174,6 +172,5 @@ docker run \
   -e tl_rtc_file_notify_open \
   -e tl_rtc_file_notify_qiwei_normal \
   -e tl_rtc_file_notify_qiwei_error \
-  -v $(dirname "$PWD")/tlrtcfile.env:/tlrtcfile/tlrtcfile.env \
   --link mysql \
   -d iamtsm/tl-rtc-file-socket tlsocket
