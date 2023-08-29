@@ -4,6 +4,8 @@ import eslintPlugin from 'vite-plugin-eslint';
 import { resolve } from 'path';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 
+import fs from 'fs';
+
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 
 const pathResolve = (path: string) => resolve(__dirname, path);
@@ -25,10 +27,15 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://localhost:9092/api',
+        target: 'https://192.168.1.11:9092/api',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: false,
       },
+    },
+    https: {
+      key: fs.readFileSync('./cert/localhost+1-key.pem'),
+      cert: fs.readFileSync('./cert/localhost+1.pem'),
     },
   },
   plugins: [
@@ -40,5 +47,9 @@ export default defineConfig({
       // 指定symbolId格式
       symbolId: 'icon-[dir]-[name]',
     }),
+    // basicSsl(),
+    // mkcert({
+    //   source: 'coding',
+    // }),
   ],
 });

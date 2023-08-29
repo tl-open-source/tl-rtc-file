@@ -166,13 +166,13 @@ export const useRoomConnect = (option: ConnectOption = {}) => {
     pc.ondatachannel = (e) => {
       const chanel = e.channel;
       if (chanel.label === 'datachanel') {
-        chanel.onmessage = (e: any) => {
+        chanel.onmessage = () => {
           // console.log('接受', e.data);
         };
       }
     };
 
-    pc.onconnectionstatechange = (e) => {
+    pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') {
         // console.log('完成');
         completed.value = true;

@@ -111,7 +111,7 @@ export const useMediaSetting = (
     };
   });
 
-  const { stream, stop, restart, start } = useUserMedia({
+  const { stream, stop, restart, start, isSupported } = useUserMedia({
     constraints,
   });
 
@@ -167,6 +167,7 @@ export const useMediaSetting = (
 
   // 进入页面先连接
   const startGetMedia = () => {
+    console.log(isSupported.value);
     return new Promise<MediaStream | undefined>((resolve) => {
       const watchEnableStop = watchEffect(async () => {
         if (
@@ -217,13 +218,13 @@ export const useMediaConnect = (
     async roomCreated() {
       console.log('ccccreated');
       stream = await startGetMedia();
+      console.log(stream);
     },
     roomJoined: async (_, pc) => {
       let innerStream = stream;
       stream = undefined;
       if (!innerStream) {
         innerStream = await startGetMedia();
-        console.log('jjjjjjoined');
       }
       if (pc && innerStream) {
         innerStream.getTracks().forEach((track) => {
