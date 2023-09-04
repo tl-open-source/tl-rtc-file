@@ -1,5 +1,6 @@
-import { useRoomConnect } from '@/hooks';
+import { useCreateRoom, useRoomConnect } from '@/hooks';
 import { useUserMedia, useDevicesList } from '@vueuse/core';
+import { reject } from 'lodash';
 import {
   Ref,
   computed,
@@ -50,12 +51,6 @@ export const useMediaSetting = (
     }
   );
 
-  watch(currentAudioOutput, (v) => {
-    if (v) {
-      setSinkId(v);
-    }
-  });
-
   // 收集的错误信息
   // const errorMsg = ref({
   //   audio: '',
@@ -87,6 +82,12 @@ export const useMediaSetting = (
   });
 
   const video = shallowRef<HTMLVideoElement>();
+
+  watch([currentAudioOutput, video], ([v1, v2]) => {
+    if (v1 && v2) {
+      setSinkId(v1);
+    }
+  });
 
   const constraints = computed(() => {
     const audioDevice = currentAudioInput.value
@@ -146,8 +147,8 @@ export const useMediaSetting = (
   };
 
   // 先静音和关闭视频渲染
-  watch(stream, (v) => {
-    if (v) {
+  watch([stream, video], () => {
+    if (stream.value) {
       if (video.value) {
         video.value.srcObject = stream.value!;
         if (stream.value) {
@@ -167,7 +168,6 @@ export const useMediaSetting = (
 
   // 进入页面先连接
   const startGetMedia = () => {
-    console.log(isSupported.value);
     return new Promise<MediaStream | undefined>((resolve) => {
       const watchEnableStop = watchEffect(async () => {
         if (
@@ -178,6 +178,8 @@ export const useMediaSetting = (
           const stream = await start();
           watchEnableStop();
           resolve(stream);
+        } else {
+          reject('请打开摄像头或者麦克风');
         }
       });
     });
@@ -208,23 +210,22 @@ export const useMediaSetting = (
 };
 
 export const useMediaConnect = (
-  connect: { onTrack?: (track: MediaStreamTrack, id: string) => void } = {},
-  ...args: Parameters<typeof useMediaSetting>
+  stream: MediaStream,
+  connect: { onTrack?: (track: MediaStreamTrack, id: string) => void } = {}
 ) => {
-  const { startGetMedia, ...mediaResult } = useMediaSetting(...args);
+  console.log('再执行');
 
-  let stream: MediaStream | undefined = undefined;
   useRoomConnect({
     async roomCreated() {
       console.log('ccccreated');
-      stream = await startGetMedia();
+      // stream = await startGetMedia();
       console.log(stream);
     },
     roomJoined: async (_, pc) => {
-      let innerStream = stream;
-      stream = undefined;
+      const innerStream = stream;
+      // stream = undefined;
       if (!innerStream) {
-        innerStream = await startGetMedia();
+        // innerStream = await startGetMedia();
       }
       if (pc && innerStream) {
         innerStream.getTracks().forEach((track) => {
@@ -233,10 +234,10 @@ export const useMediaConnect = (
       }
     },
     onBeforeCreateAnswer: async (_, pc) => {
-      let innerStream = stream;
-      stream = undefined;
+      const innerStream = stream;
+      // stream = undefined;
       if (!innerStream) {
-        innerStream = await startGetMedia();
+        // innerStream = await startGetMedia();
       }
       if (pc && innerStream) {
         innerStream.getTracks().forEach((track) => {
@@ -251,6 +252,4 @@ export const useMediaConnect = (
       }
     },
   });
-
-  return { ...mediaResult };
 };

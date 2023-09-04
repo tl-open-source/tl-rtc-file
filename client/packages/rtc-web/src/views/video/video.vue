@@ -9,7 +9,7 @@ defineOptions({
   name: 'VideoView',
 });
 
-const { roomId } = useCreateRoom();
+const { roomId } = useCreateRoom('video', false);
 
 const handleBackLevel = () => resetUrl();
 
@@ -31,7 +31,13 @@ const formatted = useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss');
     </BackPreviousLevel>
 
     <div class="min-h-0 flex-1">
-      <VideoRoom />
+      <Suspense>
+        <VideoRoom />
+        <template #fallback>
+          1. 请检查网络情况 2. 允许浏览器打开摄像头、麦克风权限； 3.
+          清空浏览器缓存重新打开页面
+        </template>
+      </Suspense>
     </div>
   </div>
 </template>

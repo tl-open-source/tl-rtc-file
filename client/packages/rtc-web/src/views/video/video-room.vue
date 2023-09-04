@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import { useSwitchSiderbar, useSwitchMember } from '@/hooks';
+import { useSwitchSiderbar, useSwitchMember, useGetRoomInfo } from '@/hooks';
 import { onMounted, ref } from 'vue';
-import { useMediaConnect } from './hooks/useVideoCall';
+import { useMediaConnect, useMediaSetting } from './hooks/useVideoCall';
 import VideoControl from './video-control.vue';
 import { computed } from 'vue';
+import { useCreateRoom } from '@/hooks';
 
 defineOptions({
   name: 'VideoRoom',
@@ -15,9 +16,16 @@ const { open } = useSwitchMember();
 const audioInputDevice = ref<MediaDeviceInfo | undefined>();
 const speakerRef = ref('');
 
-const otherVideo = ref();
+const otherVideo = ref<{ id: string; ref: any }[]>([]);
+
+const collectOtherVideoRef = (ref: any, id: string) => {
+  if (!otherVideo.value.find((other) => other.id === id)) {
+    otherVideo.value.push({ id, ref });
+  }
+};
 
 const {
+  startGetMedia,
   video,
   switchTrackEnable,
   videoEnabled,
@@ -25,29 +33,34 @@ const {
   mediaLoaded,
   currentAudioInput,
   currentAudioOutput,
-} = useMediaConnect(
-  {
-    onTrack(track, id) {
-      console.log('id', id);
-      otherVideo.value.srcObject = track;
-      // otherVideo.value?.play?.();
-    },
+} = useMediaSetting({
+  immeately: false,
+  audio: audioInputDevice,
+  speaker: speakerRef,
+});
+
+const stream = await startGetMedia().catch(() => {
+  console.log('没有stream');
+});
+
+useCreateRoom('video', true);
+
+useMediaConnect(stream!, {
+  onTrack(track, id) {
+    otherVideo.value.forEach((item) => {
+      if (item.id === id) {
+        console.log(item.id === id);
+        item.ref.srcObject = track;
+      }
+    });
   },
-  {
-    immeately: false,
-    audio: audioInputDevice,
-    speaker: speakerRef,
-  }
+});
+
+const { members, selfInfo } = useGetRoomInfo();
+
+const memberwithoutOwner = computed(() =>
+  members.value.filter((item) => item.id !== selfInfo.value.socketId)
 );
-
-console.log('执行');
-
-const handleClick = () => {
-  // const aa = members.value[1]?.id;
-  // const peer = dataChanelMap.get(aa!);
-  // console.log('click', peer, dataChanelMap);
-  // peer?.send('asdas');
-};
 
 const selectDevice = computed(() => ({
   audioInput: currentAudioInput.value,
@@ -107,8 +120,17 @@ const deviceChange = (device: MediaDeviceInfo) => {
       />
     </div>
 
-    <div v-show="open" class="w-[400px]" @click="handleClick">
-      <video ref="otherVideo" playsinline autoplay />
+    <div v-show="open" class="w-[400px]">
+      <div class="member-video mt-4">
+        <video
+          v-for="item in memberwithoutOwner"
+          :key="item.id"
+          :ref="(ref) => collectOtherVideoRef(ref, item.id || '')"
+          class="mb-4 px-2"
+          playsinline
+          autoplay
+        />
+      </div>
     </div>
   </div>
 </template>

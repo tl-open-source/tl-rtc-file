@@ -34,8 +34,8 @@ export default defineConfig({
       },
     },
     https: {
-      key: fs.readFileSync('./cert/localhost+1-key.pem'),
-      cert: fs.readFileSync('./cert/localhost+1.pem'),
+      key: fs.readFileSync('./src/keys/server.key'),
+      cert: fs.readFileSync('./src/keys/server.crt'),
     },
   },
   plugins: [

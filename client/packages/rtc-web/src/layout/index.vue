@@ -6,8 +6,11 @@ import { useInitData } from '@/hooks';
 defineOptions({
   name: 'LayoutIndex',
 });
-
-useInitData();
+try {
+  await useInitData();
+} catch (error) {
+  console.log(error);
+}
 </script>
 
 <template>

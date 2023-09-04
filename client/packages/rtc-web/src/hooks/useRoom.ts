@@ -15,7 +15,7 @@ import { SocketEventName } from '@/config';
 import { useRouteParamsReactive } from '.';
 import { useRouter } from 'vue-router';
 import { InitDataKey } from '@/context';
-import { genNickName } from '@/utils';
+import { genNickName, resetUrl } from '@/utils';
 import { uniqBy } from 'lodash';
 import { watchArray } from '@vueuse/core';
 
@@ -66,7 +66,10 @@ export const useRoom = (value: MaybeRef<string> | CommonFnType) => {
   };
 };
 
-export const useCreateRoom = (type: 'password' | 'video' = 'password') => {
+export const useCreateRoom = (
+  type: 'password' | 'video' = 'password',
+  validate = true
+) => {
   const router = useRouter();
 
   const initData = inject(InitDataKey);
@@ -89,10 +92,13 @@ export const useCreateRoom = (type: 'password' | 'video' = 'password') => {
 
   const checkParams = () => {
     console.log('check');
-    if (!isValid.value) {
-      router.replace('/');
-    } else {
-      useSocket(emitCreateRoom);
+    if (validate) {
+      if (!isValid.value) {
+        resetUrl();
+        // router.replace('/');
+      } else {
+        useSocket(emitCreateRoom);
+      }
     }
   };
 
