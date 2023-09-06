@@ -5,6 +5,7 @@ import VideoRoom from './video-room.vue';
 import { useNow, useDateFormat } from '@vueuse/core';
 import { resetUrl } from '@/utils';
 import ErrorBoundary from '@/components/error-boundary/index.vue';
+import { useErrorCaptured } from '@/hooks/useErrorCaptured';
 
 defineOptions({
   name: 'VideoView',
@@ -15,6 +16,8 @@ const { roomId } = useCreateRoom('video', false);
 const handleBackLevel = () => resetUrl();
 
 const formatted = useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss');
+
+const errors = useErrorCaptured();
 </script>
 
 <template>
@@ -36,12 +39,16 @@ const formatted = useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss');
         <VideoRoom />
         <template #fallback>
           <ErrorBoundary
+            v-if="errors.length"
             :tips-list="[
               '请检查网络情况',
               '允许浏览器打开摄像头、麦克风权限',
               '清空浏览器缓存重新打开页面',
             ]"
           />
+          <div v-else class="flex h-full w-full items-center justify-center">
+            <span class="loading loading-dots loading-lg"></span>
+          </div>
         </template>
       </Suspense>
     </div>

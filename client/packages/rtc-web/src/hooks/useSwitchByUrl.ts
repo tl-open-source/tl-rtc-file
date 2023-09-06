@@ -1,5 +1,5 @@
 import { useWindowSize } from '@vueuse/core';
-import { computed, watch } from 'vue';
+import { Ref, computed, watch } from 'vue';
 import { useRouteQueryReactive } from './useRouterReactive';
 
 export const useSwitchMember = () => {
@@ -37,13 +37,15 @@ export const useSwitchMember = () => {
 export const useSwitchSiderbar = () => {
   const showSiderbar = useRouteQueryReactive('showSiderbar', '1', {
     transform: Number,
-  });
+  }) as Ref<number>;
 
   const switchSiderbar = () => {
     showSiderbar.value = showSiderbar.value === 0 ? 1 : 0;
   };
 
-  const open = computed(() => showSiderbar.value === 1);
+  const open = computed(() => {
+    return showSiderbar.value === 1;
+  });
 
   return {
     switchSiderbar,

@@ -10,11 +10,12 @@ import App from './App.vue';
 
 import VConsole from 'vconsole';
 import { useUserAgent } from '@/hooks';
+import { isDev } from '@/utils';
 
 const { isMobile } = useUserAgent();
 
 function setup() {
-  if (isMobile) {
+  if (isMobile && isDev()) {
     new VConsole();
   }
   return createApp(App).use(router).component('svg-icon', SvgIcon);

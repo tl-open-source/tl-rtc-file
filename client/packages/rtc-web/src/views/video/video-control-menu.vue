@@ -10,7 +10,6 @@ import { Dropdown } from '@/components/base';
 import { PropType } from 'vue';
 import { computed } from 'vue';
 import { resetUrl } from '@/utils';
-import { useRouter } from 'vue-router';
 import { nextTick } from 'vue';
 
 defineOptions({
@@ -31,8 +30,6 @@ const props = defineProps({
     default: () => ({ audioInput: '', audioOutput: '' }),
   },
 });
-
-const router = useRouter();
 
 const modalVisible = ref(false);
 
