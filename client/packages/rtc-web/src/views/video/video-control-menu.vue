@@ -10,6 +10,8 @@ import { Dropdown } from '@/components/base';
 import { PropType } from 'vue';
 import { computed } from 'vue';
 import { resetUrl } from '@/utils';
+import { useRouter } from 'vue-router';
+import { nextTick } from 'vue';
 
 defineOptions({
   name: 'VideoControlMenu',
@@ -29,6 +31,8 @@ const props = defineProps({
     default: () => ({ audioInput: '', audioOutput: '' }),
   },
 });
+
+const router = useRouter();
 
 const modalVisible = ref(false);
 
@@ -141,7 +145,16 @@ const closeModal = () => {
         <button class="btn-neutral btn mr-4" @click.prevent="closeModal">
           取消
         </button>
-        <button class="btn-info btn" @click.prevent="resetUrl()">确定</button>
+        <button
+          class="btn-info btn"
+          @click.prevent="
+            () => {
+              nextTick(resetUrl);
+            }
+          "
+        >
+          确定
+        </button>
       </div>
     </template>
   </Modal>

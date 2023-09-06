@@ -4,6 +4,7 @@ import { BackPreviousLevel, BackTitle } from '@/components/back';
 import VideoRoom from './video-room.vue';
 import { useNow, useDateFormat } from '@vueuse/core';
 import { resetUrl } from '@/utils';
+import ErrorBoundary from '@/components/error-boundary/index.vue';
 
 defineOptions({
   name: 'VideoView',
@@ -34,8 +35,13 @@ const formatted = useDateFormat(useNow(), 'YYYY-MM-DD HH:mm:ss');
       <Suspense>
         <VideoRoom />
         <template #fallback>
-          1. 请检查网络情况 2. 允许浏览器打开摄像头、麦克风权限； 3.
-          清空浏览器缓存重新打开页面
+          <ErrorBoundary
+            :tips-list="[
+              '请检查网络情况',
+              '允许浏览器打开摄像头、麦克风权限',
+              '清空浏览器缓存重新打开页面',
+            ]"
+          />
         </template>
       </Suspense>
     </div>

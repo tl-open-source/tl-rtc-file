@@ -13,7 +13,6 @@ import {
 import { useSocket } from './socket-utils';
 import { SocketEventName } from '@/config';
 import { useRouteParamsReactive } from '.';
-import { useRouter } from 'vue-router';
 import { InitDataKey } from '@/context';
 import { genNickName, resetUrl } from '@/utils';
 import { uniqBy } from 'lodash';
@@ -70,8 +69,6 @@ export const useCreateRoom = (
   type: 'password' | 'video' = 'password',
   validate = true
 ) => {
-  const router = useRouter();
-
   const initData = inject(InitDataKey);
 
   const { roomId } = useRouteParamsReactive(['roomId']);
@@ -95,7 +92,6 @@ export const useCreateRoom = (
     if (validate) {
       if (!isValid.value) {
         resetUrl();
-        // router.replace('/');
       } else {
         useSocket(emitCreateRoom);
       }
@@ -360,6 +356,7 @@ export const useGetRoomInfo = () => {
     socket.on(SocketEventName.RoomJoin, roomJoin);
 
     onBeforeUnmount(() => {
+      console.log('执行');
       socket.emit(SocketEventName.RoomExit, {
         from: selfInfo.value.socketId,
         room: selfInfo.value.roomId,

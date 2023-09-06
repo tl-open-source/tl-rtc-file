@@ -2,15 +2,16 @@
 import { MenuSide } from '@/components/menu';
 import { NavHeader, FullHeightFlexBox } from '@/components/lib';
 import { useInitData } from '@/hooks';
+import { provide } from 'vue';
+import { InitDataKey } from '@/context';
 
 defineOptions({
   name: 'LayoutIndex',
 });
-try {
-  await useInitData();
-} catch (error) {
-  console.log(error);
-}
+
+const { initData } = await useInitData();
+
+provide(InitDataKey, initData);
 </script>
 
 <template>

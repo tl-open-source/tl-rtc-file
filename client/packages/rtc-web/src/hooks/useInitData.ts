@@ -1,45 +1,44 @@
 import { ConfigEnum } from '@/config';
 import { useFetch, useLocalStorage } from '@vueuse/core';
-import { provide, ref, shallowReactive, watch } from 'vue';
+import { ref, shallowReactive } from 'vue';
 import io from 'socket.io-client';
-import { InitDataKey, InitDataKeyType } from '@/context';
+import { InitDataKeyType } from '@/context';
 
-export const useFetchData = () => {
+export const useFetchData = async () => {
   const useTurn = useLocalStorage(ConfigEnum.useRelay, false);
 
-  const { data } = useFetch(() => `/api/comm/initData?turn=${useTurn.value}`)
+  const { data, error } = await useFetch(
+    () => `/api/comm/initData?turn=${useTurn.value}`
+  )
     .get()
     .json();
 
-  return { data };
+  return { data, error };
 };
 
-export const useInitData = () => {
-  const { data } = useFetchData();
+export const useInitData = async () => {
+  const { data, error } = await useFetchData();
   const initData = ref<InitDataKeyType>({
     langMode: 'zh', // 默认中文
   });
 
-  watch(
-    () => data.value,
-    (v) => {
-      if (v) {
-        const { wsHost, logo, version, rtcConfig, options } = v;
-        initData.value = Object.assign({}, initData.value, {
-          socket: wsHost ? shallowReactive(io(wsHost)) : null,
-          logo,
-          version,
-          options: Object.keys(options).reduce(
-            (cur, next) => ({ ...cur, [next]: Boolean(options[next]) }),
-            {}
-          ),
-          config: rtcConfig,
-        });
-      }
-    }
-  );
+  if (data.value) {
+    const { wsHost, logo, version, rtcConfig, options } = data.value;
+    initData.value = Object.assign({}, initData.value, {
+      socket: wsHost ? shallowReactive(io(wsHost)) : null,
+      logo,
+      version,
+      options: Object.keys(options).reduce(
+        (cur, next) => ({ ...cur, [next]: Boolean(options[next]) }),
+        {}
+      ),
+      config: rtcConfig,
+    });
+  }
 
-  provide(InitDataKey, initData);
+  if (error.value) {
+    throw error.value;
+  }
 
   return {
     initData,

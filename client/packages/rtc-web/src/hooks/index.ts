@@ -5,3 +5,5 @@ export * from './socket-utils';
 export * from './useRouterReactive';
 export * from './useDragChangeSize';
 export * from './useSwitchByUrl';
+export * from './useErrorCaptured';
+export * from './useUseragent';

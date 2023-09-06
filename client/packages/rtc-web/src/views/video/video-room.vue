@@ -39,17 +39,19 @@ const {
   speaker: speakerRef,
 });
 
+// 获取摄像头、麦克风权限
 const stream = await startGetMedia().catch(() => {
   console.log('没有stream');
 });
 
+// 创建房间
 useCreateRoom('video', true);
 
+// 视频通话
 useMediaConnect(stream!, {
   onTrack(track, id) {
     otherVideo.value.forEach((item) => {
       if (item.id === id) {
-        console.log(item.id === id);
         item.ref.srcObject = track;
       }
     });
@@ -67,6 +69,7 @@ const selectDevice = computed(() => ({
   audioOutput: currentAudioOutput.value,
 }));
 
+// 当前激活的 菜单
 const activeControlMenu = computed<string[]>(() => {
   const arr = [];
   if (videoEnabled.value) arr.push('camera');
@@ -78,6 +81,7 @@ onMounted(() => {
   showSiderbar.value = 0;
 });
 
+// 切换菜单按钮
 const handleMenuChange = (active: string) => {
   if (active === 'camera' || active === 'audio') {
     const enabled =
@@ -86,6 +90,7 @@ const handleMenuChange = (active: string) => {
   }
 };
 
+// 切换扬声器、麦克风
 const deviceChange = (device: MediaDeviceInfo) => {
   if (device.kind === 'audioinput') {
     audioInputDevice.value = device;

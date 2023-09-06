@@ -1,4 +1,4 @@
-import { useCreateRoom, useRoomConnect } from '@/hooks';
+import { useRoomConnect, useUserAgent } from '@/hooks';
 import { useUserMedia, useDevicesList } from '@vueuse/core';
 import { reject } from 'lodash';
 import {
@@ -28,6 +28,8 @@ export const useMediaSetting = (
   const speakerRef = ref(option.speaker);
 
   const mediaLoaded = ref(false);
+
+  const { isMobile } = useUserAgent();
 
   // 切换 麦克风
   watch(
@@ -119,8 +121,8 @@ export const useMediaSetting = (
   const audioTracks = ref<MediaStreamTrack[]>([]);
   const videoTracks = ref<MediaStreamTrack[]>([]);
 
-  const audioEnabled = ref(true);
-  const videoEnabled = ref(true);
+  const audioEnabled = ref(false);
+  const videoEnabled = ref(false);
 
   // 切换 video、audio 渲染
   const switchTrackEnable = (type: 'video' | 'audio', flag: boolean) => {
@@ -143,7 +145,9 @@ export const useMediaSetting = (
   };
 
   const setSinkId = (sinkId: string) => {
-    (video.value! as any).setSinkId(sinkId);
+    if (!isMobile) {
+      (video.value! as any).setSinkId(sinkId);
+    }
   };
 
   // 先静音和关闭视频渲染
@@ -156,10 +160,10 @@ export const useMediaSetting = (
           videoTracks.value = stream.value.getVideoTracks();
         }
         if (!videoEnabled.value) {
-          // switchTrackEnable('video', false);
+          switchTrackEnable('video', false);
         }
         if (!audioEnabled.value) {
-          // switchTrackEnable('audio', false);
+          switchTrackEnable('audio', false);
         }
         mediaLoaded.value = true;
       }
@@ -168,6 +172,7 @@ export const useMediaSetting = (
 
   // 进入页面先连接
   const startGetMedia = () => {
+    console.log(isSupported.value);
     return new Promise<MediaStream | undefined>((resolve) => {
       const watchEnableStop = watchEffect(async () => {
         if (
@@ -213,40 +218,23 @@ export const useMediaConnect = (
   stream: MediaStream,
   connect: { onTrack?: (track: MediaStreamTrack, id: string) => void } = {}
 ) => {
-  console.log('再执行');
-
   useRoomConnect({
-    async roomCreated() {
-      console.log('ccccreated');
-      // stream = await startGetMedia();
-      console.log(stream);
-    },
     roomJoined: async (_, pc) => {
-      const innerStream = stream;
-      // stream = undefined;
-      if (!innerStream) {
-        // innerStream = await startGetMedia();
-      }
-      if (pc && innerStream) {
-        innerStream.getTracks().forEach((track) => {
-          pc.addTrack(track, innerStream);
+      if (pc && stream) {
+        stream.getTracks().forEach((track) => {
+          pc.addTrack(track, stream);
         });
       }
     },
     onBeforeCreateAnswer: async (_, pc) => {
-      const innerStream = stream;
-      // stream = undefined;
-      if (!innerStream) {
-        // innerStream = await startGetMedia();
-      }
-      if (pc && innerStream) {
-        innerStream.getTracks().forEach((track) => {
-          pc.addTrack(track, innerStream);
+      if (pc && stream) {
+        stream.getTracks().forEach((track) => {
+          pc.addTrack(track, stream);
         });
       }
     },
     onTrack(e: any, id: string) {
-      console.log(e);
+      // console.log(e);
       if (e.track.kind === 'video') {
         connect.onTrack?.(e.streams[0], id);
       }
