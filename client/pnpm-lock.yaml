@@ -27,6 +27,7 @@ importers:
       prettier-plugin-tailwindcss: ^0.3.0
       socket.io-client: 2.3.0
       tailwindcss: ^3.3.2
+      terser: ^5.19.4
       typescript: ^5.1.3
       vconsole: ^3.15.1
       vite: ^4.3.9
@@ -67,9 +68,10 @@ importers:
       prettier: 2.8.8
       prettier-plugin-tailwindcss: 0.3.0_prettier@2.8.8
       tailwindcss: 3.3.2
+      terser: 5.19.4
       typescript: 5.1.3
       vconsole: 3.15.1
-      vite: 4.3.9_@types+node@20.3.2
+      vite: 4.3.9_66pwffvb2axzwdhxmcirxliemu
       vite-plugin-eslint: 1.8.1_eslint@8.43.0+vite@4.3.9
       vite-plugin-svg-icons: 2.0.1_vite@4.3.9
       vue-eslint-parser: 9.3.1_eslint@8.43.0
@@ -639,6 +641,12 @@ packages:
     resolution: {integrity: sha512-xnkseuNADM0gt2bs+BvhO0p78Mk762YnZdsuzFV018NoG1Sj1SCQvpSqa7XUaTam5vAGasABV9qXASMKnFMwMw==}
     engines: {node: '>=6.0.0'}
 
+  /@jridgewell/source-map/0.3.5:
+    resolution: {integrity: sha512-UTYAUj/wviwdsMfzoSJspJxbkH5o1snzwX0//0ENX1u/55kkZZkcTZP6u9bwKGkv+dkk9at4m1Cpt0uY80kcpQ==}
+    dependencies:
+      '@jridgewell/gen-mapping': 0.3.3
+      '@jridgewell/trace-mapping': 0.3.18
+
   /@jridgewell/sourcemap-codec/1.4.14:
     resolution: {integrity: sha512-XPSJHWmi394fuUuzDnGz1wiKqWfo1yXecHQMRf2l6hztTO+nPru658AyDngaBe7isIxEkRsPR3FZh+s7iVa4Uw==}
 
@@ -865,7 +873,7 @@ packages:
       '@babel/core': 7.22.5
       '@babel/plugin-transform-typescript': 7.22.5_@babel+core@7.22.5
       '@vue/babel-plugin-jsx': 1.1.4_@babel+core@7.22.5
-      vite: 4.3.9_@types+node@20.3.2
+      vite: 4.3.9_66pwffvb2axzwdhxmcirxliemu
       vue: 3.3.4
     transitivePeerDependencies:
       - supports-color
@@ -878,7 +886,7 @@ packages:
       vite: ^4.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 4.3.9_@types+node@20.3.2
+      vite: 4.3.9_66pwffvb2axzwdhxmcirxliemu
       vue: 3.3.4
     dev: true
 
@@ -1087,7 +1095,6 @@ packages:
     resolution: {integrity: sha512-jaVNAFBHNLXspO543WnNNPZFRtavh3skAkITqD0/2aeMkKZTN+254PyhwxFYrk3vQ1xfY+2wbesJMs/JC8/PwQ==}
     engines: {node: '>=0.4.0'}
     hasBin: true
-    dev: true
 
   /after/0.8.2:
     resolution: {integrity: sha512-QbJ0NTQ/I9DI3uSJA4cbexiwQeRAfjPScqIbSjUDd9TOrcg6pTkdgziesOqxBMBzit8vFCTwrP27t13vFOORRA==}
@@ -1317,6 +1324,9 @@ packages:
       node-releases: 2.0.12
       update-browserslist-db: 1.0.11_browserslist@4.21.9
 
+  /buffer-from/1.1.2:
+    resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
+
   /cache-base/1.0.1:
     resolution: {integrity: sha512-AKcdTnFSWATd5/GCPRxr2ChwIJ85CeyrEyjRHlKxQ56d4XJMGym0uAiKn0xbLOGOl3+yRpOTi484dVCEc5AUzQ==}
     engines: {node: '>=0.10.0'}
@@ -1444,6 +1454,9 @@ packages:
   /colord/2.9.3:
     resolution: {integrity: sha512-jeC1axXpnb0/2nn/Y1LPuLdgXBLH7aDcHu4KEKfqw3CUhX7ZpfBSlPKyqXE6btIgEzfWtrX3/tyBCaCvXvMkOw==}
     dev: true
+
+  /commander/2.20.3:
+    resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
 
   /commander/4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
@@ -3401,6 +3414,12 @@ packages:
       urix: 0.1.0
     dev: true
 
+  /source-map-support/0.5.21:
+    resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
+    dependencies:
+      buffer-from: 1.1.2
+      source-map: 0.6.1
+
   /source-map-url/0.4.1:
     resolution: {integrity: sha512-cPiFOTLUKvJFIg4SKVScy4ilPPW6rFgMgfuZJPNoDuMs3nC1HbMUycBoJw77xFIp6z1UJQJOfx6C9GMH80DiTw==}
     deprecated: See https://github.com/lydell/source-map-url#deprecated
@@ -3414,7 +3433,6 @@ packages:
   /source-map/0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
-    dev: true
 
   /split-string/3.1.0:
     resolution: {integrity: sha512-NzNVhJDYpwceVVii8/Hu6DKfD2G+NrQHlS/V/qgv763EYudVwEcMQNxd2lh+0VrUByXN/oJkl5grOhYWvQUYiw==}
@@ -3580,6 +3598,16 @@ packages:
     transitivePeerDependencies:
       - ts-node
     dev: true
+
+  /terser/5.19.4:
+    resolution: {integrity: sha512-6p1DjHeuluwxDXcuT9VR8p64klWJKo1ILiy19s6C9+0Bh2+NWTX6nD9EPppiER4ICkHDVB1RkVpin/YW2nQn/g==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dependencies:
+      '@jridgewell/source-map': 0.3.5
+      acorn: 8.9.0
+      commander: 2.20.3
+      source-map-support: 0.5.21
 
   /text-table/0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
@@ -3755,7 +3783,7 @@ packages:
       '@types/eslint': 8.40.2
       eslint: 8.43.0
       rollup: 2.79.1
-      vite: 4.3.9_@types+node@20.3.2
+      vite: 4.3.9_66pwffvb2axzwdhxmcirxliemu
     dev: true
 
   /vite-plugin-svg-icons/2.0.1_vite@4.3.9:
@@ -3771,12 +3799,12 @@ packages:
       pathe: 0.2.0
       svg-baker: 1.7.0
       svgo: 2.8.0
-      vite: 4.3.9_@types+node@20.3.2
+      vite: 4.3.9_66pwffvb2axzwdhxmcirxliemu
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /vite/4.3.9_@types+node@20.3.2:
+  /vite/4.3.9_66pwffvb2axzwdhxmcirxliemu:
     resolution: {integrity: sha512-qsTNZjO9NoJNW7KnOrgYwczm0WctJ8m/yqYAMAK9Lxt4SoySUfS5S8ia9K7JHpa3KEeMfyF8LoJ3c5NeBJy6pg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -3805,6 +3833,7 @@ packages:
       esbuild: 0.17.19
       postcss: 8.4.24
       rollup: 3.25.3
+      terser: 5.19.4
     optionalDependencies:
       fsevents: 2.3.2
 

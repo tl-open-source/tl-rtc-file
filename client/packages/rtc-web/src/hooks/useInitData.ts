@@ -3,9 +3,10 @@ import { useFetch, useLocalStorage } from '@vueuse/core';
 import { ref, shallowReactive } from 'vue';
 import io from 'socket.io-client';
 import { InitDataKeyType } from '@/context';
+import { isDev } from '@/utils';
 
 export const useFetchData = async () => {
-  const useTurn = useLocalStorage(ConfigEnum.useRelay, false);
+  const useTurn = useLocalStorage(ConfigEnum.useRelay, isDev() ? false : true);
 
   const { data, error } = await useFetch(
     () => `/api/comm/initData?turn=${useTurn.value}`

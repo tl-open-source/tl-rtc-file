@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:web": "pnpm -C packages/rtc-web dev"
+    "dev:web": "pnpm -C packages/rtc-web dev",
+    "build:web": "pnpm -C packages/rtc-web build"
   },
   "keywords": [],
   "author": "",

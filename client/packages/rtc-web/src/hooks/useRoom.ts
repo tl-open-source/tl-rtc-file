@@ -12,9 +12,9 @@ import {
 } from 'vue';
 import { useSocket } from './socket-utils';
 import { SocketEventName } from '@/config';
-import { useRouteParamsReactive } from '.';
+import { useRouteParamsReactive, useUserAgent } from '.';
 import { InitDataKey } from '@/context';
-import { genNickName, resetUrl } from '@/utils';
+import { genNickName, isDev, resetUrl } from '@/utils';
 import { uniqBy } from 'lodash';
 import { watchArray } from '@vueuse/core';
 
@@ -71,6 +71,8 @@ export const useCreateRoom = (
 ) => {
   const initData = inject(InitDataKey);
 
+  const { getNetWorkState, isMobile } = useUserAgent();
+
   const { roomId } = useRouteParamsReactive(['roomId']);
 
   const { isValid } = useRoom(() => roomId.value || '');
@@ -82,8 +84,8 @@ export const useCreateRoom = (
       password: '',
       nickName: genNickName(),
       langMode: initData?.value.langMode,
-      ua: 'pc',
-      // network: this.network,
+      ua: isMobile ? 'mobile' : 'pc',
+      network: getNetWorkState(),
     });
   };
 
@@ -142,8 +144,9 @@ export const useRoomConnect = (option: ConnectOption = {}) => {
   );
 
   const createRtcConnect = async (id: string) => {
-    // const pc = new RTCPeerConnection(initData.value.config);
-    const pc = new RTCPeerConnection();
+    const pc = new RTCPeerConnection(
+      isDev() ? undefined : initData.value.config
+    );
     pc.onicecandidate = (event) => {
       if (event.candidate != null) {
         const message = {
