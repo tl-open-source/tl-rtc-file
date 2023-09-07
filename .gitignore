@@ -53,3 +53,5 @@ package-lock.json
 
 
 docker/mysql/data/*
+
+client_dist

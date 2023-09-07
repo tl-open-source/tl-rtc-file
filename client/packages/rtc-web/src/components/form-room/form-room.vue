@@ -2,7 +2,6 @@
 import { useRoom } from '@/hooks';
 import { useForm } from '../form-base';
 import { computed } from 'vue';
-import { watch } from 'vue';
 
 defineOptions({
   name: 'FormRoom',
@@ -15,13 +14,6 @@ const { formData, handleSubmit, register, resetFields, formErrors } = useForm<{
 const { validateRoomId } = useRoom(() => formData.value.roomId || '');
 
 const roomIdValid = computed(() => !formErrors.value['roomId']);
-
-watch(
-  () => roomIdValid.value,
-  (v) => {
-    console.log(v);
-  }
-);
 
 defineExpose({
   onSubmit: handleSubmit,

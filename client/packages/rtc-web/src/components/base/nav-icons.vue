@@ -1,10 +1,14 @@
 <script lang="ts" setup>
 import { useSwitchTheme, ThemeEnum } from '@/hooks';
 import { computed } from 'vue';
+import { useSocketCount } from '@/hooks';
 
 defineOptions({
   name: 'NavIcons',
 });
+
+// 获取 当前在线人数
+const { data: curCount } = useSocketCount();
 
 const { themeInfo, setTheme, isDark } = useSwitchTheme();
 
@@ -18,9 +22,16 @@ const switchTheme = () =>
 
 <template>
   <div>
+    <div class="flex items-center text-sm">
+      <svg-icon name="count" class="mr-2 h-3 w-3" />
+      在线人数：
+      <div class="font-semibold">
+        {{ curCount }}
+      </div>
+    </div>
     <a
       href="https://github.com/tl-open-source/tl-rtc-file"
-      class="cursor-pointer"
+      class="ml-8 cursor-pointer"
     >
       <svg-icon
         name="github"
