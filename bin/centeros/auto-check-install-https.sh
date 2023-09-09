@@ -1,6 +1,6 @@
 #!/bin/bash
 #########################
-# 提供一键部署http服务环境的脚本
+# 提供一键部署https服务环境的脚本
 # 包含api服务,socket服务
 # @auther: iamtsm
 # @version: v1.0.0
@@ -9,8 +9,8 @@
 # Function to install Node.js 16
 install_node() {
     echo "======>Node.js is not installed. Installing Node.js 16..."
-    curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+    curl -sL https://rpm.nodesource.com/setup_16.x | sudo bash -
+    sudo yum install -y nodejs
     echo "======>Node.js 16 installed"
 }
 
@@ -24,8 +24,7 @@ install_pm2() {
 # Function to install lsof
 install_lsof() {
     echo "======>lsof is not installed. Installing lsof..."
-    sudo apt-get update
-    sudo apt-get install -y lsof
+    sudo yum install -y lsof
     echo "======>lsof installed"
 }
 
@@ -40,15 +39,13 @@ wait_for_command() {
 # Step 1: Check if sudo is installed and install if not
 if ! command -v sudo &> /dev/null; then
     echo "======>sudo is not installed. Installing sudo..."
-    apt-get update
-    apt-get install -y sudo
+    yum install -y sudo
 fi
 
 # Step 2: Check if curl is installed
 if ! command -v curl &> /dev/null; then
     echo "======>curl is not installed. Installing curl..."
-    sudo apt-get update
-    sudo apt-get install -y curl
+    sudo yum install -y curl
 fi
 
 # Step 3: Check if Node.js is installed and install Node.js 16 if not
@@ -93,15 +90,13 @@ if [ "$port_9092_in_use" -gt 0 ] || [ "$port_8444_in_use" -gt 0 ]; then
     exit 1
 fi
 
-
 # Step 8: install npm packages
 echo "Ready to install npm packages"
 cd ../../svr/
 rm package-lock.json
 npm install --registry=https://registry.npmmirror.com
 
-
-# Step 9: Run start-http.sh script to start the service
-echo "Ready to run auto-start-http.sh"
+# Step 9: Run start-https.sh script to start the service
+echo "Ready to run auto-start-https.sh"
 sleep 1
-/bin/bash ./../bin/ubuntu16/auto-start-http.sh
+/bin/bash ./../bin/ubuntu16/auto-start-https.sh

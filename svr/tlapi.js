@@ -38,10 +38,11 @@ async function start() {
         utils.tlConsole("db init done ...")
     }
 
-    //res
-    for (let key in resRouter) app.use(key, express.static(resRouter[key]));
     //file api
     for (let key in fileApiRouters) app.use(key, fileApiRouters[key])
+
+    //res api v1
+    for (let key in resRouter) app.use(key, express.static(resRouter[key]));
 
     //start server
     if(process.env.tl_rtc_file_env_mode === 'http'){

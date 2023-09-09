@@ -1,4 +1,10 @@
 #!/bin/bash
+#########################
+# 提供一键部署http服务环境的脚本
+# 包含api服务,socket服务
+# @auther: iamtsm
+# @version: v1.0.0
+#########################
 
 # Function to install Node.js 16
 install_node() {

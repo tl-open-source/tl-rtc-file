@@ -1178,6 +1178,29 @@ body {
     color: #79b0e8;
 }
 
+.layui-util-face ul li img{
+    width: 100%;
+    margin-top: -2px;
+}
+
+.layui-tl-img{
+    width: 100px;
+}
+
+body .layui-util-face .layui-layer-content{
+    border-radius: 8px;
+}
+
+.layui-util-face ul{
+    width: auto;
+    border-radius: 8px;
+}
+
+#chating_room_tpl_view img, #chating_room_single_tpl_view img, #chating_comm_tpl_view img{
+    width: 30px;
+}
+
+
 /* 500px以下 */
 @media screen and (max-width: 500px) {
     .tl-rtc-file-send-txt-tool-send{

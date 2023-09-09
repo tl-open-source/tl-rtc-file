@@ -10,6 +10,8 @@ var file = null;
 
 // 是否禁用中继
 let useTurn = (window.localStorage.getItem("tl-rtc-file-use-relay") || "") === 'true';
+// 是否是自定义ws地址
+let useCustomWsHost = window.localStorage.getItem("tl-rtc-file-custom-ws-host") || "";
 
 axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
     let resData = initData.data;
@@ -19,6 +21,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
         data: function () {
             let socket = null;
             if (io) {
+                if(useCustomWsHost){
+                    resData.wsHost = useCustomWsHost;
+                }
                 socket = io(resData.wsHost,{
                     transports : ['polling', 'websocket']
                 });
@@ -31,6 +36,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 socket: socket, // socket
                 config: resData.rtcConfig, // rtc配置
                 options: resData.options, // rtc配置
+                wsHost : resData.wsHost, // ws地址
+                useCustomWsHost : useCustomWsHost, // 自定义ws地址
                 
                 showReceiveFile: false, // 展示底部接收文件列表
                 showSendFile: false, // 展示底部发送文件列表
@@ -677,7 +684,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     success: function (layero, index) {
                         if (window.layedit) {
                             that.txtEditId = layedit.build('chating_room_single_value', {
-                                tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right'],
+                                tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right', 'face'],
                                 height: 120
                             });
                         }
@@ -1354,6 +1361,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                                         <cite>${this.lang.webrtc_check}</cite>
                                     </a>
                                 </li>
+                                <li class="layui-col-xs4">
+                                    <a title="${this.lang.custom_ws_url}" onclick="customWsHost()" >
+                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="sendBugs">
+                                            <use xlink:href="#icon-rtc-file-WSshipinjiankong"></use>
+                                        </svg>
+                                        <cite>${this.lang.custom_ws_url}</cite>
+                                    </a>
+                                </li>
                                 <li class="layui-col-xs4" style="${this.switchData.openTurnServer ? '' : 'display:none;'}">
                                     <a title="${this.lang.relay_setting}" onclick="relaySetting()">
                                         <svg class="icon" aria-hidden="true" style="width:42px;height:50px;">
@@ -1388,6 +1403,36 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     layer.open(options)
                 })
                 this.addUserLogs(this.lang.open_setting)
+            },
+            // 自定义ws地址
+            customWsHost: function () {
+                let that = this;
+                if(window.localStorage.getItem("tl-rtc-file-custom-ws-host")){
+                    window.localStorage.removeItem("tl-rtc-file-custom-ws-host")
+                    layer.msg(that.lang.close_custom_ws_url)
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 500);
+                }else{
+                    layer.prompt({
+                        formType: 0,
+                        value: 'wss://',
+                        title: that.lang.input_custom_ws_url,
+                    }, function (value, index, elem) {
+                        if(!/^wss?:\/\/[^\s/$.?#].[^\s]*$/.test(value)){
+                            layer.msg(that.lang.ws_url_error)
+                            return
+                        }
+                        
+                        layer.close(index);
+
+                        window.localStorage.setItem("tl-rtc-file-custom-ws-host", value)
+                        layer.msg(that.lang.open_custom_ws_url)
+                        setTimeout(() => {
+                            window.location.reload()
+                        }, 500);
+                    });
+                }
             },
             // 打开中继设置面板
             relaySetting: function () {
@@ -1894,11 +1939,25 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         let lIndex = layer.load(1);
                         setTimeout(() => {
                             layer.close(lIndex)
-                            that.chatingCommTpl();
                         }, 300);
 
+                        if (window.layer && window.layui && window.layedit) {
+                            that.txtEditId = layedit.build('chating_comm_value', {
+                                tool: ['strong', 'italic', 'underline', 'del', 'face'],
+                                height: 120
+                            });
+                        }
+
+                        that.chatingCommTpl();
+
                         if(window.tlrtcfile.chatKeydown){
-                            tlrtcfile.chatKeydown(document.getElementById("chating_comm_value"), sendChatingComm)
+                            let textareaIframe = document.getElementsByTagName("iframe");
+                            if(textareaIframe && textareaIframe.length === 1){
+                                tlrtcfile.chatKeydown(
+                                    document.getElementsByTagName("iframe")[0].contentDocument.body, 
+                                    sendChatingComm
+                                )
+                            }
                         }
                     },
                     content: `
@@ -1911,7 +1970,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                                     <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
                                     <div style="margin-left: 15px; margin-top: -5px;">
                                         <div style="word-break: break-all;"> <small>${this.lang.room}: <b>{{info.room}}</b></small> - <small>${this.lang.user}: <b>{{info.socketId}}</b></small> - <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> </div>
-                                        <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{info.msg}} </b></div>
+                                        <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{- info.msg}} </b></div>
                                     </div>
                                 </div>
                                 {{#  }); }}
@@ -1950,9 +2009,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                     let height = 0;
                     if (this.isMobile) {
-                        height = document.documentElement.clientHeight - 235;
+                        height = document.documentElement.clientHeight - 335;
                     } else {
-                        height = 350
+                        height = 300
                     }
 
                     if (chatDomHeight > height) {
@@ -1985,26 +2044,31 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     this.addUserLogs(this.lang.please_join_then_send)
                     return
                 }
-                let content = document.querySelector("#chating_comm_value").value;
-                if (content === '' || content === undefined) {
+
+                let realContent = layedit.getContent(this.txtEditId)
+                if (realContent.length <= 0) {
                     layer.msg(this.lang.please_fill_content)
                     this.addUserLogs(this.lang.please_fill_content)
                     return
                 }
-                if (content.length > 1000) {
+
+                if (realContent.length > 1000) {
                     layer.msg(this.lang.content_max_1000)
                     this.addUserLogs(this.lang.content_max_1000)
                     return
                 }
+
                 this.socket.emit('chatingComm', {
-                    msg: tlrtcfile.escapeStr(content),
+                    msg: tlrtcfile.escapeStr(realContent),
                     room: this.roomId,
                     socketId: this.socketId,
                 });
 
                 this.addUserLogs(this.lang.public_channel_send_done);
 
-                document.querySelector("#chating_comm_value").value = ''
+                this.chatingCommTpl();
+
+                layedit.setContent(this.txtEditId, "", false)
             },
             // 房间内群聊弹窗
             openChatingRoom: function () {
@@ -2020,7 +2084,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         success: function (layero, index) {
                             if (window.layer && window.layui && window.layedit) {
                                 that.txtEditId = layedit.build('chating_room_value', {
-                                    tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right'],
+                                    tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right', 'face'],
                                     height: 120
                                 });
                             }
@@ -3505,8 +3569,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 this.socket.on('connect_error', error => {
                     console.error('connect_error', error);
                     if(error){
-                        layer.msg(that.lang.socketConnectFail + error.message);
-                        that.addSysLogs(that.lang.socketConnectFail + error.message);
+                        layer.msg(that.lang.socketConnectFail + "[" + that.wsHost + "], " + error.message );
+                        that.addSysLogs(that.lang.socketConnectFail + "[" + that.wsHost + "], " + error.message);
                     }
                     that.socketHeartbeatFaild += 1;
                     that.addSysLogs(that.lang.websocketHeartBeatCheckFail + ": " + that.socketHeartbeatFaild);
@@ -4310,6 +4374,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 window.Bus.$on("relaySetting", (res) => {
                     this.relaySetting()
                 })
+                window.Bus.$on("customWsHost", (res) => {
+                    this.customWsHost()
+                })
                 window.Bus.$on("addSysLogs", (res) => {
                     this.addSysLogs(res)
                 })
@@ -4544,6 +4611,11 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             window.localStorage.setItem("tl-rtc-file-use-relay", true)
         }
         window.location.reload()
+    }
+    window.customWsHost = function () {
+        window.layer.closeAll(() => {
+            window.Bus.$emit("customWsHost", {})
+        });
     }
 })
 

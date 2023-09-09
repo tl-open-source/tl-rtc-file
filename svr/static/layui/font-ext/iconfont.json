@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "15714218",
+      "name": "书",
+      "font_class": "shu1",
+      "unicode": "e628",
+      "unicode_decimal": 58920
+    },
+    {
+      "icon_id": "32981982",
+      "name": "WS视频监控",
+      "font_class": "WSshipinjiankong",
+      "unicode": "e82d",
+      "unicode_decimal": 59437
+    },
+    {
       "icon_id": "4292650",
       "name": "书",
       "font_class": "shu",

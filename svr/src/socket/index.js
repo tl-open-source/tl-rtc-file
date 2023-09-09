@@ -16,6 +16,13 @@ async function excute(tables, dbClient, io) {
     }
 
     io.sockets.on(rtcServerEvent.connection, function (socket) {
+        if(socket.id === undefined || socket.id === null || socket.id === 0 || socket.id === "0"){
+            socket.emit("tips", {
+                to: socket.id,
+                msg: "非法连接"
+            });
+            return
+        }
         connect(io, socket, tables, dbClient)
     });
 }

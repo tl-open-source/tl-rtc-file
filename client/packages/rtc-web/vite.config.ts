@@ -16,7 +16,7 @@ const pathResolve = (path: string) => resolve(__dirname, path);
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    outDir: resolve(__dirname, '../../../client_dist/rtc-web'),
+    outDir: resolve(__dirname, '../../dist/rtc-web'),
     minify: 'terser',
     emptyOutDir: true,
     terserOptions: {
