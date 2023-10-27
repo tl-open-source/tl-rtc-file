@@ -20,8 +20,10 @@ const draw = new Vue({
             lineCap : "round",
             lineJoin : "round",
             strokeStyle: "#000000", // 画笔颜色
+
             //line: 线条, circle: 圆形, rectangle: 矩形, text: 文字, delete: 擦除
             drawMode: "line", // 画笔模式
+            
             circleFill : false, //填充圆模式
             rectangleFill : false, //填充矩形模式
             triangleFill : false, //填充三角形
@@ -120,7 +122,7 @@ const draw = new Vue({
                 return
             }
 
-            let { 
+            let {
                 width : remoteWidth,  height : remoteHeight, lineWidth,
                 curPoint, prePoint, starStartPoint, circleStartPoint, triangleStartPoint, rectangleStartPoint
             } = options.remote;
@@ -162,8 +164,15 @@ const draw = new Vue({
                 starStartPoint.y = starStartPoint.y * ratioHeight;
                 options.remote.starStartPoint = starStartPoint;
                 this.drawStar(options);
-            } else {
-                console.log("收到远程未知的绘制模式")
+            } else if(drawMode === 'delete'){
+                prePoint.x = prePoint.x * ratioWidth;
+                prePoint.y = prePoint.y * ratioHeight;
+                options.remote.prePoint = prePoint;
+                this.drawDelete(options);
+            } else if(drawMode === 'image'){
+                this.drawImage(options);
+            }  else {
+                console.log("收到远程未知的绘制模式, ",options)
             }
         },
         // 打开/关闭本地画笔
@@ -423,9 +432,8 @@ const draw = new Vue({
                     }
 
                     document.getElementById("drawImage").onclick = function () {
-                        that.drawImage({ local : {
-                            canvas, context, localDrawCallback
-                        } })
+                        that.drawMode = "image";
+                        that.drawImage({ drawMode: that.drawMode, local : { canvas, context, localDrawCallback } })
                     }
 
                     document.getElementById("drawDonwload").onclick = function () {
@@ -736,11 +744,16 @@ const draw = new Vue({
             }
         },
         // 画笔擦除
-        drawDelete: function ({ event, drawMode, local : { 
-            canvas, context, lineWidth, curPoint, prePoint, lineCap, 
-            width, height, devicePixelRatio,
-            lineJoin, strokeStyle, fillStyle
-        }}) {
+        drawDelete: function ({ event, drawMode, fromRemote, local, remote}) {
+            if(fromRemote){
+                local = remote;
+            }
+            let { 
+                canvas, context, lineWidth, curPoint, prePoint, lineCap, 
+                width, height, devicePixelRatio,
+                lineJoin, strokeStyle, fillStyle, localDrawCallback
+            } = local;
+
             context.lineWidth = lineWidth;
             context.lineCap = lineCap;
             context.lineJoin = lineJoin;
@@ -762,13 +775,31 @@ const draw = new Vue({
                 context.clearRect(x - 20, y - 20, lineWidth, lineWidth);
                 i++;
             }
+
+            //如果是本地擦除，完成擦除后数据回调给远端
+            if (!fromRemote) {
+                localDrawCallback && localDrawCallback({ event, drawMode, fromRemote : true, remote : {
+                    lineWidth, curPoint, prePoint, lineCap, width, height, devicePixelRatio,
+                    lineJoin, strokeStyle, fillStyle,
+                }});
+            }
         },
         // 图片渲染处理
-        drawImage: function ({ event, drawMode, local : { 
-            canvas, context, lineWidth, curPoint, prePoint, lineCap, 
-            width, height, devicePixelRatio,
-            lineJoin, strokeStyle, fillStyle, localDrawCallback
-        }}) {
+        drawImage: function ({ event, drawMode, fromRemote, local, remote}) {
+            if(fromRemote){
+                local = remote;
+            }
+            let { 
+                canvas, context, lineWidth, curPoint = {x:0,y:0}, prePoint, lineCap, 
+                width, height, devicePixelRatio, imgResult, imgWidth, imgHeight,
+                lineJoin, strokeStyle, fillStyle, localDrawCallback
+            } = local;
+
+            if(fromRemote){
+                context.drawImage(imgResult, 0, 0, imgWidth, imgHeight, 0, 0, canvas.width, canvas.height);
+                return;
+            }
+
             let that = this;
             let input = document.createElement("input");
             input.setAttribute("type", "file");
@@ -786,6 +817,16 @@ const draw = new Vue({
                         //画完图片，保存操作记录
                         that.drawHistoryList.push(canvas.toDataURL());
                         that.drawRollbackPoint = that.drawHistoryList.length - 1;
+
+                        //如果是本地绘制，完成绘制后数据回调给远端
+                        //图片暂时存在问题，因为图片大小可能超过通道限制，需要分批发送
+                        //所以暂时不支持图片的远端同步
+                        // if (!fromRemote) {
+                        //     localDrawCallback && localDrawCallback({ event, drawMode, fromRemote : true, remote : {
+                        //         lineWidth, curPoint, prePoint, lineCap, width, height, devicePixelRatio,
+                        //         lineJoin, strokeStyle, fillStyle, imgResult : img.src, imgWidth: img.width, imgHeight: img.height
+                        //     }});
+                        // }
                     }
                 }
             }
