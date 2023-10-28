@@ -1,5 +1,5 @@
 {
-	"version": "10.4.9",
+	"version": "10.5.0",
 	"socket": {
 		"port": "请到 tlrtcfile.env 中进行配置",
 		"host": "请到 tlrtcfile.env 中进行配置"
@@ -20,7 +20,11 @@
 	},
 	"login": {
 		"appId" : "请到 tlrtcfile.env 中进行配置",
-		"appSecret" : "请到 tlrtcfile.env 中进行配置"
+		"appSecret" : "请到 tlrtcfile.env 中进行配置",
+		"token" : {
+			"url" : "请到 tlrtcfile.env 中进行配置",
+			"key" : "请到 tlrtcfile.env 中进行配置"
+		}
 	},
 	"manage": {
 		"room": "请到 tlrtcfile.env 中进行配置",

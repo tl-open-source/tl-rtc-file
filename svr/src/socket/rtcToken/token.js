@@ -23,7 +23,7 @@ async function token(io, socket, tables, dbClient, data){
 
     request({
         method: "POST",
-        url: `https://im.iamtsm.cn/api/login/info`,
+        url: `${cfg.login.token.url}/api/login/info`,
         json: true,
         headers: {
             "content-type": "application/json",

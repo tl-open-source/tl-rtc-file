@@ -269,7 +269,7 @@ async function getLoginInfo(req, res){
     let token = req.query.token || "";
     let key = req.query.key || "";
 
-    if(!token || token.length < 16 || key !== 'iamtsm-socket'){
+    if(!token || token.length < 16 || key !== conf.login.token.key){
         res.json({ code: 403 });
         return;
     }
