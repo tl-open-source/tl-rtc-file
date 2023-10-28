@@ -2,7 +2,7 @@
 
 由于每个人的机器/环境都是有细微区别的，但是脚本能处理的情况有限，所以选择这种模式，有一定几率不能正常运行。但是可以遇到具体情况具体分析，或者可以加群反馈问题或者建议, QQ群 : 624214498
 
-目前支持 `ubuntu16`, `ubuntu18`, `ubuntu20`, `windows` 这几种自动脚本。
+目前支持 `ubuntu16`, `ubuntu18`, `ubuntu20`, `windows`, `centeros`, `macos` 这几种自动脚本。
 
 ### ubuntu16/18/20/macos
 
@@ -59,4 +59,10 @@
 
 ### centeros
 
-自动脚本待补充...
+- `auto-check-install-http.sh` 自动检测环境 + 安装环境 + 检测端口占用 + 调用 **`auto-start-http.sh`** 服务脚本
+- `auto-check-install-https.sh` 自动检测环境 + 安装环境 + 检测端口占用 + 调用 **`auto-start-https.sh`** 服务脚本
+- `auto-start-http.sh` pm2后台启动 **http** 服务脚本
+- `auto-start-https.sh` pm2后台启动 **https** 服务脚本
+- `auto-stop.sh` pm2删除服务进程
+
+具体操作如ubuntu所示例，脚本内容如有问题，请反馈

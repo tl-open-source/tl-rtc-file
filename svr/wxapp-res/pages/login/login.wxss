@@ -1,0 +1,55 @@
+.tlrtcfilePanel {
+  border: 1px white solid;
+  height: 60vh;
+  margin-top: 5vh;
+}
+
+.tlrtcfileTitle {
+  font-size: 23px;
+  font-weight: bold;
+  color: #383C40;
+  margin-top: 1vh;
+}
+
+.tlrtcfileIntro {
+  color: #686767;
+  font-size: 12px;
+  position: relative;
+  line-height: 25px;
+  padding: 8vh;
+  text-align: left;
+}
+
+.tlrtcfileIntroItem{
+  margin-top: 3vh;
+}
+
+.tlrtcfileIntroItem view{
+  margin-top: 1vh;
+}
+
+.tlrtcfileIntro image{
+  width: 4vh;
+  height: 4vh;
+  top: 7px;
+  position: relative;
+}
+
+.tlrtcfileIntro a {
+  margin-left: 1vh;
+}
+
+.tlrtcfileIntro a:hover {
+  color: rgb(114, 114, 202);
+}
+
+.loginBtn {
+  width: 70% !important;
+  height: 45px;
+  border-radius: 5px;
+  background-color: #0E87EB;
+  color: #fff;
+  bottom: 13vh;
+  position: absolute;
+  left: 15%;
+}

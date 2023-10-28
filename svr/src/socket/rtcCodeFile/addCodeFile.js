@@ -7,6 +7,7 @@ const utils = require("./../../utils/utils");
 const seafile = require("./../../bussiness/oss/seafile")
 const rtcCommData = require("./../rtcCommData/commData");
 const check = require("../../bussiness/check/content");
+const daoRelation = require("./../../dao/relation/relation")
 
 /**
  * 添加取件码文件
@@ -64,7 +65,7 @@ async function addCodeFile(io, socket, tables, dbClient, data){
             ip: ip
         })
 
-        await daoDog.addDogData({
+        let recoderId = await daoDog.addDogData({
             name: "添加取件码文件",
             roomId: data.room || "",
             socketId: socket.id,
@@ -83,6 +84,14 @@ async function addCodeFile(io, socket, tables, dbClient, data){
             download: data.donwloadLink,
             content: JSON.stringify(data),
         }, tables, dbClient)
+
+        //添加用户-文件关联记录
+        if(socket.userId){
+            daoRelation.addUserFileRelation({
+                fileId : recoderId,
+                userId : socket.userId,
+            }, tables, dbClient);
+        }
         
         //不返回下载链接
         delete data.donwloadLink;

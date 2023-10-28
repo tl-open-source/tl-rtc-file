@@ -1,4 +1,6 @@
 const express = require("express");
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const { inject_env_config, load_env_config } = require("./conf/env_config");
 //加载环境变量
 load_env_config();
@@ -16,6 +18,9 @@ utils.tlConsoleIcon()
 
 async function start() {
     let app = express();
+
+    app.use(bodyParser.json());
+    app.use(cookieParser());  
 
     utils.tlConsole("api init start ...")
 

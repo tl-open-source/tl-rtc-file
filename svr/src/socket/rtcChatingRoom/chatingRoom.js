@@ -4,6 +4,7 @@ const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
 const check = require("../../bussiness/check/content");
+const daoRelation = require("./../../dao/relation/relation")
 
 /**
  * 房间内聊天 群聊/私聊
@@ -20,7 +21,7 @@ async function chatingRoom(io, socket, tables, dbClient, data){
     try {
         let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
 
-        await daoDog.addDogData({
+        let recoderId = await daoDog.addDogData({
             name: "发送文本内容",
             roomId: data.room || "",
             socketId: "",
@@ -30,6 +31,14 @@ async function chatingRoom(io, socket, tables, dbClient, data){
             handshake: JSON.stringify(handshake),
             ip: ip
         }, tables, dbClient);
+
+        //添加用户-操作关联记录
+        if(socket.userId){
+            daoRelation.addUserDogRelation({
+                dogId : recoderId,
+                userId : socket.userId,
+            }, tables, dbClient);
+        }
 
         bussinessNotify.sendChatingRoomNotify({
             title: "发送文本内容",

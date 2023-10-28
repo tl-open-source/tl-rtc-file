@@ -1,0 +1,24 @@
+<view class="tlrtcfilePanel">
+  <view class="tlrtcfileTitle" style="text-align: center;">tl-rtc-file 授权登录</view>
+  <view class="tlrtcfileIntro">
+    <view class="tlrtcfileIntroItem">
+      <image src="/images/demo.png" mode="" /> 演示体验地址 
+      <a>|</a>
+      <a bind:tap="copyDemo">复制</a>
+      <view>https://im.iamtsm.cn</view>
+    </view>
+    <view class="tlrtcfileIntroItem">
+      <image src="/images/github.png" mode="" /> github开源地址
+      <a>|</a>
+      <a bind:tap="copyGithub">复制</a>
+      <view>https://github.com/tl-open-source/tl-rtc-file</view>
+    </view>
+    <view class="tlrtcfileIntroItem">
+      <image src="/images/gitee.png" mode="" /> gitee开源地址
+      <a>|</a>
+      <a bind:tap="copyGitee">复制</a>
+      <view>https://gitee.com/iamtsm/tl-rtc-file</view>
+    </view>
+  </view>
+</view>
+<button class="loginBtn" open-type="getUserInfo" bindtap="getUserProfile">确认登录</button>

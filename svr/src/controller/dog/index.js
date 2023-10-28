@@ -1,14 +1,11 @@
 const express = require('express');
+const dog = require('./dog');
 
 
 module.exports = function () {  
      const router = express.Router();
 
-     router.get("/dog", (req, res) => {
-          res.json({
-               dog : "request dog api ok!"
-          })
-     });
+     router.get("/question/list", dog.getQuestionList);
 
      return router;
 }

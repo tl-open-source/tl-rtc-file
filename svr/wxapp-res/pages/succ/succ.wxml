@@ -1,0 +1,5 @@
+<!--pages/result/result.wxml-->
+<view>
+	<image class="scc" src="/images/succ.png"></image>
+	<view class="resuil">登录成功</view>
+</view>

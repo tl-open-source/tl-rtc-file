@@ -19,12 +19,23 @@ const rtcChangeNickName = require("./rtcChangeNickName/changeNickName")
 const rtcHeartbeat = require("./rtcHeartbeat/heartbeat");
 const rtcAddCodeFile = require("./rtcCodeFile/addCodeFile");
 const rtcGetCodeFile = require("./rtcCodeFile/getCodeFile");
+const rtcLocalNetRoom = require("./rtcLocalNetRoom/localNetRoom");
 const rtcServerEvent = require("./rtcConstant").rtcServerEvent
+const rtcToken = require("./rtcToken/token")
 
 
 module.exports = (io, socket, tables, dbClient) => {
 
+    // token关联处理
+    rtcToken.token(io, socket, tables, dbClient, {});
+
+    // 在线人数统计
     rtcCount.count(io, socket, tables, dbClient, {})
+
+    // 局域网房间发现列表
+    rtcLocalNetRoom.localNetRoom(io, socket, tables, dbClient, { 
+        toCurrentSocket : true 
+    })
 
     // 断开连接
     socket.on(rtcServerEvent.disconnect, (data)=>{

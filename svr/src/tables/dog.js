@@ -1,6 +1,12 @@
 // dog
 module.exports = (sequelize, DataTypes) => {
 	return {
+		DogOther : {
+			Flag : {
+				IS_DEV_ADMIN : 0x1, //是否是开发者团队的操作记录
+				IS_SET_TOP : 0x2, //是否设置消息记录类型置顶
+			}
+		},
 		Dog: sequelize.define('dog', {
 			id: {
 				type: DataTypes.INTEGER,
@@ -44,6 +50,10 @@ module.exports = (sequelize, DataTypes) => {
 				name: 'created_at_index',
 				method: 'BTREE',
 				fields: ['created_at']
+			},{
+				name: 'room_id_name_index',
+				method: 'BTREE',
+				fields: ['room_id','name']
 			}]
 		})
 	};

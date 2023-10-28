@@ -493,6 +493,19 @@ function sendStopRemoteDrawNotify(data) {
 }
 
 
+/**
+ * 发送扫码登录通知
+ * @param {*} data 
+ */
+function sendScanLoginNotify(data) {
+    let notifyMsg = `## <font color='info'>文件传输通知</font> - <font color="warning">${data.title}</font> \n` +
+        `OpenId: ${data.openId}\n` +
+        `UserId: ${data.userId}\n` +
+        `Token: ${data.token}\n` +
+        `当前时间: ${utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")}\n`
+    notify.requestMsg(notifyMsg)
+}
+
 module.exports = {
     sendExitRoomNotify,
     sendCreateJoinRoomNotify,
@@ -524,5 +537,6 @@ module.exports = {
     sendSystemErrorMsg,
     sendStartRemoteDrawNotify,
     sendStopRemoteDrawNotify,
-    sendChangeNickNameNotify
+    sendChangeNickNameNotify,
+    sendScanLoginNotify
 }

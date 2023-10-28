@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/static/css/swiper-bundle.min.css" media="all">
     <link rel="stylesheet" href="/static/css/default.min.css">
     <link rel="stylesheet" href="/static/css/pdf_viewer.min.css">
+    <script type="text/javascript" src="/static/js/localforage.min.js"></script>
     <script type="text/javascript" src="/static/js/swiper-bundle.min.js"></script>
     <script type="text/javascript" src="/static/js/adapter.js"></script>
     <script type="text/javascript" src="/static/js/socket.io.js"></script>
@@ -48,16 +49,36 @@
 
         <div class="tl-rtc-file-notification-container" id="notificationContainer"></div>
 
-        <!-- 顶部图标 -->
+        <!-- 顶部图标 左侧 -->
+        <div class="tl-rtc-file-header-tool" style="left: 10px;">
+            
+        </div>
+
+        <!-- 顶部图标 右侧 -->
         <div class="tl-rtc-file-header-tool">
             <a :title="lang.disclaimer" @click="openDisclaimer">
                 <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;margin-right: 10px;">
                     <use xlink:href="#icon-rtc-file-jinggao"></use>
                 </svg>
             </a>
+            <a :title="lang.user_info" @click="openUser" v-show="isLogin">
+                <svg class="icon" aria-hidden="true" style="scale: 1.1;width: 18px;height: 18px;margin-right: 10px;">
+                    <use xlink:href="#icon-rtc-file-gerenzhongxin"></use>
+                </svg>
+            </a>
+            <a :title="lang.wxlogin" @click="openWxLogin" v-show="!isLogin">
+                <svg class="icon" aria-hidden="true" style="scale: 1.3;width: 18px;height: 18px;margin-right: 10px;">
+                    <use xlink:href="#icon-rtc-file-gongzhonghao"></use>
+                </svg>
+            </a>
             <a :title="lang.relay_on" id="useTurn" v-show="switchData.openUseTurnIcon && useTurn" @click="useTurnMsg">
                 <svg class="icon" aria-hidden="true" style="width: 20px;height: 20px;margin-right: 10px;">
                     <use xlink:href="#icon-rtc-file-yunfuwuqi"></use>
+                </svg>
+            </a>
+            <a :title="lang.other_language" id="language">
+                <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;margin-right: 10px;">
+                    <use xlink:href="#icon-rtc-file-duoyuyan"></use>
                 </svg>
             </a>
             <a :title="network" id="currentNetwork" @click="networkMsg" v-show="switchData.openNetworkIcon">
@@ -82,11 +103,6 @@
                     <use xlink:href="#icon-rtc-file-WIFI"></use>
                 </svg>
             </a>
-            <a :title="lang.other_language" id="language">
-                <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;margin-right: 10px;">
-                    <use xlink:href="#icon-rtc-file-duoyuyan"></use>
-                </svg>
-            </a>
             <a :title="lang.timer" style="position: relative;top: -3px;">
                 <b style="transition: color 0.8s;margin-right: 5px;" id="screenShareTimes" v-show="isScreenShare">
                     {{lang.sharing}}: {{screenShareTimes < 10 ? '0' + screenShareTimes :
@@ -108,18 +124,12 @@
 
         <!-- 侧边图标 -->
         <div class="tl-rtc-file-side-tool">
-            
-            <a href="https://im.iamtsm.cn/document" target="_blank">
-                <svg class="icon" aria-hidden="true" style="width: 24px;height: 24px;margin-right: 10px;">
-                    <use xlink:href="#icon-rtc-file-shu1"></use>
-                </svg>
-            </a>
 
-            <a :title="lang.notice" @click="clickNotice" v-show="switchData.openNotice">
+            <a :title="lang.notice" @click="clickNotice()" v-show="switchData.openNotice">
                 <i class="layui-icon layui-icon-notice">
-                    <span v-show="switchData.noticeMsgList && switchData.noticeMsgList.length > 0"
+                    <span v-show="switchData.noticeMsgList && switchData.noticeMsgList.length > 0 && useMessageDot"
                         class="layui-badge tl-rtc-file-msg-dot"
-                        style="right: 7px;top: 65px; width: 7px; height: 7px;"></span>
+                        style="right: 7px;top: 13px; width: 7px; height: 7px;"></span>
                 </i>
             </a>
 
@@ -127,18 +137,20 @@
                 <i class="layui-icon layui-icon-home"></i>
             </a>
 
-            <a :title="lang.share_link" @click="shareUrl" id="shareUrl" v-show="switchData.openShareRoom">
-                <i class="layui-icon layui-icon-share"></i>
-            </a>
-
-            <a :title="lang.give_coffee" @click="coffee">
-                <svg class="icon" aria-hidden="true" style="width: 24px;height: 24px;margin-right: 10px;">
-                    <use xlink:href="#icon-rtc-file-hongbao"></use>
+            <a title="github" href="https://github.com/iamtsm" target="_blank">
+                <svg class="icon" aria-hidden="true" style="width: 24px;height: 24px;">
+                    <use xlink:href="#icon-rtc-file-github"></use>
                 </svg>
             </a>
 
-            <a :title="lang.log" @click="clickLogs"> 
-                <i class="layui-icon layui-icon-about"></i> 
+            <a :title="lang.share_link" @click="shareUrl()" id="shareUrl" v-show="switchData.openShareRoom">
+                <i class="layui-icon layui-icon-share"></i>
+            </a>
+
+            <a :title="lang.give_coffee" @click="coffee()">
+                <svg class="icon" aria-hidden="true" style="width: 24px;height: 24px;">
+                    <use xlink:href="#icon-rtc-file-hongbao"></use>
+                </svg>
             </a>
 
             <a :title="lang.setting" @click="setting()">
@@ -173,7 +185,7 @@
                             <i class="layui-icon layui-icon-release tl-rtc-file-send-file-tool-i-three" :style="{
                                 left: sendFileRecoderList.length > 0 ? '10px' :'0'
                             }"></i>
-                            <span v-show="sendFileRecoderList.length > 0" style="position: relative;right: -9px;"
+                            <span v-show="sendFileRecoderList.length > 0 && useMessageDot" style="position: relative;right: -9px;"
                                 class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
                                 {{Math.min(sendFileRecoderList.length, 99)}}
                         </div>
@@ -193,7 +205,7 @@
                             <i class="layui-icon layui-icon-reply-fill tl-rtc-file-send-txt-tool-i-three" :style="{
                                 left: receiveChatRoomList.length > 0 ? '10px' :'0'
                             }"></i>
-                            <span v-show="receiveChatRoomList.length > 0" style="position: relative;right: -7px;"
+                            <span v-show="receiveChatRoomList.length > 0 && useMessageDot" style="position: relative;right: -7px;"
                                 class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
                                 {{Math.min(receiveChatRoomList.length, 99)}}
                             </span>
@@ -217,7 +229,7 @@
                             <use xlink:href="#icon-rtc-file-chat"></use>
                         </svg>
                         <b class="tl-rtc-file-tool-title" :class="clientWidth < 450 ? 'tl-rtc-file-tool-title-mobile' : ''">{{lang.chat_comm}}</b>
-                        <span v-show="receiveChatCommList.length > 0" class="layui-badge tl-rtc-file-msg-dot"
+                        <span v-show="receiveChatCommList.length > 0 && useMessageDot" class="layui-badge tl-rtc-file-msg-dot"
                             style="right: 2px; top: 2px; width: 7px; height: 7px;position: relative;"></span>
                         <!-- <svg class="icon tl-rtc-file-msg-dot" aria-hidden="true" style="width: 20px;height: 20px;">
                             <use xlink:href="#icon-rtc-file-remenhot"></use> -->
@@ -360,15 +372,15 @@
                             class="layui-icon layui-icon-time" @click="clickSendFileHistory"></i>
                         <i v-show="sendFileRecoderHistoryList.length === 0" :title="lang.file_send_record"
                             class="layui-icon layui-icon-time layui-disabled" @click="clickSendFileHistory"></i>
-                        <span v-show="sendFileRecoderHistoryList.length > 0" style="left: 20px;"
+                        <span v-show="sendFileRecoderHistoryList.length > 0 && useMessageDot" style="left: 20px;"
                             class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
                             {{Math.min(sendFileRecoderHistoryList.length, 99)}}
                         </span>
                         <i v-show="receiveFileRecoderList.length > 0" :title="lang.file_receive"
-                            class="layui-icon layui-icon-print" @click="clickReceiveFile"></i>
+                            class="layui-icon layui-icon-print" @click="clickReceiveFile()"></i>
                         <i v-show="receiveFileRecoderList.length === 0" :title="lang.file_receive"
-                            class="layui-icon layui-icon-print layui-disabled" @click="clickReceiveFile"></i>
-                        <span v-show="receiveFileRecoderList.length > 0"
+                            class="layui-icon layui-icon-print layui-disabled" @click="clickReceiveFile()"></i>
+                        <span v-show="receiveFileRecoderList.length > 0 && useMessageDot"
                             class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
                             {{Math.min(receiveFileRecoderList.length, 99)}}
                         </span>
@@ -398,14 +410,14 @@
                                     <use xlink:href="#icon-rtc-file-yunfuwuqi"></use>
                                 </svg> : 
                                 <b v-if="iceOk(remote.iceConnectionState)" style="font-weight: bold;color: #69d31e;">{{remote.iceConnectionState}} - {{remote.p2pMode}}</b>
-                                <b v-else style="font-weight: bold;color: red;">{{remote.iceConnectionState}} - {{remote.p2pMode}}</b>
+                                <b v-else style="font-weight: bold;color: red;">{{remote.iceConnectionState}} - {{remote.p2pMode}} !! </b>
                             </b>
                         </div>
                     </div>
                     <div class="tl-rtc-file-user-body-right">
                         <i :title="lang.send_text" @click="startChatRoomSingle(event, remote)"
                             class="layui-icon layui-icon-reply-fill"></i>
-                        <span v-show="remote.receiveChatRoomSingleList.length > 0" style="right: -7px;"
+                        <span v-show="remote.receiveChatRoomSingleList.length > 0 && useMessageDot" style="right: -7px;"
                             class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
                             {{Math.min(remote.receiveChatRoomSingleList.length, 99)}}
                     </div>
@@ -437,16 +449,32 @@
                 </button>
             </div>
 
-            <div v-show="socketId === 0" class="tl-rtc-file-receive-list-icon">
-                <i v-show="receiveFileRecoderList.length > 0" :title="lang.file_box"
-                    class="layui-icon layui-icon-print tl-rtc-file-receive-list-icon" @click="clickReceiveFile"></i>
-                <i v-show="receiveFileRecoderList.length === 0" :title="lang.file_box"
-                    class="layui-icon layui-icon-print tl-rtc-file-receive-list-icon layui-disabled"
-                    @click="clickReceiveFile"></i>
-                <span v-show="receiveFileRecoderList.length > 0" style="top: -40px; right: 0px;"
-                    class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
-                    {{Math.min(receiveFileRecoderList.length, 99)}}
-                </span>
+            <div class="tl-rtc-file-receive-list-icon" v-show="socketId === 0">
+                <div style="position: relative;" >
+                    <i v-show="receiveFileRecoderList.length > 0" :title="lang.file_box"
+                        class="layui-icon layui-icon-print tl-rtc-file-receive-list-icon" @click="clickReceiveFile()"></i>
+                    <i v-show="receiveFileRecoderList.length === 0" :title="lang.file_box"
+                        class="layui-icon layui-icon-print tl-rtc-file-receive-list-icon layui-disabled"
+                        @click="clickReceiveFile()"></i>
+                    <span v-show="receiveFileRecoderList.length > 0 && useMessageDot" style="top: -40px; right: 0px;"
+                        class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
+                        {{Math.min(receiveFileRecoderList.length, 99)}}
+                    </span>
+                </div>
+                <div>
+                    <svg v-show="localNetRoomList.length > 0" :title="lang.local_net_room_list" @click="clickLocalNetRooms()" 
+                        class="icon" aria-hidden="true" style="color: #574848;">
+                        <use xlink:href="#icon-rtc-file-juyuwangsousuo"></use>
+                    </svg>
+                    <svg v-show="localNetRoomList.length === 0" :title="lang.local_net_room_list" @click="clickLocalNetRooms()"
+                        class="icon layui-disabled" aria-hidden="true" style="color: #574848;">
+                        <use xlink:href="#icon-rtc-file-juyuwangsousuo"></use>
+                    </svg>
+                    <span v-show="localNetRoomList.length > 0 && useMessageDot" style="top: 0px; right: 0px;"
+                        class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
+                        {{Math.min(localNetRoomList.length, 99)}}
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -626,7 +654,7 @@
                     <button class="tl-rtc-file-send-file-history-list-btn" @click="clickSendFileHistory">
                         <i class="layui-icon layui-icon-time"></i>
                         <div>{{lang.sending_history}}</div>
-                        <span style="top:0;right: 0;"
+                        <span v-show="useMessageDot" style="top:0;right: 0;"
                             class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
                             {{Math.min(sendFileRecoderHistoryList.length, 99)}}
                         </span>
@@ -638,7 +666,7 @@
                     }">
                         <i class="layui-icon layui-icon-templeate-1"></i>
                         <div>{{lang.selected_file}}</div>
-                        <span style="top:0;right: 0;"
+                        <span v-show="useMessageDot" style="top:0;right: 0;"
                             class="layui-badge tl-rtc-file-msg-dot layui-anim layui-anim-rotate layui-anim-loop">
                             {{Math.min(chooseFileList.length, 99)}}
                         </span>
@@ -646,6 +674,39 @@
                 </div>
             </div>
         </div>
+
+        <!-- 局域网房间列表 -->
+        <div id="local-net-room-list" class="tl-rtc-file-mask-send-file-list"
+        :style="{top: localNetRoomMaskHeightNum + '%'}">
+        <div class="layui-card" style="border-radius: 15px;">
+            <div class="layui-card-header">
+                {{lang.local_net_room_list}} - {{lang.total}}({{localNetRoomList.length}})
+                <i @click="clickLocalNetRooms()" class="layui-icon layui-icon-close"
+                    style="cursor: pointer; right: 10px;position: absolute;"></i>
+            </div>
+            <div class="layui-row tl-rtc-file-send-list-all"
+                :style="{height: localNetRoomListHeight+'px',overflowY: (localNetRoomList.length > 1 ? 'auto' : 'none') }">
+                <div class="layui-col-xs12 tl-rtc-file-send-list" v-for="roomInfo, index in localNetRoomList">
+                    <div class="tl-rtc-file-send" style="--progress:100%">
+                        <div class="tl-rtc-file-send-body">
+                            <svg class="icon" aria-hidden="true" style="width: 32px;height: 32px;">
+                                <use xlink:href="#icon-rtc-file-shiyanshifangjian"></use>
+                            </svg>
+
+                            <div class="tl-rtc-file-send-body-left">
+                                <b class="tl-rtc-file-send-body-left-nick">
+                                    {{lang.room_number}}: {{roomInfo.room}}, {{lang.type}}: {{roomInfo.type}}
+                                </b>
+                                <b class="tl-rtc-file-send-body-left-id">
+                                    {{lang.ip}}: {{roomInfo.ips.join("/")}}, {{lang.online_count}}: {{roomInfo.count}}
+                                </b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
         <!-- 已选文件列表 -->
         <div id="send-file-list-choose" :class="isMediaing? 'isMediaing': '' " class="tl-rtc-file-mask-send-file-list"
@@ -809,11 +870,18 @@
             <div class="layui-card" style="border-radius: 15px;">
                 <div class="layui-card-header">
                     {{lang.receive_file_list}} - {{lang.total}}:{{receiveFileRecoderList.length}}
-                    <i @click="clickReceiveFile" class="layui-icon layui-icon-close"
+                    <i @click="clickReceiveFile()" class="layui-icon layui-icon-close"
                         style="cursor: pointer; right: 10px;position: absolute;"></i>
                 </div>
                 <div class="layui-row tl-rtc-file-send-list-all"
                     :style="{height: receiveFileHeight+'px',overflowY: (receiveFileRecoderList.length > 1 ? 'auto' : 'none')}">
+                    <div style="text-align: center; padding: 5px;"> 
+                        {{lang.load_indexeddb_file_all}} : {{getFileSizeStr(loadIndexedFileAllSize)}} --- 
+                        {{lang.receive_file_all_size}} : {{getFileSizeStr(receivedFileAllSize)}} 
+                        <b style="margin-left: 10px;display: inline-flex;color: #c14d4d;cursor: pointer;" @click="clearIndexedDbFile()">
+                            <i class="layui-icon layui-icon-delete" style="font-size: 18px;"></i> [{{lang.clear_all}}]
+                        </b>
+                    </div>
                     <div class="layui-col-xs12 tl-rtc-file-send-list" v-for="file in receiveFileRecoderList">
                         <div class="tl-rtc-file-send" :style="{'--progress': file.progress + '%'}">
                             <div class="tl-rtc-file-send-body">
@@ -872,19 +940,37 @@
                                         lang.unknown_type : file.type}}, {{lang.size}}: {{getFileSizeStr(file.size)}}
                                     </b>
                                     <b class="tl-rtc-file-send-body-left-id">
-                                        {{lang.file_from}}: {{file.nickName}} - {{file.id}} - {{file.progress}}% -
+                                        <b style="font-weight: bold;color: brown;">{{file.indexedDb ? '[' + lang.load_from_disk + ']' : ''}}</b> {{lang.file_from}}: {{file.nickName}} - {{file.id}} - {{file.progress}}% -
                                         {{file.cost}}s
-                                    </b>
+                                    </b> 
                                     <b class="tl-rtc-file-send-body-left-icon" v-if="file.done">
-                                        <a :href="file.href" :download="file.name" :title="lang.download">
+
+                                        <a :title="lang.download" v-if="file.indexedDb" @click="downloadIndexedDbFile(file)">
                                             <i class="layui-icon layui-icon-download-circle"></i>
                                             <span
                                                 style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.download}}]</span>
                                         </a>
-                                        <a :title="lang.preview_file" @click="previewReceiveFile(file.index)">
+                                        <a :href="file.href" v-if="!file.indexedDb" :download="file.name" :title="lang.download">
+                                            <i class="layui-icon layui-icon-download-circle"></i>
+                                            <span
+                                                style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.download}}]</span>
+                                        </a>
+
+                                        <a :title="lang.preview_file" v-if="file.indexedDb" @click="previewIndexedDbFile(file)">
                                             <i class="layui-icon layui-icon-camera" style="font-size: 18px;"></i>
                                             <span
                                                 style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.preview}}]</span>
+                                        </a>
+                                        <a :title="lang.preview_file" v-if="!file.indexedDb" @click="previewReceiveFile(file.index)">
+                                            <i class="layui-icon layui-icon-camera" style="font-size: 18px;"></i>
+                                            <span
+                                                style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.preview}}]</span>
+                                        </a>
+
+                                        <a :title="lang.clear" v-if="file.indexedDb" @click="deleteIndexedDbFile(file)">
+                                            <i class="layui-icon layui-icon-delete" style="font-size: 18px;"></i>
+                                            <span
+                                                style="top: -2px; margin-right: 5px; left: -5px; position: relative;">[{{lang.clear}}]</span>
                                         </a>
                                     </b>
                                     <b class="tl-rtc-file-send-body-left-icon layui-disabled" v-else>
@@ -996,7 +1082,7 @@
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        {{lang.log}} - {{lang.total}}:{{filterLogs.length}}
+                        {{lang.log}} <b v-show="isCloseLogs" style="color: red;">{{lang.off}}</b> - {{lang.total}}:{{filterLogs.length}}
                         <i @click="clickLogs" class="layui-icon layui-icon-close"
                             style="cursor: pointer; right: 10px;position: absolute;"></i>
                     </div>

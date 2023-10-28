@@ -40,6 +40,36 @@ function getLocalIP() {
 }
 
 /**
+ *  检查两个IP地址是否在同一个子网内
+ * @param {*} ip1 
+ * @param {*} ip2 
+ * @param {*} subnetMask 
+ * @returns 
+ */
+function isSameSubnet(ip1, ip2, subnetMask) {
+    // 将IPv4或IPv6地址和子网掩码转换为数字形式
+    function ipToNumber(ip) {
+        if (ip.includes(':')) { // IPv6
+            const parts = ip.split(':');
+            return parts.map(part => parseInt(part, 16)).join('');
+        } else { // IPv4
+            const parts = ip.split('.');
+            return (parseInt(parts[0]) << 24) |
+                (parseInt(parts[1]) << 16) |
+                (parseInt(parts[2]) << 8) |
+                parseInt(parts[3]);
+        }
+    }
+
+    // 检查第一个IP和第二个IP是否在同一个子网内
+    const ip1Number = ipToNumber(ip1);
+    const ip2Number = ipToNumber(ip2);
+    const subnetMaskNumber = ipToNumber(subnetMask);
+
+    return (ip1Number & subnetMaskNumber) === (ip2Number & subnetMaskNumber);
+}
+
+/**
  * 获取请求的ip
  * @param {*} request 
  * @returns 
@@ -125,11 +155,17 @@ function getNextDay(time) {
  */
 function getSocketClientInfo(socket){
     let handshake = socket.handshake
+    
     let userAgent = handshake.headers['user-agent'].toString().substr(0, 255);
+
     let ip = handshake.headers['x-real-ip'] || handshake.headers['x-forwarded-for'] || handshake.headers['host'];
+    ip = ip.indexOf(":") > -1 ? ip.split(":")[0] : ip;
+
+    let address = socket.handshake.address;
+    address = address.length > 7 ? address.substr(7, address.length) : address;
 
     return {
-        handshake, userAgent, ip
+        handshake, userAgent, ip, address
     }
 }
 
@@ -299,6 +335,46 @@ function unescapeStr(str) {
     });
 }
 
+/**
+ *  根据socketid加密websocket数据
+ * @param {*} socketId 
+ * @param {*} data 
+ * @returns 
+ */
+function encryptSocketData(socketId, data){
+    const key = "tl-rtc-file";
+    const iv = socketId.substring(0, 16);
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    let encrypted = cipher.update(data, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+}
+
+/**
+ * 根据socketid解密websocket数据
+ * @param {*} socketId 
+ * @param {*} data 
+ * @returns 
+ */
+function decryptSocketData(socketId, data){
+    const key = "tl-rtc-file";
+    const iv = socketId.substring(0, 16);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decrypted = decipher.update(data, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+}
+
+/**
+ *  根据flag和bit获取对应的值
+ * @param {*} flag 
+ * @param {*} bit 
+ */
+function checkBit(flag, bit){
+    return (flag & bit) === bit;
+}
+
+
 
 module.exports = {
     getLocalIP,
@@ -314,5 +390,7 @@ module.exports = {
     genTurnServerIceServersConfig,
     genClientLogo,
     unescapeStr,
-    escapeStr
+    escapeStr,
+    isSameSubnet,
+    checkBit
 }

@@ -1,6 +1,7 @@
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
 const utils = require("../../../src/utils/utils");
+const rtcLocalNetRoom = require("../rtcLocalNetRoom/localNetRoom");
 
 /**
  * 在线人数统计广播
@@ -17,6 +18,11 @@ async function count(io, socket, tables, dbClient, data){
         io.sockets.emit(rtcClientEvent.count, {
             mc : allManCount
         })
+
+        rtcLocalNetRoom.localNetRoom(io, socket, tables, dbClient, {
+            toAll : true
+        });
+
     }catch(e){
        utils.tlConsole(e)
     }

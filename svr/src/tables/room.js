@@ -1,6 +1,12 @@
 // room
 module.exports = (sequelize, DataTypes) => {
 	return {
+		RoomOther: {
+			Flag : {
+				IS_MANAGE_ROOM : 0x1, //是否是管理后台房间
+				IS_SYSTEM_QUESTION_ROOM : 0x2, //是否是系统反馈问题房间
+			},
+		},
 		Room: sequelize.define('room', {
 			id: {
 				type: DataTypes.INTEGER,
@@ -15,15 +21,15 @@ module.exports = (sequelize, DataTypes) => {
 			},
 			uid: {
 				type: DataTypes.INTEGER,
-				comment: '匿名用户的id',
+				comment: '用户的id',
 			},
 			uname: {
 				type: DataTypes.STRING(20),
-				comment: '匿名用户姓名，昵称'
+				comment: '用户姓名，昵称'
 			},
 			socket_id: {
 				type: DataTypes.STRING(30),
-				comment: '匿名用户进入房间时的socket.id'
+				comment: '用户进入房间时的socket.id'
 			},
 			pwd: {
 				type: DataTypes.STRING(6),

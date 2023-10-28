@@ -4,6 +4,7 @@ const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcServerMessageEvent = rtcConstant.rtcServerMessageEvent
 const check = require("../../bussiness/check/content");
+const daoRelation = require("./../../dao/relation/relation")
 
 let rtcEventOpName = {
     "sendFileInfo": "准备发送文件",
@@ -204,7 +205,7 @@ async function message(io, socket, tables, dbClient, data){
         }
 
         if (rtcEventOpName[emitType]) {
-            await daoDog.addDogData({
+            let recoderId = await daoDog.addDogData({
                 name: rtcEventOpName[emitType],
                 roomId: room || "",
                 socketId: "",
@@ -214,6 +215,14 @@ async function message(io, socket, tables, dbClient, data){
                 handshake: JSON.stringify(handshake),
                 ip: ip
             }, tables, dbClient);
+
+            //添加用户-操作关联记录
+            if(socket.userId){
+                daoRelation.addUserDogRelation({
+                    dogId : recoderId,
+                    userId : socket.userId,
+                }, tables, dbClient);
+            }
         }
 
         // 指定发送

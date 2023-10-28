@@ -1,4 +1,5 @@
 const daoRoom = require("./../../dao/room/room")
+const daoRelation = require("./../../dao/relation/relation")
 const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const rtcCount = require("./../rtcCount/count");
 const utils = require("./../../utils/utils");
@@ -7,6 +8,8 @@ const cfg = inject_env_config(require("./../../../conf/cfg.json"))
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
 const check = require("../../bussiness/check/content");
+const rtcLocalNetRoom = require("../rtcLocalNetRoom/localNetRoom");
+
 
 /**
  * 用户创建或加入房间
@@ -18,11 +21,12 @@ const check = require("../../bussiness/check/content");
  * @returns 
  */
 async function userCreateAndJoin(io, socket, tables, dbClient, data){
-    let {handshake, userAgent, ip} = utils.getSocketClientInfo(socket);
+    let {handshake, userAgent, ip, address} = utils.getSocketClientInfo(socket);
 
     let {
-        room, type = 'file', nickName = '', password = '', 
-        langMode = 'zh', ua = '', network = '', liveShareRole = ''
+        room = '', type = 'file', nickName = '', password = '', 
+        langMode = 'zh', ua = '', network = '', liveShareRole = '',
+        localNetRoom = false
     } = data;
 
     if (room && room.length > 15) {
@@ -78,6 +82,14 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
         device: userAgent,
         content: JSON.stringify({ handshake: handshake })
     }, tables, dbClient);
+
+    //添加用户-房间号关联记录
+    if(socket.userId){
+        daoRelation.addUserRoomRelation({
+            roomId : recoderId,
+            userId : socket.userId,
+        }, tables, dbClient);
+    }
     
     let clientsInRoom = io.sockets.adapter.rooms[room];
     let numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;
@@ -109,9 +121,21 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
         //设置为房主
         io.sockets.connected[socket.id].owner = true;
 
+        //设置房主ip为房间号ip, address
+        io.sockets.adapter.rooms[room].ip = ip;
+        io.sockets.adapter.rooms[room].address = address;
+
+        //房间是否可以被局域网发现
+        io.sockets.adapter.rooms[room].localNetRoom = localNetRoom;
+        if(localNetRoom){
+            rtcLocalNetRoom.localNetRoom(io, socket, tables, dbClient, {
+                toAll : true
+            });
+        }
+
         //设置房间类型
         io.sockets.adapter.rooms[room].type = type;
-
+        
         //密码房间设置密码
         if(type === 'password'){
             io.sockets.adapter.rooms[room].password = password
@@ -264,6 +288,8 @@ function getRoomTypeZh(type){
         return "密码"
     }else if(type === 'audio'){
         return "语音连麦"
+    }else if(type === 'system'){
+        return "系统"
     }else{
         return "未知类型"
     }

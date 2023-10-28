@@ -4,6 +4,8 @@ const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
 const check = require("../../bussiness/check/content");
+const daoRelation = require("../../dao/relation/relation");
+
 
 /**
  * 房间内更新昵称
@@ -28,7 +30,7 @@ async function changeNickName(io, socket, tables, dbClient, data){
 
         data.nickName = check.contentFilter(nickName);
 
-        await daoDog.addDogData({
+        let recoderId = await daoDog.addDogData({
             name: "修改个人昵称",
             roomId: data.room || "",
             socketId: "",
@@ -38,6 +40,14 @@ async function changeNickName(io, socket, tables, dbClient, data){
             handshake: JSON.stringify(handshake),
             ip: ip
         }, tables, dbClient);
+
+        //添加用户-操作关联记录
+        if(socket.userId){
+            daoRelation.addUserDogRelation({
+                dogId : recoderId,
+                userId : socket.userId,
+            }, tables, dbClient);
+        }
 
         bussinessNotify.sendChangeNickNameNotify({
             title: "修改个人昵称",

@@ -5,6 +5,7 @@ const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
 
+
 /**
  * 退出房间
  * @param {*} io socketio对象
@@ -20,7 +21,7 @@ async function exit(io, socket, tables, dbClient, data){
         
         socket.leave(room);
         
-        let clientsInRoom = io.sockets.adapter.rooms[room];
+        clientsInRoom = io.sockets.adapter.rooms[room];
         if (clientsInRoom) {
             let otherSocketIds = Object.keys(clientsInRoom.sockets);
             for (let i = 0; i < otherSocketIds.length; i++) {
@@ -45,7 +46,8 @@ async function exit(io, socket, tables, dbClient, data){
             })
         }
 
-        rtcCount.count(io, socket, tables, dbClient, data)
+        rtcCount.count(io, socket, tables, dbClient, data);
+
     } catch (e) {
         socket.emit(rtcClientEvent.tips, {
             room: data.room,

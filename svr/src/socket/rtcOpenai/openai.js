@@ -6,6 +6,7 @@ const bussinessOpenai = require("./../../bussiness/openai/openai")
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
 const check = require("../../bussiness/check/content");
+const daoRelation = require("../../dao/relation/relation");
 
 /**
  * ai聊天
@@ -59,7 +60,7 @@ async function openai(io, socket, tables, dbClient, data){
             otherSocket.emit(rtcClientEvent.openaiAnswer, data);
         }
 
-        await daoDog.addDogData({
+        let recoderId = await daoDog.addDogData({
             name: "ChatGPT聊天",
             roomId: roomId,
             socketId: data.socketId,
@@ -69,6 +70,14 @@ async function openai(io, socket, tables, dbClient, data){
             handshake: JSON.stringify(handshake),
             ip: ip
         }, tables, dbClient);
+
+        //添加用户-操作关联记录
+        if(socket.userId){
+            daoRelation.addUserDogRelation({
+                dogId : recoderId,
+                userId : socket.userId,
+            }, tables, dbClient);
+        }
 
         bussinessNotify.sendOpenaiChatNotify({
             title: "ChatGPT聊天",

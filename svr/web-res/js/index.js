@@ -12,8 +12,23 @@ var file = null;
 let useTurn = (window.localStorage.getItem("tl-rtc-file-use-relay") || "") === 'true';
 // 是否是自定义ws地址
 let useCustomWsHost = window.localStorage.getItem("tl-rtc-file-custom-ws-host") || "";
+// 接收是否文件持久到indexedDb
+let useIndexedDb = (window.localStorage.getItem("tl-rtc-file-receive-file-use-indexed-db") || "") === 'true';
+// 是否使用自定义持久化房间号
+let useFixedRoom = window.localStorage.getItem("tl-rtc-file-use-fixed-room") || "";
+// 是否开启局域网房间被发现
+let useLocalNetworkRoomShare = (window.localStorage.getItem("tl-rtc-file-use-local-network-room-share") || "true") === 'true';
+// 是否关闭消息红点
+let useMessageDot = (window.localStorage.getItem("tl-rtc-file-use-message-dot") || "true") === 'true';
 
-axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
+axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
+    let { data : {
+        code, login, 
+        token : userToken, 
+        avatar, 
+        username
+    } } = await axios.get("/api/login/state");
+
     let resData = initData.data;
 
     file = new Vue({
@@ -25,7 +40,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     resData.wsHost = useCustomWsHost;
                 }
                 socket = io(resData.wsHost,{
-                    transports : ['polling', 'websocket']
+                    transports : ['polling', 'websocket'],
+                    query: {
+                        token : userToken || ""
+                    }
                 });
             }
             return {
@@ -45,8 +63,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 showSendFileHistory: false, // 展示底部发送文件历史记录列表
                 showReceiveTxt: false, // 展示底部接收文字列表
                 showCodeFile: false, // 展示底部取件码文件列表
-                showLogs: false, // 展示运行日志
-                showMedia: false, // 展示音视频/屏幕共享/直播
+                showLogs: false, // 展示运行日志列表
+                showMedia: false, // 展示音视频/屏幕共享/直播面板
+                showLocalNetRoom: false, // 展示局域网房间列表
                 isScreenShare: false, //是否在屏幕共享中
                 screenShareTimes: 0,  //当前屏幕共享时间
                 isVideoShare: false, //是否在音视频中
@@ -63,12 +82,19 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 isSending: false, //是否正在发送文件中
                 owner : false, //本人是否是房主
                 isJoined: false, // 是否加入房间
+                isLogin: code === 200 && login, // 是否登录
                 openRoomInput : false, //是否打开房间号输入框
-                // isSendAllWaiting : false, //一键发送文件时，自动排队时，有1秒时间间隔，这个记录当前是否是一键发送文件等待中
                 isShareJoin : false, //是否是分享加入房间
                 isCameraEnabled : true,  //音视频场景下自己的摄像头是否开启
                 isAudioEnabled : true, //音视频场景下自己的麦克风是否开启
                 isLoudspeakerEnabled : true, //音视频场景下自己的扬声器是否开启
+                isCloseLogs : false, //是否关闭日志, 默认开启日志
+                chatCommFilterGood : false, // 是否展示公共聊天频道的精选消息
+                chatCommFilterTop : false, // 是否展示公共聊天频道的置顶消息
+                useMessageDot : useMessageDot, //是否关闭消息提示红点, 默认开启
+                useFixedRoom: useFixedRoom, //是否使用自定义房间号，持久化，后续自动进入房间
+                useIndexedDb : useIndexedDb, // 是否需要将文件保存到indexedDb
+                useLocalNetworkRoomShare : useLocalNetworkRoomShare, //是否开启局域网房间被发现, 默认开启
                 facingMode : "user", //音视频场景下自己的摄像头前后置 ,user, environment
                 videoDeviceId : "", //音视频场景下自己的摄像头设备id
                 audioDeviceId : "", //音视频场景下自己的麦克风设备id
@@ -79,6 +105,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 sendFileHistoryMaskHeightNum: 150, // 用于控制发送文件记录列表面板展示
                 receiveFileMaskHeightNum: 150,// 用于控制接收文件列表面板展示
                 codeFileMaskHeightNum : 150, // 用于控制暂存文件展示
+                localNetRoomMaskHeightNum : 150, // 用于控制局域网房间列表展示
 
                 logMaskHeightNum: -150, // 用于控制日志栏展示
                 mediaVideoMaskHeightNum: -150, // 用于控制音视频展示
@@ -92,6 +119,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 sendFileRecoderHistoryHeight : 0, // 发送文件历史记录展示列表高度
                 receiveFileHeight : 0, // 接收文件展示列表高度
                 codeFileHeight : 0, // 暂存文件展示列表高度
+                localNetRoomListHeight : 0, //局域网房间列表展示高度
 
                 allManCount: 0, // 当前在线人数
                 txtEditId: 0, // 文字模式输入框id
@@ -107,6 +135,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 remoteMap: {}, //远程连接map
                 switchData: {}, //配置开关数据
                 chatRoomSingleSocketId : "", //私聊对方的socketId
+                avatar : avatar, //用户登录头像
+                username : username, //用户登录昵称
 
                 chunkSize: 16 * 1024, // 一块16kb 最大应该可以设置到64kb
                 currentSendAllSize: 0, // 统计发送文件总大小 (流量统计)
@@ -118,6 +148,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 bigFileMaxSize: 20 * 1024 * 1024, //并发发送时大文件认定规则
                 bigFileMaxCount: 1, //并发发送时大文件认定规则
                 longFileQueueMaxSize: 10, //并发发送时，长列表认定规则
+                maxLogCount : 300, // 最大日志记录数
+                loadIndexedFileAllSize : 0, //加载indexedDb中的所有文件大小总和
+                receivedFileAllSize : 0, //接收到的文件大小总和
+                systemMsgCacheTime: 1000 * 60 * 60 * 24, //系统房间消息缓存时间
 
                 chooseFileRecoderAutoNext : false, //是否是一键发送模式下的自动排队发送
                 chooseFileRecoderList : [], //当前进行发送的文件记录列表 (多记录并行发送多文件)
@@ -131,20 +165,26 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 receiveAiChatList: [], //ai对话内容
                 logs: [],  //记录日志
                 popUpList: [], //消息数据
+                localNetRoomList : [], //局域网房间列表
                 preMouseMove : {}, //上一次鼠标移动的事件
                 ips: [], // 记录ip列表，检测是否支持p2p
                 popUpMsgDom : [], // 消息弹窗dom
                 videoDeviceList : [], //摄像头设备列表
                 audioDeviceList : [], //麦克风设备列表
                 loudspeakerDeviceList : [], //扬声器设备列表
+                systemRoomList : resData.systemRoomList || [], //系统房间列表
 
-
-                token: "", //登录token
+                userToken : userToken, //用户登录token
+                token: "", //后台登录token
                 manageIframeId: 0, //实现自适应
                 useTurn: useTurn, //是否使用中继服务器
                 aiAnsweringTxtIntervalId: 0, //实现等待动画
                 aiAnsweringTxt: "思考中...", //ai思考中的文字
                 logsFilter: "", //日志过滤参数
+                checkWxLoginIntervalId: 0, //检测微信登录状态轮训id
+                checkWxLoginCount: 0, // 检测微信登录状态轮训次数, 超过50次则停止（50 * 1.5s = 1min,30s）
+                wxLoginQrCode : null, // 微信登录二维码缓存 1min,30s 更新一次
+                wxLoginQrCodePreUpdateTime : 0, // 微信登录二维码缓存上一次更新时间
 
                 changeLiveShareMediaTrackAndStreamTimeLimit : 9, //切换直播媒体流的时间限制, 允许9s内切换一次
                 changeLiveShareMediaTrackAndStreamTime : 0, //可以下一次切换直播媒体流的时间
@@ -153,11 +193,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             }
         },
         computed: {
+            isSystemRoom : function(){
+                return this.systemRoomList.includes(this.roomId);
+            },
             canSendFile: function () {
                 return this.isJoined && this.chooseFileList.length > 0;
             },
             hasManInRoom: function () {
-                return Object.keys(this.remoteMap).length > 0;
+                return this.isSystemRoom || Object.keys(this.remoteMap).length > 0;
             },
             canSendChatingRoom : function(){
                 return this.isJoined && Object.keys(this.remoteMap).length > 0;
@@ -208,6 +251,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             roomTypeName: function(){
                 return window.tlrtcfile.getRoomTypeZh(this.roomType)
             },
+            canSaveToIndexedDb: function(){
+                return localforage.supports(localforage.INDEXEDDB)
+            }
         },
         watch: {
             isAiAnswering: function (newV, oldV) {
@@ -256,6 +302,149 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             }
         },
         methods: {
+            //打开个人中心
+            openUser: async function(){
+                let that = this;
+                layer.closeAll(function () {
+                    layer.open({
+                        type: 1,
+                        closeBtn: 0,
+                        fixed: true,
+                        maxmin: false,
+                        shadeClose: true,
+                        area: ['350px', '380px'],
+                        title: that.lang.user_info,
+                        success: async function (layero, index) {
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                            document.querySelector(".layui-layer").style.borderRadius = "8px";
+                            document.querySelector(".layui-layer-content").style.overflow = "hidden";
+
+                            document.querySelector("#tl-rtc-file-logout-btn").addEventListener('click', async () => {
+                                let { data : {code, logout} } = await axios.get("/api/login/logout");
+                                if(code === 200 && logout){
+                                    layer.msg(that.lang.logout_succ)
+                                    that.isLogin = false;
+                                    setTimeout(() => {
+                                        window.location.reload()
+                                    }, 500);
+                                }
+                            });
+                        },
+                        content: `
+                            <div class="tl-rtc-file-login-user">
+                                <div class="tl-rtc-file-login-user-info">
+                                    <div class="tl-rtc-file-login-user-info-avatar">
+                                        <img src="${that.avatar}" alt="头像">
+                                    </div>
+                                    <div class="tl-rtc-file-login-user-info-name">
+                                        微信昵称: ${that.username}
+                                    </div>
+                                    <div class="tl-rtc-file-login-user-info-name">
+                                        个人昵称: ${that.nickName}
+                                    </div>
+                                </div>
+                                <div class="tl-rtc-file-logout">
+                                    <button id="tl-rtc-file-logout-btn" type="button" class="layui-btn">退出登录</button>  
+                                </div>
+                            </div>
+                        `
+                    })
+                })
+            },
+            // 打开扫码登录
+            openWxLogin: function(){
+                let that = this;
+                layer.closeAll(function () {
+                    layer.open({
+                        type: 1,
+                        closeBtn: 0,
+                        fixed: true,
+                        maxmin: false,
+                        shadeClose: true,
+                        area: ['350px', '380px'],
+                        title: that.lang.wxlogin,
+                        end : function(){
+                            if(that.checkWxLoginIntervalId){
+                                clearInterval(that.checkWxLoginIntervalId);
+                                that.checkWxLoginCount = 0;
+                            }
+                        },
+                        success: async function (layero, index) {
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                            document.querySelector(".layui-layer").style.borderRadius = "8px";
+                            document.querySelector(".layui-layer-content").style.overflow = "hidden";
+
+                            let loadIndex = layer.load(1);
+                            // 1min,30s 更新一次
+                            if(that.wxLoginQrCodePreUpdateTime === 0 || that.wxLoginQrCodePreUpdateTime < (new Date().getTime() - 1000 * 60 * 1.5)){
+                                let imgData = await axios.get("/api/login/qrcode?socketId="+that.socket.id,{
+                                    responseType: 'blob'
+                                });
+                                const imgSrc = URL.createObjectURL(imgData.data)
+                                that.wxLoginQrCodePreUpdateTime = new Date().getTime();
+                                that.wxLoginQrCode = imgSrc;
+                            }
+                            document.querySelector("#tl-rtc-file-wx-login-image").innerHTML = `
+                                <img style="filter:none;" src=${that.wxLoginQrCode} alt="二维码">
+                            `;
+                            layer.close(loadIndex);
+
+                            //开启接口轮训
+                            that.checkWxLoginIntervalId = setInterval(async () => {
+                                if(that.checkWxLoginCount++ > 50){
+                                    window.location.reload();
+                                }
+                                let { data : { state: scanState, token } } = await axios.get("/api/login/getScanState?scene="+that.socket.id)
+                                const scanDom = document.querySelector("#tl-rtc-file-wx-login-scan")
+                                const defaultDom = document.querySelector("#tl-rtc-file-wx-login-default")
+                                if(scanState === 'scan'){
+                                    scanDom.style.display = 'block';
+                                    defaultDom.style.display = 'none';
+                                }else if(scanState === 'auth_succ'){
+                                    layer.close(index);
+                                    layer.msg(that.lang.login_succ);
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 500);
+                                }else if(scanState === 'auth_fail'){
+                                    layer.msg(that.lang.login_fail)
+                                    setTimeout(() => {
+                                        window.location.reload()
+                                    }, 500);
+                                }else if(scanState === 'wait'){
+                                    scanDom.style.display = 'none';
+                                    defaultDom.style.display = 'block';
+                                }
+                            }, 1500);
+                        },
+                        content: `
+                            <div id="tl-rtc-file-wx-login-default">
+                                <div id="tl-rtc-file-wx-login-image">
+                                    <img src="/image/qrcode.jpeg" alt="二维码">
+                                </div>
+                                <div style="margin-top: 35px; text-align: center;">
+                                    <div id="tl-rtc-file-wx-login-title"> ${that.lang.login_info} </div>
+                                </div>
+                            </div>
+
+                            <div id="tl-rtc-file-wx-login-scan" style="display:none;">
+                                <div class="tl-rtc-file-wx-login-scan-ok">
+                                    <svg class="icon" aria-hidden="true" style="width: 60%;height: auto;">
+                                        <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                    </svg>
+                                </div>
+                                <div style="margin-top: 35px; text-align: center;">
+                                    <div id="tl-rtc-file-wx-login-title"> ${that.socket.id} </div>
+                                    <div id="tl-rtc-file-wx-login-title" style="scale:1;"> ${that.lang.scan_succ_and_wait_auth} </div>
+                                </div>
+                            </div>
+                        `
+                    })
+                })
+            },
+            // 修改昵称
             changeNickName : function(){
                 let that = this;
                 layer.prompt({
@@ -521,7 +710,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             iceOk : function(state){
                 return ['completed', 'connected', 'checking', 'new'].includes(state);
             },
-            consoleLogo : function(){
+            printLogo : function(){
                 window.console.log(`%c____ TL-RTC-FILE-V${this.version} ____ \n____ FORK ME ON GITHUB ____ \n____ https://github.com/tl-open-source/tl-rtc-file ____`, this.logo)
             },
             changeLanguage: function () {
@@ -685,7 +874,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         if (window.layedit) {
                             that.txtEditId = layedit.build('chating_room_single_value', {
                                 tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right', 'face'],
-                                height: 120
+                                height: 100
                             });
                         }
                         that.chatingRoomSingleTpl();
@@ -695,10 +884,15 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             if(textareaIframe && textareaIframe.length === 1){
                                 tlrtcfile.chatKeydown(
                                     document.getElementsByTagName("iframe")[0].contentDocument.body, 
-                                    sendChatingRoomSingle
+                                    that.sendChatingRoomSingle
                                 )
                             }
                         }
+
+                        document.getElementById("tl-sendChatingRoomSingle").addEventListener("click",function(){
+                            that.sendChatingRoomSingle();
+                        })
+
                     },
                     cancel: function (index, layero) {
                         this.chatRoomSingleSocketId = "";
@@ -742,7 +936,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         <div class="chating_input_body">
                             <textarea maxlength="50000" id="chating_room_single_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
                             <span class="chating_send_body chating_send_body_span">shift+enter | ${this.lang.enter_send} </span>
-                            <button onclick="sendChatingRoomSingle()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
+                            <button id="tl-sendChatingRoomSingle" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                         </div>
                     `
                 }
@@ -778,9 +972,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     let height = 0;
 
                     if (this.isMobile) {
-                        height = document.documentElement.clientHeight - 335;
+                        height = document.documentElement.clientHeight - 280;
                     } else {
-                        height = 300
+                        height = 325
                     }
 
                     if (chatDomHeight > height) {
@@ -932,19 +1126,19 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     return
                 }
 
-                let fileRecorde = filterFile[0];
-                if (fileRecorde.size > this.previewFileMaxSize) {
+                let fileRecorder = filterFile[0];
+                if (fileRecorder.size > this.previewFileMaxSize) {
                     layer.msg(`${this.lang.max_previewed} ${this.previewFileMaxSize / 1024 / 1024} ${this.lang.mb_file}`);
                     return
                 }
 
                 let file = await new Promise((resolve, reject) => {
                     let req = new XMLHttpRequest();
-                    req.open("GET", fileRecorde.href);
+                    req.open("GET", fileRecorder.href);
                     req.setRequestHeader('Accept', 'image/png');
                     req.responseType = "blob";
                     req.onload = () => {
-                        resolve( new File([req.response], fileRecorde.name, { type: fileRecorde.type }) );
+                        resolve( new File([req.response], fileRecorder.name, { type: fileRecorder.type }) );
                     };
                     req.onerror = reject
                     req.send();
@@ -1097,8 +1291,12 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         that.openaiChatTpl();
 
                         if(window.tlrtcfile.chatKeydown){
-                            tlrtcfile.chatKeydown(document.getElementById("openaiChat_value"), sendOpenaiChat)
+                            tlrtcfile.chatKeydown(document.getElementById("openaiChat_value"), that.sendOpenaiChat)
                         }
+                        
+                        document.getElementById("tl-sendOpenaiChat").addEventListener("click",function(){
+                            that.sendOpenaiChat();
+                        });
                     },
                     content: `
                         <div class="layui-col-sm12" style="padding: 15px;">
@@ -1154,7 +1352,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         <div class="chating_input_body">
                             <textarea maxlength="50000" id="openaiChat_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
                             <span class="chating_send_body chating_send_body_span">shift+enter | ${this.lang.enter_send} </span>
-                            <button onclick="sendOpenaiChat()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
+                            <button id="tl-sendOpenaiChat" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                         </div>
                     `
                 }
@@ -1169,7 +1367,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 })
                 this.addUserLogs(this.lang.open_ai_chat)
             },
-            // ai窗口渲染
             openaiChatTpl: function (callback) {
                 let tpl_html = document.getElementById("openaiChat_tpl");
                 let tpl_view_html = document.getElementById("openaiChat_tpl_view");
@@ -1189,7 +1386,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                     let height = 0;
                     if (this.isMobile) {
-                        height = document.documentElement.clientHeight - 235;
+                        height = document.documentElement.clientHeight - 200;
                     } else {
                         height = 350
                     }
@@ -1315,162 +1512,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         });
                     });
                 }
-            },
-            // 打开设置
-            setting: function () {
-                let that = this;
-                let options = {
-                    type: 1,
-                    fixed: false,
-                    maxmin: false,
-                    shadeClose: true,
-                    area: ['300px', '350px'],
-                    title: this.lang.setting,
-                    success: function (layero, index) {                            
-                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
-                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
-                        document.querySelector(".layui-layer").style.borderRadius = "15px"
-                        document.querySelector(".layui-layer-content").style.borderRadius = "15px"
-                        window.form.render()
-                    },
-                    content: `
-                    <div class="setting-main">
-                        <div class="setting-main-body">
-                            <ul class="layui-row layui-col-space10">
-                                <li class="layui-col-xs4">
-                                    <a title="${this.lang.blog}" href="https://blog.iamtsm.cn" target="_blank">
-                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="blog">
-                                            <use xlink:href="#icon-rtc-file-zhu"></use>
-                                        </svg>
-                                        <cite>${this.lang.blog}</cite>
-                                    </a>
-                                </li>
-                                <li class="layui-col-xs4">
-                                    <a title="github" href="https://github.com/iamtsm" target="_blank">
-                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;">
-                                            <use xlink:href="#icon-rtc-file-github"></use>
-                                        </svg>
-                                        <cite>github</cite>
-                                    </a>
-                                </li>
-                                <li class="layui-col-xs4" >
-                                    <a title="${this.lang.webrtc_check}" onclick="webrtcCheck()">
-                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="rtcCheck">
-                                            <use xlink:href="#icon-rtc-file-gongju"></use>
-                                        </svg>
-                                        <cite>${this.lang.webrtc_check}</cite>
-                                    </a>
-                                </li>
-                                <li class="layui-col-xs4">
-                                    <a title="${this.lang.custom_ws_url}" onclick="customWsHost()" >
-                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="sendBugs">
-                                            <use xlink:href="#icon-rtc-file-WSshipinjiankong"></use>
-                                        </svg>
-                                        <cite>${this.lang.custom_ws_url}</cite>
-                                    </a>
-                                </li>
-                                <li class="layui-col-xs4" style="${this.switchData.openTurnServer ? '' : 'display:none;'}">
-                                    <a title="${this.lang.relay_setting}" onclick="relaySetting()">
-                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;">
-                                            <use xlink:href="#icon-rtc-file-yunfuwuqi"></use>
-                                        </svg>
-                                        <cite>${this.lang.relay_setting}</cite>
-                                    </a>
-                                </li>
-                                
-                                <li class="layui-col-xs4" style="${this.switchData.openAiChat ? '' : 'display:none;'}">
-                                    <a title="${this.lang.ai_setting}" onclick="sendOpenaiChatWithContext()">
-                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="aiContext">
-                                            <use xlink:href="#icon-rtc-file-AIzhineng"></use>
-                                        </svg>
-                                        <cite>${this.lang.ai_setting}</cite>
-                                    </a>
-                                </li>
-                                <li class="layui-col-xs4" style="${this.switchData.openSendBug ? '' : 'display:none;'}">
-                                    <a title="${this.lang.feedback}" onclick="sendBugs()" >
-                                        <svg class="icon" aria-hidden="true" style="width:42px;height:50px;" id="sendBugs">
-                                            <use xlink:href="#icon-rtc-file-yonghufankuibeifen"></use>
-                                        </svg>
-                                        <cite>${this.lang.feedback}</cite>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    `
-                }
-                layer.closeAll(function () {
-                    layer.open(options)
-                })
-                this.addUserLogs(this.lang.open_setting)
-            },
-            // 自定义ws地址
-            customWsHost: function () {
-                let that = this;
-                if(window.localStorage.getItem("tl-rtc-file-custom-ws-host")){
-                    window.localStorage.removeItem("tl-rtc-file-custom-ws-host")
-                    layer.msg(that.lang.close_custom_ws_url)
-                    setTimeout(() => {
-                        window.location.reload()
-                    }, 500);
-                }else{
-                    layer.prompt({
-                        formType: 0,
-                        value: 'wss://',
-                        title: that.lang.input_custom_ws_url,
-                    }, function (value, index, elem) {
-                        if(!/^wss?:\/\/[^\s/$.?#].[^\s]*$/.test(value)){
-                            layer.msg(that.lang.ws_url_error)
-                            return
-                        }
-                        
-                        layer.close(index);
-
-                        window.localStorage.setItem("tl-rtc-file-custom-ws-host", value)
-                        layer.msg(that.lang.open_custom_ws_url)
-                        setTimeout(() => {
-                            window.location.reload()
-                        }, 500);
-                    });
-                }
-            },
-            // 打开中继设置面板
-            relaySetting: function () {
-                let options = {
-                    type: 1,
-                    fixed: false,
-                    maxmin: false,
-                    shadeClose: true,
-                    area: ['300px', '350px'],
-                    title: this.lang.relay_setting,
-                    success: function (layero, index) {
-                        let active = null;
-                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
-                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
-                        document.querySelector(".layui-layer").style.borderRadius = "15px"
-                        document.querySelector(".layui-layer-content").style.borderRadius = "15px"
-                    },
-                    content: `
-                    <div class="setting-main">
-                        <div class="setting-main-body">
-                            <div class="relayDoc" style="padding: 15px; position: absolute; width: 100%; height: 100%;">
-                                <p style="text-align: center; font-weight: bold; position: relative; top: 2px; display: block; font-size: 17px;"> ${this.lang.relay_server_current} '${useTurn ? this.lang.on : this.lang.off}' </p>
-                                <p style="font-weight: bold; position: relative;  top: 15px; display: block; font-size: 14px;height: 80%;"> ${this.lang.relay_server_current_detail} </p>
-                                <div>
-                                    <div style="text-align: center;">
-                                        <button onclick="useTurn()" type="button" class="layui-btn layui-btn-sm layui-btn-primary  layui-border-blue" style="margin-right: 45px;"> ${this.lang.on} </button>
-                                        <button onclick="useTurn()" type="button" class="layui-btn layui-btn-sm layui-btn-primary  layui-border-red"> ${this.lang.off} </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    `
-                }
-                layer.closeAll(function () {
-                    layer.open(options)
-                })
-                this.addUserLogs(this.lang.open_relay_setting)
             },
             // 创建/加入音视频房间
             startVideoShare: function () {
@@ -1900,14 +1941,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             id: that.lang.web_screen_recording,
                             nickName : that.nickName,
                             href: res.src,
-                            style: 'color: #ff5722;text-decoration: underline;',
                             name: 'screen-recording-' + res.donwId + '.mp4',
                             type: "webm/mp4",
                             size: res.size,
                             progress: 100,
                             done: true,
                             start: 0,
-                            cost: res.times
+                            cost: res.times,
+                            indexedDB : false
                         })
                         that.socket.emit('message', {
                             emitType: "stopScreen",
@@ -1935,6 +1976,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     shadeClose : true,
                     area: ['600px', '600px'],
                     title: this.lang.public_chat_channel,
+                    end: function () {
+                        if(that.chatCommFilterGood){
+                            that.chatCommFilterGood = false;
+                        }
+                        if(that.chatCommFilterTop){
+                            that.chatCommFilterTop = false;
+                        }
+                    },
                     success: function (layero, index) {
                         let lIndex = layer.load(1);
                         setTimeout(() => {
@@ -1943,8 +1992,36 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                         if (window.layer && window.layui && window.layedit) {
                             that.txtEditId = layedit.build('chating_comm_value', {
-                                tool: ['strong', 'italic', 'underline', 'del', 'face'],
-                                height: 120
+                                tool: ['strong', 'del', 'face', 'closeImage', 'good', 'top'],
+                                height: 100,
+                                good : {
+                                    goodCallback : function(){
+                                        const goodDom = document.getElementById("layedit-good");
+                                        if(goodDom){
+                                            if(!that.chatCommFilterGood){
+                                                goodDom.innerText = '取消精选'
+                                            }else{
+                                                goodDom.innerText = '精选消息'
+                                            }
+                                        }
+                                        that.chatCommFilterGood = !that.chatCommFilterGood;
+                                        that.chatingCommTpl();
+                                    }
+                                },
+                                top : {
+                                    topCallback : function(){
+                                        const topDom = document.getElementById("layedit-top");
+                                        if(topDom){
+                                            if(!that.chatCommFilterTop){
+                                                topDom.innerText = '取消置顶'
+                                            }else{
+                                                topDom.innerText = '置顶消息'
+                                            }
+                                        }
+                                        that.chatCommFilterTop = !that.chatCommFilterTop;
+                                        that.chatingCommTpl();
+                                    }
+                                }
                             });
                         }
 
@@ -1955,10 +2032,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             if(textareaIframe && textareaIframe.length === 1){
                                 tlrtcfile.chatKeydown(
                                     document.getElementsByTagName("iframe")[0].contentDocument.body, 
-                                    sendChatingComm
+                                    that.sendChatingComm
                                 )
                             }
                         }
+
+                        document.getElementById("tl-sendChatingComm").addEventListener('click',function(){
+                            that.sendChatingComm();
+                        })
                     },
                     content: `
                         <div class="layui-col-sm12" style="padding: 15px;">
@@ -1969,8 +2050,24 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                                 <div style="margin-bottom: 30px;display: inline-flex;">
                                     <a > <img style="width: 32px; height: 32px;" src="/image/44826979.png" alt="img"> </a>
                                     <div style="margin-left: 15px; margin-top: -5px;">
-                                        <div style="word-break: break-all;"> <small>${this.lang.room}: <b>{{info.room}}</b></small> - <small>${this.lang.user}: <b>{{info.socketId}}</b></small> - <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> </div>
-                                        <div style="margin-top: 5px;word-break: break-all;">说: <b style="font-weight: bold; font-size: large;"> {{- info.msg}} </b></div>
+                                        <div style="word-break: break-all;"> 
+                                            {{#  if(info.top) { }}
+                                                <svg class="icon" aria-hidden="true" style="width: 24px;color:red;">
+                                                    <use xlink:href="#icon-rtc-file-zhiding"></use>
+                                                </svg>
+                                            {{#  } }}
+                                            <small>${this.lang.room}: <b>{{info.room}}</b></small> - 
+                                            <small>${this.lang.user}: <b>{{info.socketId}}</b></small> - 
+                                            <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
+                                            {{#  if(info.admin) { }}
+                                                <svg class="icon" aria-hidden="true" style="width: 24px;height: 24px;color:#1e9fff;">
+                                                    <use xlink:href="#icon-rtc-file-zhuip"></use>
+                                                </svg>
+                                            {{#  } }}
+                                        </div>
+                                        <div style="margin-top: 5px;word-break: break-all;">
+                                            说: <b style="font-weight: bold; font-size: large;"> {{- info.msg}} </b>
+                                        </div>
                                     </div>
                                 </div>
                                 {{#  }); }}
@@ -1979,7 +2076,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         <div class="chating_input_body">
                             <textarea maxlength="50000" id="chating_comm_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
                             <span class="chating_send_body chating_send_body_span">shift+enter | ${this.lang.enter_send} </span>
-                            <button onclick="sendChatingComm()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
+                            <button id="tl-sendChatingComm" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                         </div>
                     `
                 }
@@ -2002,16 +2099,23 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                 if (tpl_html && tpl_view_html) {
 
-                    this.tpl(tpl_html, this.receiveChatCommList, tpl_view_html)
+                    let filterList = this.receiveChatCommList;
+                    if(this.chatCommFilterGood){
+                        filterList = this.receiveChatCommList.filter(item => item.admin)
+                    }else if(this.chatCommFilterTop){
+                        filterList = this.receiveChatCommList.filter(item => item.top)
+                    }
+
+                    this.tpl(tpl_html, filterList, tpl_view_html)
 
                     let chatDom = document.querySelector("#chating_comm_tpl_view")
                     let chatDomHeight = chatDom.clientHeight
 
                     let height = 0;
                     if (this.isMobile) {
-                        height = document.documentElement.clientHeight - 335;
+                        height = document.documentElement.clientHeight - 280;
                     } else {
-                        height = 300
+                        height = 325
                     }
 
                     if (chatDomHeight > height) {
@@ -2070,6 +2174,58 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                 layedit.setContent(this.txtEditId, "", false)
             },
+            // 加载系统房间消息
+            loadSystemRoomMsg : async function(){
+                if (!this.isJoined) {
+                    layer.msg(this.lang.please_join_then_send)
+                    this.addUserLogs(this.lang.please_join_then_send);
+                    return
+                }
+
+                if (!this.isSystemRoom) {
+                    return;
+                }
+
+                let systemMsgList = [];
+                let cacheList = localStorage.getItem('tl-rtc-file-question-list');
+                let reflushCache = false;
+                if(cacheList){
+                    const { questionList, time } = JSON.parse(cacheList);
+                    if(time > Date.now() - this.systemMsgCacheTime){
+                        console.log("question list use cache")
+                        systemMsgList = questionList || [];
+                    }else{
+                        reflushCache = true;
+                    }
+                }else{
+                    reflushCache = true;
+                }
+
+                if(reflushCache){
+                    console.log("question list use request")
+                    let res = await axios.get('/api/dog/question/list');
+                    if(res.data && res.data.code === 200){
+                        systemMsgList = res.data.questionList || [];
+                        localStorage.setItem('tl-rtc-file-question-list', JSON.stringify({
+                            questionList : systemMsgList,
+                            time : Date.now()
+                        }));
+                    }
+                }
+
+                systemMsgList.forEach(item => {
+                    this.receiveChatRoomList.push({
+                        socketId: item.socketId,
+                        content: item.msg,
+                        nickName : item.nickName ,
+                        type : item.type,
+                        time: item.time,
+                        timeAgo : window.util ? util.timeAgo(item.time) : item.time
+                    });
+                })
+
+                this.chatingRoomTpl();
+            },
             // 房间内群聊弹窗
             openChatingRoom: function () {
                 let that = this;
@@ -2085,7 +2241,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             if (window.layer && window.layui && window.layedit) {
                                 that.txtEditId = layedit.build('chating_room_value', {
                                     tool: ['strong', 'italic', 'underline', 'del', '|', 'left', 'center', 'right', 'face'],
-                                    height: 120
+                                    height: 100
                                 });
                             }
 
@@ -2096,10 +2252,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                                 if(textareaIframe && textareaIframe.length === 1){
                                     tlrtcfile.chatKeydown(
                                         document.getElementsByTagName("iframe")[0].contentDocument.body, 
-                                        sendChatingRoom
+                                        that.sendChatingRoom
                                     )
                                 }
                             }
+
+                            document.getElementById("tl-sendChatingRoom").addEventListener("click",function(){
+                                that.sendChatingRoom();
+                            })
                         },
                         content: `
                             <div class="layui-col-sm12" style="padding: 15px;">
@@ -2112,6 +2272,15 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                                                 <div style="margin-left: 15px; margin-top: -5px;width:100%;">
                                                     <div style="word-break: break-all;"> 
                                                         <small>${this.lang.user}: <b>{{info.nickName}}</b></small> - 
+                                                        {{#  if(info.type === 'QUESTION') { }}
+                                                            <svg class="icon" aria-hidden="true" style="width: 24px;height: 24px;">
+                                                                <use xlink:href="#icon-rtc-file-wenda1"></use>
+                                                            </svg>
+                                                        {{#  }else if(info.type === 'ANSWER') { }}
+                                                            <svg class="icon" aria-hidden="true" style="width: 24px; height: 24px; color: blueviolet;">
+                                                                <use xlink:href="#icon-rtc-file-wenda"></use>
+                                                            </svg>
+                                                        {{#  } }}
                                                         <small>id: <b>{{info.socketId}}</b></small> - 
                                                         <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
                                                     </div>
@@ -2140,7 +2309,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                             <div class="chating_input_body">
                                 <textarea maxlength="50000" id="chating_room_value" class="layui-textarea" placeholder="${this.lang.communication_rational} ~"></textarea>
                                 <span class="chating_send_body chating_send_body_span">shift+enter | ${this.lang.enter_send} </span>
-                                <button onclick="sendChatingRoom()" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
+                                <button id="tl-sendChatingRoom" type="button" class="layui-btn layui-btn-normal layui-btn-sm chating_send_body chating_send_body_button">${this.lang.send_chat}</button>
                             </div>
                         `
                     }
@@ -2170,9 +2339,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                     let height = 0;
                     if (this.isMobile) {
-                        height = document.documentElement.clientHeight - 335;
+                        height = document.documentElement.clientHeight - 280;
                     } else {
-                        height = 300
+                        height = 325
                     }
 
                     if (chatDomHeight > height) {
@@ -2234,405 +2403,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 this.addUserLogs(this.lang.text_send_done);
                 
                 layedit.setContent(this.txtEditId, "", false)
-            },
-            // 中继信息提示
-            useTurnMsg: function () {
-                layer.msg(this.lang.relay_on)
-                this.addUserLogs(this.lang.relay_on)
-            },
-            // 当前网络状态
-            networkMsg: function () {
-                layer.msg(this.lang.current_network + (this.network !== 'wifi' ? this.lang.mobile_data : this.network))
-                this.addUserLogs(this.lang.current_network + (this.network !== 'wifi' ? this.lang.mobile_data : this.network))
-            },
-            // 添加弹窗
-            addPopup: function (msg) {
-                this.popUpList.push({
-                    title : msg.title,
-                    message : msg.msg
-                })
-            },
-            // 记录系统日志
-            addSysLogs: function (msg) {
-                this.addLogs(msg, "【"+this.lang.sys_log+"】: ")
-            },
-            // 记录用户操作日志
-            addUserLogs: function (msg) {
-                this.addLogs(msg, "【"+this.lang.op_log+"】: ")
-            },
-            // 记录日志
-            addLogs: function (msg, type) {
-                if (this.logs.length > 1000) {
-                    this.logs.shift();
-                }
-                this.logs.unshift({
-                    type: type,
-                    msg: msg,
-                    time: new Date().toLocaleString()
-                })
-            },
-            // 清空日志
-            cleanLogs: function () {
-                this.logs = []
-                this.addSysLogs(this.lang.clear_log)
-            },
-            // 发送建议反馈
-            sendBugs: function () {
-                let that = this;
-                $("#sendBugs").removeClass("layui-anim-rotate")
-                setTimeout(() => {
-                    $("#sendBugs").addClass("layui-anim-rotate")
-                }, 50)
-                setTimeout(() => {
-                    layer.prompt({
-                        formType: 2,
-                        title: that.lang.please_describe_your_feedback,
-                    }, function (value, index, elem) {
-                        that.socket.emit('message', {
-                            emitType: "sendBugs",
-                            msg: value,
-                            room: that.roomId,
-                            to: that.socketId
-                        });
-                        layer.msg(that.lang.send_bug_info_ok)
-                        layer.close(index);
-                        that.addUserLogs(that.lang.send_bug_info_ok + ", " + value);
-                    });
-                }, 500);
-            },
-            // 随机刷新房间号
-            refleshRoom: function () {
-                if (!this.isJoined) {
-                    this.roomId = parseInt(Math.random() * 100000);
-                    this.addPopup({
-                        title : this.lang.refresh_room,
-                        msg : this.lang.you_refresh_room + this.roomId
-                    });
-                    this.addUserLogs(this.lang.you_refresh_room + this.roomId);
-                }
-            },
-            // 复制分享房间url
-            shareUrl: function () {
-                let that = this;
-                layer.closeAll(function () {
-                    layer.open({
-                        type: 1,
-                        closeBtn: 0,
-                        fixed: true,
-                        maxmin: false,
-                        shadeClose: true,
-                        area: ['350px', '380px'],
-                        title: that.lang.share_join_room,
-                        success: function (layero, index) {
-                            let shareArgs = {
-                                r : that.roomId,
-                                t : that.roomType
-                            };
-                            if(that.roomType === 'live'){
-                                shareArgs.lsm = that.liveShareMode;
-                                shareArgs.lsr = 'viewer';
-                            }
-                            let content = window.tlrtcfile.addUrlHashParams(shareArgs);
-                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
-                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
-                            document.querySelector(".layui-layer").style.borderRadius = "8px";
-                            if(window.tlrtcfile.getQrCode){
-                                tlrtcfile.getQrCode("tl-rtc-file-room-share-image", content)
-                            }
 
-                            document.querySelector("#shareUrl").setAttribute("data-clipboard-text", content);
-                            let clipboard = new ClipboardJS('#shareUrl');
-                            clipboard.on('success', function (e) {
-                                e.clearSelection();
-                                setTimeout(() => {
-                                    layer.msg(that.lang.copy_room_link)
-                                }, 500);
-                            });
-                            that.addUserLogs(that.lang.copy_room_link);
-                        },
-                        content: `
-                            <div style="margin-top: 20px; text-align: center; margin-bottom: 25px;">
-                                <div id="tl-rtc-file-room-share"> ${that.lang.share_join_room_done} 
-                                    <i class="layui-icon layui-icon-ok-circle" style="margin-top: 3px; position: absolute; margin-left: 10px; color: #96e596; font-weight: 300;"></i>
-                                </div>
-                            </div>
-                            <div id="tl-rtc-file-room-share-image">
-                        `
-                    })
-                })
-                this.addUserLogs(this.lang.open_share_join_room)
-            },
-            // 获取分享的取件码文件
-            handlerGetCodeFile: function () {
-                let that = this;
-                let hash = window.location.hash || "";
-                if (hash && hash.includes("#")) {
-                    let codeIdArgs = hash.split("c=");
-                    if (codeIdArgs && codeIdArgs.length > 1) {
-                        this.codeId = (codeIdArgs[1] + "").replace(/\s*/g, "").substring(0, 40);
-                        layer.confirm(this.lang.is_pickup_code, (index) => {
-                            window.location.hash = "";
-                            layer.close(index)
-                            that.getCodeFile();
-                        }, (index) => {
-                            that.codeId = "";
-                            window.location.hash = "";
-                            layer.close(index)
-                        })
-                        this.addPopup({
-                            title : this.lang.share_pickup_code_file,
-                            msg : this.lang.get_pickup_file + this.codeId
-                        });
-                        this.addUserLogs(this.lang.get_pickup_file + this.codeId);
-                    }
-                }
-            },
-            // 分享进入房间
-            handlerJoinShareRoom: function () {
-                let that = this;
-                let hash = window.location.hash || "";
-                if (!hash || !hash.includes("#") || !hash.includes("r=")) {
-                    return   
-                }
-
-                if (!window.layer) {
-                    return
-                }
-
-                //房间号
-                let roomIdArgs = tlrtcfile.getRequestHashArgs("r");
-                if (!roomIdArgs) {
-                    return
-                }
-                this.roomId = (roomIdArgs + "").replace(/\s*/g, "").substring(0, 15);
-
-                //房间类型
-                let typeArgs = tlrtcfile.getRequestHashArgs("t");
-
-                layer.confirm(this.lang.join_room + this.roomId, (index) => {
-                    window.location.hash = "";
-                    layer.close(index)
-                    that.openRoomInput = true;
-                    that.isShareJoin = true;
-                    if(typeArgs && ['screen','live','video','audio'].includes(typeArgs)){
-                        if(typeArgs === 'screen'){
-                            that.startScreenShare();
-                        }else if(typeArgs === 'live'){
-                            //直播房间模式
-                            let lsm = tlrtcfile.getRequestHashArgs("lsm");
-                            if(['video', 'live', ''].includes(lsm)){
-                                that.liveShareMode = lsm;
-                            }
-                            //直播房间身份
-                            let lsr = tlrtcfile.getRequestHashArgs("lsr");
-                            if(['owner', 'viewer'].includes(lsr)){
-                                that.liveShareRole = lsr;
-                            }
-                            that.startLiveShare();
-                        }else if(typeArgs === 'video'){
-                            that.startVideoShare();
-                        }else if(typeArgs === 'audio'){
-                            that.startAudioShare();
-                        }
-                    }else{
-                        that.createFileRoom();
-                    }
-                }, (index) => {
-                    that.roomId = "";
-                    window.location.hash = "";
-                    layer.close(index)
-                })
-                this.addPopup({
-                    title : this.lang.share_join_room,
-                    msg : this.lang.you_join_room + this.roomId
-                });
-                this.addUserLogs(this.lang.you_join_room + this.roomId);
-            },
-            // 赞助面板
-            coffee: function () {
-                let options = {
-                    type: 1,
-                    fixed: false,
-                    maxmin: false,
-                    shadeClose: true,
-                    area: ['300px', '350px'],
-                    title: this.lang.donate,
-                    success: function (layero, index) {
-                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
-                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
-                        document.querySelector(".layui-layer").style.borderRadius = "8px";
-                    },
-                    content: `<img style=" width: 100%; height: 100%;border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;" src="/image/coffee.jpeg" alt="img"> `
-                }
-                layer.closeAll(function () {
-                    layer.open(options)
-                })
-                this.addUserLogs(this.lang.open_donate)
-            },
-            //点击下载文件面板
-            clickReceiveFile: function () {
-                if(this.receiveFileRecoderList.length === 0){
-                    layer.msg(this.lang.no_received_file)
-                    return
-                }
-                this.showReceiveFile = !this.showReceiveFile;
-                if (this.showReceiveFile) {
-                    this.addUserLogs(this.lang.expand_receive_file);
-                    this.receiveFileMaskHeightNum = 20;
-                } else {
-                    this.receiveFileMaskHeightNum = 150;
-                    this.addUserLogs(this.lang.collapse_receive_file);
-                }
-            },
-            //点击已选文件面板
-            clickChooseFile: function () {
-                if(!this.hasManInRoom && !this.showChooseFile){
-                    layer.msg(this.lang.room_least_two_can_send_content)
-                    return
-                }
-                this.showChooseFile = !this.showChooseFile;
-                if (this.showChooseFile) {
-                    this.chooseFileMaskHeightNum = 20;
-                    this.addUserLogs(this.lang.expand_selected_file);
-                } else {
-                    this.chooseFileMaskHeightNum = 150;
-                    this.addUserLogs(this.lang.collapse_selected_file);
-                }
-            },
-            //点击待发送文件面板
-            clickSendFile: function () {
-                if(!this.hasManInRoom && !this.showSendFile){
-                    layer.msg(this.lang.room_least_two_can_send_content)
-                    return
-                }
-                this.showSendFile = !this.showSendFile;
-                if (this.showSendFile) {
-                    this.sendFileMaskHeightNum = 20;
-                    this.addUserLogs(this.lang.expand_wait_send_file);
-                } else {
-                    this.sendFileMaskHeightNum = 150;
-                    this.addUserLogs(this.lang.collapse_wait_send_file);
-                }
-            },
-            //点击发送文件历史记录面板
-            clickSendFileHistory: function () {
-                if(this.sendFileRecoderHistoryList.length === 0){
-                    layer.msg(this.lang.no_send_file)
-                    return
-                }
-                this.showSendFileHistory = !this.showSendFileHistory;
-                if (this.showSendFileHistory) {
-                    this.sendFileHistoryMaskHeightNum = 20;
-                    this.addUserLogs(this.lang.expand_send_file_record);
-                } else {
-                    this.sendFileHistoryMaskHeightNum = 150;
-                    this.addUserLogs(this.lang.collapse_send_file_record);
-                }
-            },
-            //点击查看日志面板
-            clickLogs: function (e) {
-                this.showLogs = !this.showLogs;
-                this.touchResize();
-                if (this.showLogs) {
-                    this.addUserLogs(this.lang.expand_log);
-                    this.logMaskHeightNum = 0;
-                } else {
-                    this.addUserLogs(this.lang.collapse_log);
-                    this.logMaskHeightNum = -150;
-                }
-            },
-            //点击打开音视频面板
-            clickMediaVideo: function () {
-                this.showMedia = !this.showMedia;
-                this.touchResize();
-                if (this.showMedia) {
-                    this.addUserLogs(this.lang.expand_video);
-                    this.mediaVideoMaskHeightNum = 0;
-                    if(this.clientWidth < 500){
-                        document.getElementById("iamtsm").style.marginLeft = '0';
-                    }else{
-                        document.getElementById("iamtsm").style.marginLeft = "50%";
-                    }
-                } else {
-                    this.addUserLogs(this.lang.collapse_video);
-                    this.mediaVideoMaskHeightNum = -150;
-                    document.getElementById("iamtsm").style.marginLeft = "0";
-                }
-            },
-            //点击打开屏幕共享面板
-            clickMediaScreen: function () {
-                this.showMedia = !this.showMedia;
-                this.touchResize();
-                if (this.showMedia) {
-                    this.addUserLogs(this.lang.expand_screen_sharing);
-                    this.mediaScreenMaskHeightNum = 0;
-                    if(this.clientWidth < 500){
-                        document.getElementById("iamtsm").style.marginLeft = "0";
-                    }else{
-                        document.getElementById("iamtsm").style.marginLeft = "50%";
-                    }
-                } else {
-                    this.addUserLogs(this.lang.collapse_screen_sharing);
-                    this.mediaScreenMaskHeightNum = -150;
-                    document.getElementById("iamtsm").style.marginLeft = "0";
-                }
-            },
-            //点击打开直播面板
-            clickMediaLive: function () {
-                this.showMedia = !this.showMedia;
-                this.touchResize();
-                if (this.showMedia) {
-                    this.addUserLogs(this.lang.expand_live);
-                    if(this.clientWidth < 500){
-                        document.getElementById("iamtsm").style.marginLeft = "0";
-                    }else{
-                        document.getElementById("iamtsm").style.marginLeft = "50%";
-                    }
-                    this.mediaLiveMaskHeightNum = 0;
-                } else {
-                    this.addUserLogs(this.lang.collapse_live);
-                    this.mediaLiveMaskHeightNum = -150;
-                    document.getElementById("iamtsm").style.marginLeft = "0";
-                }
-            },
-            clickMediaAudio : function(){
-                this.showMedia = !this.showMedia;
-                this.touchResize();
-                if (this.showMedia) {
-                    this.addUserLogs(this.lang.expand_audio);
-                    if(this.clientWidth < 500){
-                        document.getElementById("iamtsm").style.marginLeft = "0";
-                    }else{
-                        document.getElementById("iamtsm").style.marginLeft = "50%";
-                    }
-                    this.mediaAudioMaskHeightNum = 0;
-                } else {
-                    this.addUserLogs(this.lang.collapse_audio);
-                    this.mediaAudioMaskHeightNum = -150;
-                    document.getElementById("iamtsm").style.marginLeft = "0";
-                }
-            },
-            typeInArr: function(arr, type, name = ""){
-                if(type === ''){
-                    let fileTail = name.split(".").pop()
-                    return arr.filter(item=>{
-                        return fileTail.toLowerCase().includes(item) && name.endsWith("."+fileTail);
-                    }).length > 0;
-                }else{
-                    return arr.filter(item=>{
-                        return type.toLowerCase().includes(item);
-                    }).length > 0;
-                }
-            },
-            //文件大小
-            getFileSizeStr: function (size) {
-                let sizeStr = (size / 1048576).toString();
-                let head = sizeStr.split(".")[0];
-                let tail = "";
-                if (sizeStr.split(".")[1]) {
-                    tail = sizeStr.split(".")[1].substring(0, 3);
-                }
-                return head + '.' + tail + "M";
+                //清空系统记录缓存
+                localStorage.removeItem('tl-rtc-file-question-list');
             },
             //创建文件发送房间
             createFileRoom: function () {
@@ -2674,14 +2447,14 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         this.addUserLogs(this.lang.room_num_too_long);
                         return;
                     }
-                    this.setNickName();
                     this.socket.emit('createAndJoin', {
                         room: this.roomId,
                         type : 'file',
                         nickName : this.nickName,
                         langMode : this.langMode,
                         ua: this.isMobile ? 'mobile' : 'pc',
-                        network : this.network
+                        network : this.network,
+                        localNetRoom : this.useLocalNetworkRoomShare
                     });
                     this.isJoined = true;
                     this.addPopup({
@@ -2705,15 +2478,15 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         this.addUserLogs(this.lang.room_num_too_long);
                         return;
                     }
-                    this.setNickName();
                     this.socket.emit('createAndJoin', { 
-                        room: this.roomId, 
+                        room: this.roomId,
                         type: type, 
                         nickName : this.nickName,
                         langMode : this.langMode,
                         ua: this.isMobile ? 'mobile' : 'pc',
                         network : this.network,
-                        liveShareRole : this.liveShareRole
+                        liveShareRole : this.liveShareRole,
+                        localNetRoom : this.useLocalNetworkRoomShare
                     });
                     this.isJoined = true;
                     this.roomType = type;
@@ -2743,7 +2516,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         this.addUserLogs(this.lang.password_too_long);
                         return;
                     }
-                    this.setNickName();
                     this.socket.emit('createAndJoin', { 
                         room: this.roomId, 
                         type : 'password', 
@@ -2751,7 +2523,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         nickName : this.nickName,
                         langMode : this.langMode,
                         ua: this.isMobile ? 'mobile' : 'pc',
-                        network : this.network
+                        network : this.network,
+                        localNetRoom : this.useLocalNetworkRoomShare
                     });
                     this.isJoined = true;
                     this.addPopup({
@@ -3289,7 +3062,11 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 if(receiveChannel.label === 'sendFileDataChannel'){
                     receiveChannel.binaryType = 'arraybuffer';
                     receiveChannel.onmessage = (evt) => {
-                        this.receiveFileData(evt, id);
+                        if(this.canSaveToIndexedDb && this.useIndexedDb){
+                            this.receiveFileDataToIndexedDb(evt, id);
+                        }else{
+                            this.receiveFileDataToMemery(evt, id);
+                        }
                     };
                     receiveChannel.onopen = () => {
                         const readyState = receiveChannel.readyState;
@@ -3324,8 +3101,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     this.setRemoteInfo(id, { receiveDataChannel: receiveChannel });
                 }
             },
-            //接收文件
-            receiveFileData: function (event, id) {
+            //接收文件 (使用indexedDb接收，不占用内存)
+            receiveFileDataToIndexedDb: function (event, id) {
+                let that = this;
                 if (!event || !id) {
                     return;
                 }
@@ -3336,30 +3114,117 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                 //解析数据
                 let { index, fragment, buffer } = this.decodeReceiveFileBuffer(event.data);
+
+                //接收文件总大小
+                this.receivedFileAllSize += buffer.byteLength;
+
+                // 文件数据 大小/数据
                 let receiveFileMap = currentRtc.receiveFileMap;
+                let receiveRecoder = receiveFileMap[index];
+                let receivedSize = receiveRecoder.receivedSize;
+                receivedSize += buffer.byteLength;
+                receiveFileMap[index].receivedSize = receivedSize;
+                let receivedBuffer = receiveRecoder.receivedBuffer;
+                receivedBuffer.push(buffer);
+                receiveFileMap[index].receivedBuffer = receivedBuffer;
+
+                // 文件信息
+                let receiveFileRecoder = this.receiveFileRecoderList.filter(item=>{
+                    return item.index === index;
+                })[0];
 
                 //当前接收的文件基本信息
-                let receiveRecoder = receiveFileMap[index];
-                let name = receiveRecoder.name;
-                let size = receiveRecoder.size;
-                let type = receiveRecoder.type;
+                let name = receiveFileRecoder.name;
+                let size = receiveFileRecoder.size;
+                let type = receiveFileRecoder.type;
 
+                //1000分片存储一次, 默认16M一组 = chunkSize * 1000
+                if(fragment % 1000 === 0){
+                    this.saveSliceFileBufferToIndexedDb(receiveFileRecoder, fragment, receivedBuffer);
+                    receiveFileMap[index].receivedBuffer = new Array();
+                }
+                this.setRemoteInfo(id, { receiveFileMap : receiveFileMap});
+                
+                //更新接收进度
+                this.updateReceiveFileRecoderProgress(id, {
+                    progress: ((receivedSize / size) * 100).toFixed(3) || 0,
+                    fragment : fragment
+                }, receiveFileRecoder);
+
+                //接收完毕
+                if (receivedSize === size) {
+                    this.addSysLogs(name + this.lang.save_file_to_indexeddb);
+                    this.addPopup({
+                        title : this.lang.file_receive,
+                        msg : "[ " + name + " ]" + this.lang.save_file_to_indexeddb
+                    });
+
+                    //发送完毕后，如果buffer还有剩余不满1000分片的数据，也要存储
+                    if(receivedBuffer.length >= 0){
+                        this.saveSliceFileBufferToIndexedDb(receiveFileRecoder, fragment, receivedBuffer);
+                    }
+
+                    // 更新接收进度
+                    this.updateReceiveFileRecoderProgress(id, {
+                        progress: 100,
+                        done: true,
+                    }, receiveFileRecoder);
+
+                    // 更新indexeddb中的文件信息
+                    this.saveSliceFileInfoToIndexedDb(Object.assign({
+                        progress: 100,
+                        done: true,
+                    }, receiveFileRecoder));
+
+                    //清除接收的数据缓存
+                    receiveFileMap[index].receivedBuffer = new Array();
+                    receiveFileMap[index].receivedSize = 0;
+                    this.setRemoteInfo(id, { receiveFileMap })
+                }
+            },
+            //接收文件 (使用内存接收)
+            receiveFileDataToMemery: function (event, id) {
+                let that = this;
+                if (!event || !id) {
+                    return;
+                }
+                let currentRtc = this.getRemoteInfo(id);
+                if(!currentRtc){
+                    return;
+                }
+
+                //解析数据
+                let { index, fragment, buffer } = this.decodeReceiveFileBuffer(event.data);
+
+                let receiveFileMap = currentRtc.receiveFileMap;
+                let receiveRecoder = receiveFileMap[index];
                 //当前接收的文件相关数据/大小
                 let receivedBuffer = receiveRecoder.receivedBuffer;
                 let receivedSize = receiveRecoder.receivedSize;
 
+                //当前接收的文件基本信息
+                let receiveFileRecoder = this.receiveFileRecoderList.filter(item=>{
+                    return item.index === index;
+                })[0];
+                let name = receiveFileRecoder.name;
+                let size = receiveFileRecoder.size;
+                let type = receiveFileRecoder.type;
+
                 //接收数据
                 receivedBuffer.push(buffer);
                 receivedSize += buffer.byteLength;
+
+                //接收文件总大小
+                this.receivedFileAllSize += buffer.byteLength;
 
                 receiveFileMap[index].receivedBuffer = receivedBuffer;
                 receiveFileMap[index].receivedSize = receivedSize;
                 this.setRemoteInfo(id, { receiveFileMap : receiveFileMap})
 
                 //更新接收进度
-                this.updateReceiveProgress(id, {
+                this.updateReceiveFileRecoderProgress(id, {
                     progress: ((receivedSize / size) * 100).toFixed(3) || 0
-                }, receiveRecoder);
+                }, receiveFileRecoder);
 
                 if (receivedSize === size) {
                     this.addSysLogs(name + this.lang.receive_done);
@@ -3369,12 +3234,11 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     });
 
                     //更新接收进度
-                    this.updateReceiveProgress(id, {
-                        style: 'color: #ff5722;text-decoration: underline;',
+                    this.updateReceiveFileRecoderProgress(id, {
                         progress: 100,
                         href: URL.createObjectURL(new Blob(receivedBuffer), { type: type }),
-                        done: true
-                    }, receiveRecoder);
+                        done: true,
+                    }, receiveFileRecoder);
 
                     //清除接收的数据缓存
                     receiveFileMap[index].receivedBuffer = new Array();
@@ -3418,7 +3282,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 }
             },
             //更新接收进度
-            updateReceiveProgress: function (id, data, recoder) {
+            updateReceiveFileRecoderProgress: function (id, data, recoder) {
                 for (let i = 0; i < this.receiveFileRecoderList.length; i++) {
                     let item = this.receiveFileRecoderList[i];
                     if (item.id === id && item.index === recoder.index && !item.done) {
@@ -3549,8 +3413,16 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             addIceCandidateFailed: function (err) {
                 this.addSysLogs(this.lang.add_ice_candidate_failed + err);
             },
+            //事件监听
             socketListener: function () {
                 let that = this;
+
+                this.socket.on("localNetRoom", data => {
+                    that.localNetRoomList = data.list || [];
+                    if(that.localNetRoomList.length === 0 && that.showLocalNetRoom){
+                        that.clickLocalNetRooms(true);
+                    }
+                })
 
                 this.socket.on("heartbeat", data => {
                     if(data.status === 'ok'){
@@ -3764,22 +3636,22 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                 //选中文件时发送给接收方
                 this.socket.on('sendFileInfo', function (data) {
-                    let fromId = data.from;
-                    let { receiveFileMap = {} } = that.getRemoteInfo(fromId);
-                    receiveFileMap[data.index] = Object.assign({
-                        receivedBuffer : new Array(),
-                        receivedSize : 0
-                    },data);
-
-                    that.setRemoteInfo(fromId, { receiveFileMap });
-                    
                     that.addPopup({
                         title : that.lang.send_file,
                         msg : data.from + that.lang.selected_file + "[ " + data.name + " ], "+that.lang.will_send
                     });
                     that.addSysLogs(data.from + that.lang.selected_file + "[ " + data.name + " ], "+that.lang.will_send);
 
-                    that.receiveFileRecoderList.push({
+                    let fromId = data.from;
+                    let { receiveFileMap = {} } = that.getRemoteInfo(fromId);
+                    receiveFileMap[data.index] = Object.assign({
+                        receivedBuffer : new Array(),
+                        receivedSize : 0,
+                    }, data);
+                    that.setRemoteInfo(fromId, { receiveFileMap });
+                    
+                    // 组装接收文件的recoder结构
+                    const recoder = {
                         id: fromId,
                         nickName : data.nickName,
                         index: data.index,
@@ -3791,8 +3663,13 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         done: false,
                         start: 0,
                         cost: 0,
-                        upload : 'wait'
-                    })
+                        upload : 'wait',
+                        indexedDb: that.canSaveToIndexedDb && that.useIndexedDb,
+                        fragment : 0,
+                        indexedDbInfoKey: Date.now() + "_" + data.index + "_info",
+                        indexedDbBufferKey: Date.now() + "_" + data.index + "_buffer",
+                    }
+                    that.receiveFileRecoderList.push(recoder)
 
                     that.socket.emit("message", {
                         emitType : "sendFileInfoAck",
@@ -3801,6 +3678,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         to: fromId, // 谁发过来的sendFileInfo事件就回执给谁
                         index: data.index, //具体的recoder记录文件的索引
                     })
+
+                    if(that.canSaveToIndexedDb && that.useIndexedDb){
+                        that.saveSliceFileInfoToIndexedDb(recoder);
+                    }
                 });
 
                 //接收放已经收到待发送文件信息，代表可以进行发送了，
@@ -4097,7 +3978,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
 
                 //开关数据
                 this.socket.on('commData', function (data) {
-                    that.switchData = data.switchData
+                    that.switchData = data.switchData;
                     that.switchDataGet = true;
                     if(data.switchData.noticeMsgList){
                         let alert = window.localStorage.getItem("tl-rtc-file-alert-notice")
@@ -4133,7 +4014,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         that.addSysLogs(that.lang.text_decode_failed + data.msg);
                     }
                     that.receiveChatCommList.push(data);
-                    if (that.receiveChatCommList.length > 10) {
+                    if (that.receiveChatCommList.length > that.switchData.chatingCommCount) {
                         that.receiveChatCommList.shift();
                     }
                     that.receiveChatCommList.forEach(item => {
@@ -4197,6 +4078,1189 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     }, 500);
                 });
             },
+            // 打开设置
+            setting: function () {
+                let that = this;
+                let options = {
+                    type: 1,
+                    fixed: false,
+                    maxmin: false,
+                    shadeClose: true,
+                    area: ['320px', '390px'],
+                    title: this.lang.setting,
+                    success: function (layero, index) {                            
+                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "15px"
+                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "15px"
+                        document.querySelector(".layui-layer").style.borderRadius = "15px"
+                        document.querySelector(".layui-layer-content").style.borderRadius = "15px"
+                        window.form.render()
+
+                        carousel.render({
+                            elem: '#tl-rtc-file-setting-info',
+                            width: '100%',
+                            autoplay : false,
+                            indicator: 'inside'
+                        });
+
+                        //文件分片大小自定义
+                        let chunkSizeSliderDivObj = slider.render({
+                            elem: '#tl-rtc-file-chunk-size',
+                            min: 16,
+                            max: 64,
+                            change: function (value) {
+                                that.chunkSize = value * 1024;
+                                document.getElementById("tl-rtc-file-chunk-size-txt").innerText = value + "KB";
+                            }
+                        });
+                        chunkSizeSliderDivObj.setValue((that.chunkSize / 1024) - 16);
+
+                        //文件预览大小自定义
+                        let previewSizeSliderDivObj = slider.render({
+                            elem: '#tl-rtc-file-preview-size',
+                            min: 5,
+                            max: 15,
+                            change: function (value) {
+                                that.previewFileMaxSize = value * 1024 * 1024;
+                                document.getElementById("tl-rtc-file-preview-size-txt").innerText = value + "MB";
+                            }
+                        });
+                        previewSizeSliderDivObj.setValue((that.previewFileMaxSize / 1024 / 1024) - 5);
+
+                        //执行日志大小自定义
+                        let logSizeSliderDivObj = slider.render({
+                            elem: '#tl-rtc-file-log-size',
+                            min: 300,
+                            max: 800,
+                            change: function (value) {
+                                that.maxLogCount = value;
+                                document.getElementById("tl-rtc-file-log-size-txt").innerText = value + "条";
+                            }
+                        });
+                        logSizeSliderDivObj.setValue(that.maxLogCount - 300);
+
+                        document.getElementById("rtcCheck").addEventListener('click',function(){
+                            that.webrtcCheck();
+                        })
+
+                        document.getElementById("customWsHost").addEventListener('click', function(){
+                            that.customWsHost();
+                        })
+
+                        document.getElementById("relaySetting").addEventListener('click', function(){
+                            that.relaySetting();
+                        })
+
+                        document.getElementById("sendBugs").addEventListener('click', function(){
+                            that.sendBugs();
+                        })
+
+                        document.getElementById("aiContext").addEventListener('click', function(){
+                            that.sendOpenaiChatWithContext();
+                        })
+
+                        document.getElementById("fileSave").addEventListener('click', function(){
+                            that.savaFileToIndexedDb();
+                        })
+
+                        document.getElementById("systemLog").addEventListener('click', function(){
+                            layer.closeAll(function(){
+                                that.clickLogs();
+                            })
+                        })
+
+                        document.getElementById("closeLogs").addEventListener('click', function(){
+                            that.closeLogs();
+                        })
+
+                        document.getElementById("coffee").addEventListener('click', function(){
+                            that.coffee();
+                        })
+
+                        document.getElementById("messageDot").addEventListener('click', function(){
+                            that.messageDot();
+                        })
+
+                        document.getElementById("fixedRoom").addEventListener('click', function(){
+                            that.fixedRoom();
+                        })
+
+                        document.getElementById("localNetworkRoomShare").addEventListener('click', function(){
+                            that.localNetworkRoomShare();
+                        })
+
+                        document.getElementById("settingBasicHelp").addEventListener('click', function(){
+                            that.settingHelp();
+                        })
+
+                        document.getElementById("settingSwitchHelp").addEventListener('click', function(){
+                            that.settingHelp();
+                        })
+
+                        document.getElementById("fileTransferSettingHelp").addEventListener('click', function(){
+                            that.settingHelp();
+                        })
+                    },
+                    content: `
+                        <div class="setting-main layui-carousel" id="tl-rtc-file-setting-info">
+                            <div carousel-item>
+                                <div class="setting-main-body">
+                                    <ul class="layui-row layui-col-space10">
+                                        <div style="text-align: center; color: #463434; font-weight: 700; font-size: 12px; padding: 0 0 10px 0;"> 
+                                            tl-rtc-file ${this.version} ${this.lang.setting_basic}
+                                            <b> <i class="layui-icon layui-icon-help" id="settingBasicHelp"></i> </b>
+                                        </div>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.open_source_doc}" href="https://im.iamtsm.cn/document" target="_blank">
+                                                <svg class="icon" aria-hidden="true">
+                                                    <use xlink:href="#icon-rtc-file-shu1"></use>
+                                                </svg>
+                                                <cite>${this.lang.open_source_doc}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.blog}" href="https://blog.iamtsm.cn" target="_blank">
+                                                <svg class="icon" aria-hidden="true" id="blog">
+                                                    <use xlink:href="#icon-rtc-file-zhu"></use>
+                                                </svg>
+                                                <cite>${this.lang.blog}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.github}" href="https://github.com/iamtsm" target="_blank">
+                                                <svg class="icon" aria-hidden="true">
+                                                    <use xlink:href="#icon-rtc-file-github"></use>
+                                                </svg>
+                                                <cite>${this.lang.github}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.gitee}" href="https://gitee.com/iamtsm/tl-rtc-file" target="_blank">
+                                                <svg class="icon" aria-hidden="true">
+                                                    <use xlink:href="#icon-rtc-file-gitee"></use>
+                                                </svg>
+                                                <cite>${this.lang.gitee}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.give_coffee}">
+                                                <svg class="icon" aria-hidden="true" id="coffee">
+                                                    <use xlink:href="#icon-rtc-file-hongbao"></use>
+                                                </svg>
+                                                <cite>${this.lang.give_coffee}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4" >
+                                            <a title="${this.lang.webrtc_check}">
+                                                <svg class="icon" aria-hidden="true" id="rtcCheck">
+                                                    <use xlink:href="#icon-rtc-file-gongju"></use>
+                                                </svg>
+                                                <cite>${this.lang.webrtc_check}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.log_list}">
+                                                <svg class="icon" aria-hidden="true" id="systemLog">
+                                                    <use xlink:href="#icon-rtc-file-rizhiguanli"></use>
+                                                </svg>
+                                                <cite>${this.lang.log_list}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4" style="${this.switchData.openSendBug ? '' : 'display:none;'}">
+                                            <a title="${this.lang.feedback}">
+                                                <svg class="icon" aria-hidden="true" id="sendBugs">
+                                                    <use xlink:href="#icon-rtc-file-fankui"></use>
+                                                </svg>
+                                                <cite>${this.lang.feedback}</cite>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="setting-main-body">
+                                    <ul class="layui-row layui-col-space10">
+                                        <div style="text-align: center; color: #463434; font-weight: 700; font-size: 12px; padding: 0 0 10px 0;"> 
+                                            tl-rtc-file ${this.version} ${this.lang.switch_setting}
+                                            <b> <i class="layui-icon layui-icon-help" id="settingSwitchHelp"></i> </b>
+                                        </div>
+                                        <li class="layui-col-xs4" style="${this.switchData.openTurnServer ? '' : 'display:none;'}">
+                                            <a title="${this.lang.relay_setting}">
+                                                <svg class="icon" aria-hidden="true" id="relaySetting">
+                                                    <use xlink:href="#icon-rtc-file-yunfuwuqi"></use>
+                                                </svg>
+                                                <svg class="icon settingOpenIcon" aria-hidden="true" style="${this.useTurn ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg class="icon settingCloseIcon " aria-hidden="true" style="${!this.useTurn ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.relay_setting}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.save_file_to_indexeddb}">
+                                                <svg class="icon" aria-hidden="true" id="fileSave">
+                                                    <use xlink:href="#icon-rtc-file-ziyuan"></use>
+                                                </svg>
+                                                <svg id="fileSaveOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.useIndexedDb ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg id="fileSaveClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.useIndexedDb ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.save_file_to_indexeddb}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.custom_ws_url}">
+                                                <svg class="icon" aria-hidden="true" id="customWsHost">
+                                                    <use xlink:href="#icon-rtc-file-WSshipinjiankong"></use>
+                                                </svg>
+                                                <svg class="icon settingOpenIcon" aria-hidden="true" style="${this.useCustomWsHost ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg class="icon settingCloseIcon" aria-hidden="true" style="${!this.useCustomWsHost ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.custom_ws_url}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4" style="${this.switchData.openAiChat ? '' : 'display:none;'}">
+                                            <a title="${this.lang.ai_setting}">
+                                                <svg class="icon" aria-hidden="true" id="aiContext">
+                                                    <use xlink:href="#icon-rtc-file-AIzhineng"></use>
+                                                </svg>
+                                                <svg id="aiContextOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.openaiSendContext ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg id="aiContextClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.openaiSendContext ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.ai_setting}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.log}">
+                                                <svg class="icon" aria-hidden="true" id="closeLogs">
+                                                    <use xlink:href="#icon-rtc-file-rizhiguanli"></use>
+                                                </svg>
+                                                <svg id="closeLogsOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.isCloseLogs ? 'display:none;' : ''}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg id="closeLogsClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.isCloseLogs ? 'display:none;' : ''}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.log}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.message_dot}">
+                                                <svg class="icon" aria-hidden="true" id="messageDot">
+                                                    <use xlink:href="#icon-rtc-file-icon"></use>
+                                                </svg>
+                                                <svg id="messageDotOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.useMessageDot ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg id="messageDotClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.useMessageDot ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.message_dot}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.fixed_room}">
+                                                <svg class="icon" aria-hidden="true" id="fixedRoom">
+                                                    <use xlink:href="#icon-rtc-file-ico_xitongshezhi_fangjianguanli"></use>
+                                                </svg>
+                                                <svg id="fixedRoomOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.useFixedRoom ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg id="fixedRoomClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.useFixedRoom ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.fixed_room}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.local_network_room_share}">
+                                                <svg class="icon" aria-hidden="true" id="localNetworkRoomShare">
+                                                    <use xlink:href="#icon-rtc-file-juyuwangsousuo"></use>
+                                                </svg>
+                                                <svg id="localNetworkRoomShareOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.useLocalNetworkRoomShare ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg id="localNetworkRoomShareClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.useLocalNetworkRoomShare ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.local_network_room_share}</cite>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="setting-main-body">
+                                    <div style="text-align: center; color: #463434; font-weight: 700; font-size: 12px; padding: 15px 0 10px 0;"> 
+                                        tl-rtc-file ${this.version} ${this.lang.file_transfer_setting}
+                                        <b> <i class="layui-icon layui-icon-help" id="fileTransferSettingHelp"></i> </b>
+                                    </div>
+                                    <div class="setting-main-body-file"> 
+                                        <div class="setting-main-body-file-top"> 
+                                            <svg class="icon" aria-hidden="true">
+                                                <use xlink:href="#icon-rtc-file-jianqie"></use>
+                                            </svg>
+                                            <div style="margin-left: 5px;">${this.lang.file_fragment_size}: <b id="tl-rtc-file-chunk-size-txt"></b> </div>
+                                        </div>
+                                        <div id="tl-rtc-file-chunk-size" style="margin-top: 10px;padding: 7px;"></div>
+                                    </div>
+
+                                    <div class="setting-main-body-file"> 
+                                        <div class="setting-main-body-file-top"> 
+                                            <svg class="icon" aria-hidden="true">
+                                                <use xlink:href="#icon-rtc-file-yulan"></use>
+                                            </svg>
+                                            <div style="margin-left: 5px;">${this.lang.preview_limit_size}: <b id="tl-rtc-file-preview-size-txt"></b> </div>
+                                        </div>
+                                        <div id="tl-rtc-file-preview-size" style="margin-top: 10px;padding: 7px;"></div>
+                                    </div>
+
+                                    <div class="setting-main-body-file"> 
+                                        <div class="setting-main-body-file-top"> 
+                                            <svg class="icon" aria-hidden="true">
+                                                <use xlink:href="#icon-rtc-file-rizhiguanli"></use>
+                                            </svg>
+                                            <div style="margin-left: 5px;">${this.lang.output_log_limit}: <b id="tl-rtc-file-log-size-txt"></b> </div>
+                                        </div>
+                                        <div id="tl-rtc-file-log-size" style="margin-top: 10px;padding: 7px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `
+                }
+                layer.closeAll(function () {
+                    layer.open(options)
+                })
+                this.addUserLogs(this.lang.open_setting)
+            },
+            // 设置文档
+            settingHelp : function(){
+                layer.open({
+                    type: 2
+                    , title: false
+                    , closeBtn: false
+                    , area: ['80%','80%']
+                    , shade: 0.5
+                    , shadeClose : true
+                    , id: 'layui-info-msg'
+                    , content: 'document/SETTING.html'
+                });
+            },
+            // 自动加入固定房间号
+            autoJoinFixedRoom: function () {
+                if(!this.useFixedRoom){
+                    return
+                }
+
+                this.roomId = this.useFixedRoom;
+                this.createFileRoom();
+                this.createFileRoom();
+                
+                layer.msg(this.lang.auto_join_fixed_room + ": " + this.useFixedRoom)
+            },
+
+            // 是否关闭日志输出
+            closeLogs: function(){
+                this.isCloseLogs = !this.isCloseLogs;
+
+                if (this.isCloseLogs) {
+                    layer.msg(`${this.lang.logs_switch}${this.lang.on}`)
+                    $("#closeLogsOpen").css("display", "inline");
+                    $("#closeLogsClose").css("display", "none");
+                } else {
+                    layer.msg(`${this.lang.logs_switch}${this.lang.off}`)
+                    $("#closeLogsOpen").css("display", "none");
+                    $("#closeLogsClose").css("display", "inline");
+                }
+
+                $("#closeLogs").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#closeLogs").addClass("layui-anim-rotate")
+                }, 50)
+            },
+            // ai对话上下文开关
+            sendOpenaiChatWithContext : function(){
+                this.openaiSendContext = !this.openaiSendContext;
+
+                if(this.openaiSendContext){
+                    $("#aiContextOpen").css("display", "inline");
+                    $("#aiContextClose").css("display", "none");
+                }else{
+                    $("#aiContextOpen").css("display", "none");
+                    $("#aiContextClose").css("display", "inline");
+                }
+
+                layer.msg(`${this.lang.ai_switch}${this.openaiSendContext ? this.lang.on : this.lang.off}`)
+
+                this.addUserLogs(`${this.lang.ai_switch}${this.openaiSendContext ? this.lang.on : this.lang.off}`)
+
+                $("#aiContext").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#aiContext").addClass("layui-anim-rotate")
+                }, 50)
+            },
+            // 是否关闭消息红点提示
+            messageDot : function(){
+                if (this.useMessageDot) {
+                    window.localStorage.setItem("tl-rtc-file-use-message-dot", false)
+                    layer.msg(`${this.lang.messgae_dot_switch}${this.lang.off}`)
+                    $("#messageDotOpen").css("display", "none");
+                    $("#messageDotClose").css("display", "inline");
+                } else {
+                    window.localStorage.setItem("tl-rtc-file-use-message-dot", true)
+                    layer.msg(`${this.lang.messgae_dot_switch}${this.lang.on}`)
+                    $("#messageDotOpen").css("display", "inline");
+                    $("#messageDotClose").css("display", "none");
+                }
+
+                this.useMessageDot = !this.useMessageDot;
+
+                $("#messageDot").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#messageDot").addClass("layui-anim-rotate")
+                }, 50)
+            },
+            // 是否开启局域网房间分享
+            localNetworkRoomShare : function(){
+                if(this.useLocalNetworkRoomShare){
+                    window.localStorage.setItem("tl-rtc-file-use-local-network-room-share", false)
+                    layer.msg(`${this.lang.local_network_room_share}${this.lang.off}`)
+                    $("#localNetworkRoomShareOpen").css("display", "none");
+                    $("#localNetworkRoomShareClose").css("display", "inline");
+                }else{
+                    window.localStorage.setItem("tl-rtc-file-use-local-network-room-share", true)
+                    layer.msg(`${this.lang.local_network_room_share}${this.lang.on}`)
+                    $("#localNetworkRoomShareOpen").css("display", "inline");
+                    $("#localNetworkRoomShareClose").css("display", "none");
+                }
+
+                this.useLocalNetworkRoomShare = !this.useLocalNetworkRoomShare;
+
+                $("#localNetworkRoomShare").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#localNetworkRoomShare").addClass("layui-anim-rotate")
+                }, 50)
+            },
+            // 是否使用自自定义持久化房间号
+            fixedRoom : function(){
+                let that = this;
+                if(this.useFixedRoom){
+                    window.localStorage.removeItem("tl-rtc-file-use-fixed-room")
+                    layer.msg(`${this.lang.fixed_room}${this.lang.off}`)
+                    
+                    $("#fixedRoomOpen").css("display", "none");
+                    $("#fixedRoomClose").css("display", "inline");
+
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 500);
+                }else{
+                    layer.prompt({
+                        formType: 0,
+                        value: '',
+                        title: that.lang.fixed_room,
+                    }, function (value, index, elem) {
+                        if (!that.switchData.allowChinese && window.tlrtcfile.containChinese(value)) {
+                            layer.msg(that.lang.room_num_no_zh)
+                            return
+                        }
+                        if (!that.switchData.allowNumber && window.tlrtcfile.containNumber(value)) {
+                            layer.msg(that.lang.room_num_no_number)
+                            return
+                        }
+                        if (!that.switchData.allowSymbol && window.tlrtcfile.containSymbol(value)) {
+                            layer.msg(that.lang.room_num_no_special_symbols)
+                            return
+                        }
+
+                        console.log(that.switchData, value, window.tlrtcfile.containSymbol(value))
+                        
+                        layer.close(index);
+
+                        window.localStorage.setItem("tl-rtc-file-use-fixed-room", value)
+                        layer.msg(`${that.lang.fixed_room}${that.lang.on}`)
+
+                        $("#fixedRoomOpen").css("display", "inline");
+                        $("#fixedRoomClose").css("display", "none");
+
+                        setTimeout(() => {
+                            window.location.reload()
+                        }, 500);
+                    });
+                }
+
+                $("#fixedRoom").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#fixedRoom").addClass("layui-anim-rotate")
+                }, 50)
+            },
+            // 开启文件持久化到indexedDb中
+            savaFileToIndexedDb: function(){
+                if(!this.canSaveToIndexedDb){
+                    layer.msg(this.lang.not_support)
+                    return
+                }
+
+                if (this.useIndexedDb) {
+                    window.localStorage.setItem("tl-rtc-file-receive-file-use-indexed-db", false)
+                    layer.msg(`${this.lang.save_file_to_indexeddb}${this.lang.off}`)
+                    $("#fileSaveOpen").css("display", "none");
+                    $("#fileSaveClose").css("display", "inline");
+                } else {
+                    window.localStorage.setItem("tl-rtc-file-receive-file-use-indexed-db", true)
+                    layer.msg(`${this.lang.save_file_to_indexeddb}${this.lang.on}`)
+                    $("#fileSaveOpen").css("display", "inline");
+                    $("#fileSaveClose").css("display", "none");
+                }
+
+                this.useIndexedDb = !this.useIndexedDb;
+
+                $("#fileSave").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#fileSave").addClass("layui-anim-rotate")
+                }, 50)
+            },
+            // 自定义ws地址
+            customWsHost: function () {
+                let that = this;
+                if(window.localStorage.getItem("tl-rtc-file-custom-ws-host")){
+                    window.localStorage.removeItem("tl-rtc-file-custom-ws-host")
+                    layer.msg(that.lang.close_custom_ws_url)
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 500);
+                }else{
+                    layer.prompt({
+                        formType: 0,
+                        value: 'wss://',
+                        title: that.lang.input_custom_ws_url,
+                    }, function (value, index, elem) {
+                        if(!/^wss?:\/\/[^\s/$.?#].[^\s]*$/.test(value)){
+                            layer.msg(that.lang.ws_url_error)
+                            return
+                        }
+                        
+                        layer.close(index);
+
+                        window.localStorage.setItem("tl-rtc-file-custom-ws-host", value)
+                        layer.msg(that.lang.open_custom_ws_url)
+                        setTimeout(() => {
+                            window.location.reload()
+                        }, 500);
+                    });
+                }
+                $("#customWsHost").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#customWsHost").addClass("layui-anim-rotate")
+                }, 50)
+            },
+            // 打开中继设置面板
+            relaySetting: function () {
+                if (this.useTurn) {
+                    window.localStorage.setItem("tl-rtc-file-use-relay", false)
+                    layer.msg(`${this.lang.relay_server_current}${this.lang.off}`)
+                    $("#relaySettingOpen").css("display", "none");
+                    $("#relaySettingClose").css("display", "inline");
+                } else {
+                    window.localStorage.setItem("tl-rtc-file-use-relay", true)
+                    layer.msg(`${this.lang.relay_server_current}${this.lang.on}`)
+                    $("#relaySettingOpen").css("display", "none");
+                    $("#relaySettingClose").css("display", "inline");
+                }
+
+                $("#relaySetting").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#relaySetting").addClass("layui-anim-rotate")
+                }, 50)
+
+                setTimeout(() => {
+                    window.location.reload()
+                }, 300);
+            },
+            // 中继信息提示
+            useTurnMsg: function () {
+                layer.msg(this.lang.relay_on)
+                this.addUserLogs(this.lang.relay_on)
+            },
+            // 当前网络状态
+            networkMsg: function () {
+                layer.msg(this.lang.current_network + (this.network !== 'wifi' ? this.lang.mobile_data : this.network))
+                this.addUserLogs(this.lang.current_network + (this.network !== 'wifi' ? this.lang.mobile_data : this.network))
+            },
+            // 添加弹窗
+            addPopup: function (msg) {
+                this.popUpList.push({
+                    title : msg.title,
+                    message : msg.msg
+                })
+            },
+            // 记录系统日志
+            addSysLogs: function (msg) {
+                this.addLogs(msg, "【"+this.lang.sys_log+"】: ")
+            },
+            // 记录用户操作日志
+            addUserLogs: function (msg) {
+                this.addLogs(msg, "【"+this.lang.op_log+"】: ")
+            },
+            // 记录日志
+            addLogs: function (msg, type) {
+                if(this.isCloseLogs){
+                    return
+                }
+                if (this.logs.length > this.maxLogCount) {
+                    this.logs.shift();
+                }
+                this.logs.unshift({
+                    type: type,
+                    msg: msg,
+                    time: new Date().toLocaleString()
+                })
+            },
+            // 清空日志
+            cleanLogs: function () {
+                this.logs = []
+                this.addSysLogs(this.lang.clear_log)
+            },
+            // 发送建议反馈
+            sendBugs: function () {
+                let that = this;
+                $("#sendBugs").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#sendBugs").addClass("layui-anim-rotate")
+                }, 50)
+                
+                that.roomId = "tlrtcfile问题反馈";
+                that.roomType = "system";
+                that.createFileRoom();
+                that.createFileRoom();
+
+                setTimeout(() => {
+                    layer.closeAll(async function(){
+                        that.openChatingRoom();
+                        let index = layer.load(2);
+                        await that.loadSystemRoomMsg();
+                        layer.close(index);
+                    });
+                    that.addUserLogs(that.lang.send_bug_info_ok);
+                }, 500);
+            },
+            // 随机刷新房间号
+            refleshRoom: function () {
+                if (!this.isJoined) {
+                    this.roomId = parseInt(Math.random() * 100000);
+                    this.addPopup({
+                        title : this.lang.refresh_room,
+                        msg : this.lang.you_refresh_room + this.roomId
+                    });
+                    this.addUserLogs(this.lang.you_refresh_room + this.roomId);
+                }
+            },
+            // 复制分享房间url
+            shareUrl: function () {
+                let that = this;
+                layer.closeAll(function () {
+                    layer.open({
+                        type: 1,
+                        closeBtn: 0,
+                        fixed: true,
+                        maxmin: false,
+                        shadeClose: true,
+                        area: ['350px', '380px'],
+                        title: that.lang.share_join_room,
+                        success: function (layero, index) {
+                            let shareArgs = {
+                                r : that.roomId,
+                                t : that.roomType
+                            };
+                            if(that.roomType === 'live'){
+                                shareArgs.lsm = that.liveShareMode;
+                                shareArgs.lsr = 'viewer';
+                            }
+                            let content = window.tlrtcfile.addUrlHashParams(shareArgs);
+                            document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                            document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                            document.querySelector(".layui-layer").style.borderRadius = "8px";
+                            if(window.tlrtcfile.getQrCode){
+                                tlrtcfile.getQrCode("tl-rtc-file-room-share-image", content)
+                            }
+
+                            document.querySelector("#shareUrl").setAttribute("data-clipboard-text", content);
+                            let clipboard = new ClipboardJS('#shareUrl');
+                            clipboard.on('success', function (e) {
+                                e.clearSelection();
+                                setTimeout(() => {
+                                    layer.msg(that.lang.copy_room_link)
+                                }, 500);
+                            });
+                            that.addUserLogs(that.lang.copy_room_link);
+                        },
+                        content: `
+                            <div style="margin-top: 20px; text-align: center; margin-bottom: 25px;">
+                                <div id="tl-rtc-file-room-share"> ${that.lang.share_join_room_done} 
+                                    <i class="layui-icon layui-icon-ok-circle" style="margin-top: 3px; position: absolute; margin-left: 10px; color: #96e596; font-weight: 300;"></i>
+                                </div>
+                            </div>
+                            <div id="tl-rtc-file-room-share-image">
+                        `
+                    })
+                })
+                this.addUserLogs(this.lang.open_share_join_room)
+            },
+            // 获取分享的取件码文件
+            handlerGetCodeFile: function () {
+                let that = this;
+                let hash = window.location.hash || "";
+                if (hash && hash.includes("#")) {
+                    let codeIdArgs = hash.split("c=");
+                    if (codeIdArgs && codeIdArgs.length > 1) {
+                        this.codeId = (codeIdArgs[1] + "").replace(/\s*/g, "").substring(0, 40);
+                        layer.confirm(this.lang.is_pickup_code, (index) => {
+                            window.location.hash = "";
+                            layer.close(index)
+                            that.getCodeFile();
+                        }, (index) => {
+                            that.codeId = "";
+                            window.location.hash = "";
+                            layer.close(index)
+                        })
+                        this.addPopup({
+                            title : this.lang.share_pickup_code_file,
+                            msg : this.lang.get_pickup_file + this.codeId
+                        });
+                        this.addUserLogs(this.lang.get_pickup_file + this.codeId);
+                    }
+                }
+            },
+            // 分享进入房间
+            handlerJoinShareRoom: function () {
+                let that = this;
+
+                //如果已经使用固定房间号，跳过分享进入逻辑
+                if(this.useFixedRoom){
+                    return
+                }
+
+                let hash = window.location.hash || "";
+                if (!hash || !hash.includes("#") || !hash.includes("r=")) {
+                    return
+                }
+
+                if (!window.layer) {
+                    return
+                }
+
+                //房间号
+                let roomIdArgs = tlrtcfile.getRequestHashArgs("r");
+                if (!roomIdArgs) {
+                    return
+                }
+                this.roomId = (roomIdArgs + "").replace(/\s*/g, "").substring(0, 15);
+
+                //房间类型
+                let typeArgs = tlrtcfile.getRequestHashArgs("t");
+
+                layer.confirm(this.lang.join_room + this.roomId, (index) => {
+                    window.location.hash = "";
+                    layer.close(index)
+                    that.openRoomInput = true;
+                    that.isShareJoin = true;
+                    if(typeArgs && ['screen','live','video','audio'].includes(typeArgs)){
+                        if(typeArgs === 'screen'){
+                            that.startScreenShare();
+                        }else if(typeArgs === 'live'){
+                            //直播房间模式
+                            let lsm = tlrtcfile.getRequestHashArgs("lsm");
+                            if(['video', 'live', ''].includes(lsm)){
+                                that.liveShareMode = lsm;
+                            }
+                            //直播房间身份
+                            let lsr = tlrtcfile.getRequestHashArgs("lsr");
+                            if(['owner', 'viewer'].includes(lsr)){
+                                that.liveShareRole = lsr;
+                            }
+                            that.startLiveShare();
+                        }else if(typeArgs === 'video'){
+                            that.startVideoShare();
+                        }else if(typeArgs === 'audio'){
+                            that.startAudioShare();
+                        }
+                    }else{
+                        that.createFileRoom();
+                    }
+                }, (index) => {
+                    that.roomId = "";
+                    window.location.hash = "";
+                    layer.close(index)
+                })
+                this.addPopup({
+                    title : this.lang.share_join_room,
+                    msg : this.lang.you_join_room + this.roomId
+                });
+                this.addUserLogs(this.lang.you_join_room + this.roomId);
+            },
+            // 赞助面板
+            coffee: function () {
+                let options = {
+                    type: 1,
+                    fixed: false,
+                    maxmin: false,
+                    shadeClose: true,
+                    area: ['300px', '350px'],
+                    title: this.lang.donate,
+                    success: function (layero, index) {
+                        document.querySelector(".layui-layer-title").style.borderTopRightRadius = "8px";
+                        document.querySelector(".layui-layer-title").style.borderTopLeftRadius = "8px";
+                        document.querySelector(".layui-layer").style.borderRadius = "8px";
+                    },
+                    content: `<img style=" width: 100%; height: 100%;border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;" src="/image/coffee.jpeg" alt="img"> `
+                }
+                layer.closeAll(function () {
+                    layer.open(options)
+                })
+                this.addUserLogs(this.lang.open_donate)
+            },
+            //点击局域网房间列表
+            clickLocalNetRooms : function(hidden){
+                if(this.localNetRoomList.length === 0 && !hidden){
+                    layer.msg(this.lang.no_local_network_room)
+                    return
+                }
+
+                this.showLocalNetRoom = !this.showLocalNetRoom;
+                if (this.showLocalNetRoom) {
+                    this.addUserLogs(this.lang.expand_local_network_room);
+                    this.localNetRoomMaskHeightNum = 20;
+                } else {
+                    this.localNetRoomMaskHeightNum = 150;
+                    this.addUserLogs(this.lang.collapse_local_network_room);
+                }
+            },
+            //点击下载文件面板
+            clickReceiveFile: function (hidden) {
+                if(this.receiveFileRecoderList.length === 0 && !hidden){
+                    layer.msg(this.lang.no_received_file)
+                    return
+                }
+                this.showReceiveFile = !this.showReceiveFile;
+                if (this.showReceiveFile) {
+                    this.addUserLogs(this.lang.expand_receive_file);
+                    this.receiveFileMaskHeightNum = 20;
+                } else {
+                    this.receiveFileMaskHeightNum = 150;
+                    this.addUserLogs(this.lang.collapse_receive_file);
+                }
+            },
+            //点击已选文件面板
+            clickChooseFile: function () {
+                if(!this.hasManInRoom && !this.showChooseFile){
+                    layer.msg(this.lang.room_least_two_can_send_content)
+                    return
+                }
+                this.showChooseFile = !this.showChooseFile;
+                if (this.showChooseFile) {
+                    this.chooseFileMaskHeightNum = 20;
+                    this.addUserLogs(this.lang.expand_selected_file);
+                } else {
+                    this.chooseFileMaskHeightNum = 150;
+                    this.addUserLogs(this.lang.collapse_selected_file);
+                }
+            },
+            //点击待发送文件面板
+            clickSendFile: function () {
+                if(!this.hasManInRoom && !this.showSendFile){
+                    layer.msg(this.lang.room_least_two_can_send_content)
+                    return
+                }
+                this.showSendFile = !this.showSendFile;
+                if (this.showSendFile) {
+                    this.sendFileMaskHeightNum = 20;
+                    this.addUserLogs(this.lang.expand_wait_send_file);
+                } else {
+                    this.sendFileMaskHeightNum = 150;
+                    this.addUserLogs(this.lang.collapse_wait_send_file);
+                }
+            },
+            //点击发送文件历史记录面板
+            clickSendFileHistory: function () {
+                if(this.sendFileRecoderHistoryList.length === 0){
+                    layer.msg(this.lang.no_send_file)
+                    return
+                }
+                this.showSendFileHistory = !this.showSendFileHistory;
+                if (this.showSendFileHistory) {
+                    this.sendFileHistoryMaskHeightNum = 20;
+                    this.addUserLogs(this.lang.expand_send_file_record);
+                } else {
+                    this.sendFileHistoryMaskHeightNum = 150;
+                    this.addUserLogs(this.lang.collapse_send_file_record);
+                }
+            },
+            //点击查看日志面板
+            clickLogs: function (e) {
+                this.showLogs = !this.showLogs;
+                this.touchResize();
+                if (this.showLogs) {
+                    this.addUserLogs(this.lang.expand_log);
+                    this.logMaskHeightNum = 0;
+                } else {
+                    this.addUserLogs(this.lang.collapse_log);
+                    this.logMaskHeightNum = -150;
+                }
+            },
+            //点击打开音视频面板
+            clickMediaVideo: function () {
+                this.showMedia = !this.showMedia;
+                this.touchResize();
+                if (this.showMedia) {
+                    this.addUserLogs(this.lang.expand_video);
+                    this.mediaVideoMaskHeightNum = 0;
+                    if(this.clientWidth < 500){
+                        document.getElementById("iamtsm").style.marginLeft = '0';
+                    }else{
+                        document.getElementById("iamtsm").style.marginLeft = "50%";
+                    }
+                } else {
+                    this.addUserLogs(this.lang.collapse_video);
+                    this.mediaVideoMaskHeightNum = -150;
+                    document.getElementById("iamtsm").style.marginLeft = "0";
+                }
+            },
+            //点击打开屏幕共享面板
+            clickMediaScreen: function () {
+                this.showMedia = !this.showMedia;
+                this.touchResize();
+                if (this.showMedia) {
+                    this.addUserLogs(this.lang.expand_screen_sharing);
+                    this.mediaScreenMaskHeightNum = 0;
+                    if(this.clientWidth < 500){
+                        document.getElementById("iamtsm").style.marginLeft = "0";
+                    }else{
+                        document.getElementById("iamtsm").style.marginLeft = "50%";
+                    }
+                } else {
+                    this.addUserLogs(this.lang.collapse_screen_sharing);
+                    this.mediaScreenMaskHeightNum = -150;
+                    document.getElementById("iamtsm").style.marginLeft = "0";
+                }
+            },
+            //点击打开直播面板
+            clickMediaLive: function () {
+                this.showMedia = !this.showMedia;
+                this.touchResize();
+                if (this.showMedia) {
+                    this.addUserLogs(this.lang.expand_live);
+                    if(this.clientWidth < 500){
+                        document.getElementById("iamtsm").style.marginLeft = "0";
+                    }else{
+                        document.getElementById("iamtsm").style.marginLeft = "50%";
+                    }
+                    this.mediaLiveMaskHeightNum = 0;
+                } else {
+                    this.addUserLogs(this.lang.collapse_live);
+                    this.mediaLiveMaskHeightNum = -150;
+                    document.getElementById("iamtsm").style.marginLeft = "0";
+                }
+            },
+            clickMediaAudio : function(){
+                this.showMedia = !this.showMedia;
+                this.touchResize();
+                if (this.showMedia) {
+                    this.addUserLogs(this.lang.expand_audio);
+                    if(this.clientWidth < 500){
+                        document.getElementById("iamtsm").style.marginLeft = "0";
+                    }else{
+                        document.getElementById("iamtsm").style.marginLeft = "50%";
+                    }
+                    this.mediaAudioMaskHeightNum = 0;
+                } else {
+                    this.addUserLogs(this.lang.collapse_audio);
+                    this.mediaAudioMaskHeightNum = -150;
+                    document.getElementById("iamtsm").style.marginLeft = "0";
+                }
+            },
+            typeInArr: function(arr, type, name = ""){
+                if(type === ''){
+                    let fileTail = name.split(".").pop()
+                    return arr.filter(item=>{
+                        return fileTail.toLowerCase().includes(item) && name.endsWith("."+fileTail);
+                    }).length > 0;
+                }else{
+                    return arr.filter(item=>{
+                        return type.toLowerCase().includes(item);
+                    }).length > 0;
+                }
+            },
+            //文件大小
+            getFileSizeStr: function (size) {
+                let sizeStr = (size / 1048576).toString();
+                let head = sizeStr.split(".")[0];
+                let tail = "";
+                if (sizeStr.split(".")[1]) {
+                    tail = sizeStr.split(".")[1].substring(0, 3);
+                }
+                if(head === '0') {
+                    return "0M";
+                }
+                return head + '.' + tail + "M";
+            },
+            // indexedDb缓存keys
+            getIndexedDbFileBufferKeyList : function(recoder){
+                let keyList = [];
+                for(let i = 0; i < recoder.fragment; i += 1000){
+                    keyList.push(recoder.indexedDbBufferKey + i);
+                }
+                if(recoder.fragment % 1000 > 0){
+                    keyList.push(recoder.indexedDbBufferKey + recoder.fragment);
+                }
+                return keyList;
+            },
+            // 预览indexedDb中的文件
+            previewIndexedDbFile : async function(recoder){
+                let that = this;
+                const keyList = this.getIndexedDbFileBufferKeyList(recoder);
+                const allBuffer = new Array();
+                for(let i = 0; i < keyList.length; i++){
+                    //从磁盘加载完，自动下载
+                    await new Promise((resolve, reject) => {
+                        localforage.getItem(keyList[i]).then(function(value) {
+                            if(!value){
+                                layer.msg(that.lang.indexedDB_file_alreay_delete)
+                                setTimeout(() => {
+                                    that.deleteIndexedDbFile(recoder);
+                                }, 300);
+                                reject(null)
+                            }else{
+                                value.forEach(item=>{
+                                    allBuffer.push(item);
+                                })
+                                resolve(0)
+                            }
+                        }).catch(function(err) {
+                            console.log("previewIndexedDbFile err ",err);
+                            reject(err);
+                        });
+                    })
+                }
+                await this.previewFile(new File(allBuffer, recoder.name, { type: recoder.type }));
+            },
+            // 从indexedDb下载文件
+            downloadIndexedDbFile : async function(recoder){
+                let that = this;
+
+                if(!this.canSaveToIndexedDb){
+                    return
+                }
+
+                const keyList = this.getIndexedDbFileBufferKeyList(recoder);
+                const allBuffer = new Array();
+                for(let i = 0; i < keyList.length; i++){
+                    //从磁盘加载完，自动下载
+                    await new Promise((resolve, reject) => {
+                        localforage.getItem(keyList[i]).then(function(value) {
+                            if(!value){
+                                layer.msg(that.lang.indexedDB_file_alreay_delete)
+                                setTimeout(() => {
+                                    that.deleteIndexedDbFile(recoder);
+                                }, 300);
+                                reject(null)
+                            }else{
+                                value.forEach(item=>{
+                                    allBuffer.push(item);
+                                })
+                            }
+                            resolve(0)
+                        }).catch(function(err) {
+                            console.log("downloadIndexedDbFileInfo err ",err);
+                            reject(null);
+                        });
+                    })
+                }
+
+                const downloadLink = document.createElement('a');
+                downloadLink.download = recoder.name;
+                downloadLink.href = URL.createObjectURL(new Blob(allBuffer), { type: recoder.type });
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            },
+            // 清除indexedDb中的文件
+            clearIndexedDbFile: function(){
+                let that = this;
+
+                this.receiveFileRecoderList = [];
+
+                localforage.clear().then(function() {
+                    layer.msg(that.lang.clear_indexeddb_file_done)
+                });
+            },
+            //删除indexedDb中的文件
+            deleteIndexedDbFile : function(recoder){
+                let that = this;
+                if(!this.canSaveToIndexedDb){
+                    return
+                }
+
+                const keyList = this.getIndexedDbFileBufferKeyList(recoder);
+
+                this.receiveFileRecoderList = this.receiveFileRecoderList.filter(item => {
+                    return item.index !== recoder.index;
+                })
+
+                // 删除文件信息
+                localforage.removeItem(recoder.indexedDbInfoKey).then(function() {
+                    layer.msg(that.lang.delete_indexeddb_file_done)
+                }).catch(function(err) {
+                    console.log("deleteIndexedDbFile info err ",err);
+                });
+
+                // 删除文件数据
+                keyList.forEach( key =>{
+                    localforage.removeItem( key ).then(function() {
+                    }).catch(function(err) {
+                        console.log("deleteIndexedDbFile data err ",err);
+                    });
+                });
+
+                // 删除的文件如果是最后一个文件，关闭下接收文件弹窗
+                if(this.receiveFileRecoderList === 0){
+                    this.clickReceiveFile(true)
+                }
+            },
+            //分片文件数据存入indexedDb
+            saveSliceFileBufferToIndexedDb : function(recoder, fragment, buffer){
+                localforage.setItem(recoder.indexedDbBufferKey + fragment, buffer);
+            },
+            //文件信息存入indexedDb
+            saveSliceFileInfoToIndexedDb : function(recoder){
+                localforage.setItem(recoder.indexedDbInfoKey, recoder);
+            },
+            //加载indexedDb中的历史文件信息，不包括文件buffer
+            loadIndexedDbFileInfo : function(){
+                let that = this;
+                if(!this.canSaveToIndexedDb){
+                    return
+                }
+
+                localforage.iterate(function(value, key, iterationNumber) {
+                    if(key.toString().endsWith("_info")){
+                        that.receiveFileRecoderList.push(value)
+                        that.loadIndexedFileAllSize += value.size;
+                    }
+                }).then(function() {
+                    that.addUserLogs(that.lang.load_indexeddb_file_done);
+                }).catch(function(err) {
+                    console.log("loadIndexedDbFileInfo err ",err);
+                });
+            },
             // 检测浏览器是支持webrtc
             webrtcCheck: function () {
                 let that = this;
@@ -4226,6 +5290,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                 this.sendFileRecoderHeight = document.querySelector("#send-file-list").clientHeight - 190;
                 this.chooseFileHeight = document.querySelector("#send-file-list-choose").clientHeight - 40;
                 this.sendFileRecoderHistoryHeight = document.querySelector("#send-file-list-history").clientHeight - 40;
+                this.localNetRoomListHeight = document.querySelector("#local-net-room-list").clientHeight - 40;
                 this.receiveFileHeight = document.querySelector("#receive-file-list").clientHeight - 40;
                 this.codeFileHeight = document.querySelector("#code-file-list").clientHeight - 40;
 
@@ -4328,27 +5393,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     }
                     this.isAudioShare = res
                 })
-                window.Bus.$on("sendChatingComm", (res) => {
-                    this.sendChatingComm()
-                })
-                window.Bus.$on("sendChatingRoom", (res) => {
-                    this.sendChatingRoom()
-                })
-                window.Bus.$on("sendChatingRoomSingle", (res) => {
-                    this.sendChatingRoomSingle()
-                })
-                window.Bus.$on("sendOpenaiChat", (res) => {
-                    this.sendOpenaiChat()
-                })
-                window.Bus.$on("sendOpenaiChatWithContext", () => {
-                    this.openaiSendContext = !this.openaiSendContext;
-                    layer.msg(`${this.lang.ai_switch}${this.openaiSendContext ? this.lang.on : this.lang.off}`)
-                    this.addUserLogs(`${this.lang.ai_switch}${this.openaiSendContext ? this.lang.on : this.lang.off}`)
-                    $("#aiContext").removeClass("layui-anim-rotate")
-                    setTimeout(() => {
-                        $("#aiContext").addClass("layui-anim-rotate")
-                    }, 50)
-                })
                 window.Bus.$on("manageChange", (data) => {
                     this.socket.emit('manageChange', {
                         id: data.id,
@@ -4364,18 +5408,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                         token: this.token,
                         content: data.time,
                     });
-                })
-                window.Bus.$on("webrtcCheck", (res) => {
-                    this.webrtcCheck()
-                })
-                window.Bus.$on("sendBugs", (res) => {
-                    this.sendBugs()
-                })
-                window.Bus.$on("relaySetting", (res) => {
-                    this.relaySetting()
-                })
-                window.Bus.$on("customWsHost", (res) => {
-                    this.customWsHost()
                 })
                 window.Bus.$on("addSysLogs", (res) => {
                     this.addSysLogs(res)
@@ -4485,7 +5517,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     observer: true,
                     scrollbar: {
                         el : '.swiper-scrollbar',
-                        hide: true,
+                        // hide: true,
                     }
                 })
                 window.toolSwiper = toolSwiper;
@@ -4500,7 +5532,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             this.addSysLogs(this.lang.init_language_done);
 
             this.addSysLogs(this.lang.print_logo);
-            this.consoleLogo();
+            this.printLogo();
 
             this.addSysLogs(this.lang.refresh_random_room_num_init);
             this.refleshRoom()
@@ -4531,9 +5563,11 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
             }, 5000);
             this.addSysLogs(this.lang.webrtc_check_init_done);
 
+            this.addSysLogs(this.lang.heartbeat_init);
             setInterval(async () => {
                 this.socket.emit("heartbeat", {})
             }, 10000);
+            this.addSysLogs(this.lang.heartbeat_init_done);
 
             this.addSysLogs(this.lang.message_box_init);
             this.startPopUpMsg()
@@ -4562,7 +5596,19 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
                     this.audioDeviceList = a;
                     this.loudspeakerDeviceList = l;
                 });
+
+                this.addSysLogs(this.lang.indexedDB_init);
+                this.loadIndexedDbFileInfo();
+                this.addSysLogs(this.lang.indexedDB_init_done);
+
+                this.addSysLogs(this.lang.check_auto_join_fixed_room);
+                this.autoJoinFixedRoom();
+                this.addSysLogs(this.lang.check_auto_join_fixed_room_done);
             }, 2000);
+
+            this.addSysLogs(this.lang.nickname_init);
+            this.setNickName();
+            this.addSysLogs(this.lang.nickname_init_done);
 
             this.addSysLogs(this.lang.debug_init);
             this.loadVConsoleJs();
@@ -4577,45 +5623,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then((initData) => {
     }
     window.manageChange = function (data) {
         window.Bus.$emit("manageChange", data)
-    }
-    window.sendChatingComm = function () {
-        window.Bus.$emit("sendChatingComm", {})
-    }
-    window.sendChatingRoom = function () {
-        window.Bus.$emit("sendChatingRoom", {})
-    }
-    window.sendChatingRoomSingle = function () {
-        window.Bus.$emit("sendChatingRoomSingle", {})
-    }
-    window.sendOpenaiChat = function () {
-        window.Bus.$emit("sendOpenaiChat", {})
-    }
-    window.webrtcCheck = function () {
-        window.Bus.$emit("webrtcCheck", {})
-    }
-    window.sendBugs = function () {
-        window.Bus.$emit("sendBugs", {})
-    }
-    window.sendOpenaiChatWithContext = function () {
-        window.Bus.$emit("sendOpenaiChatWithContext", {})
-    }
-    window.relaySetting = function () {
-        window.layer.closeAll(() => {
-            window.Bus.$emit("relaySetting", {})
-        });
-    }
-    window.useTurn = function () {
-        if ((window.localStorage.getItem("tl-rtc-file-use-relay") || "") === 'true') {
-            window.localStorage.setItem("tl-rtc-file-use-relay", false)
-        } else {
-            window.localStorage.setItem("tl-rtc-file-use-relay", true)
-        }
-        window.location.reload()
-    }
-    window.customWsHost = function () {
-        window.layer.closeAll(() => {
-            window.Bus.$emit("customWsHost", {})
-        });
     }
 })
 

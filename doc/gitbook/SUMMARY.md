@@ -66,4 +66,7 @@
 
         * [屏幕录制](dev/svr/RECODE.md)
 
+* [tl-rtc-file-设置选项说明](SETTING.md)
+
 * [tl-rtc-file-常见问题列表](FAQ.md)
+

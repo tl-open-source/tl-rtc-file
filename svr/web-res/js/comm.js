@@ -10,7 +10,7 @@ window.tlrtcfile = {
         let oldObj = this.getRequestHashArgsObj();
         obj = Object.assign(oldObj, obj);
         for (let key in obj) {
-            redirect += key + "=" + obj[key] + "&";
+            redirect += key + "=" + encodeURIComponent(obj[key]) + "&";
         }
         return redirect;
     },
@@ -23,7 +23,7 @@ window.tlrtcfile = {
             const key = pair[0];
             const val = pair[1];
             if (key) {
-                obj[key] = val
+                obj[key] = decodeURIComponent(val)
             }
         }
         return obj;
@@ -496,6 +496,8 @@ window.tlrtcfile = {
             return "密码房间"
         }else if(type === 'audio'){
             return "语音连麦房间"
+        }else if(type === 'system'){
+            return "系统房间"
         }else{
             return "未知类型房间"
         }

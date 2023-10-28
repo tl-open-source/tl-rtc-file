@@ -1,0 +1,34 @@
+/* pages/result/result.wxss */
+page{
+  text-align: center;
+  background-color: #ffffff;
+}
+.scc{
+  margin-top: 100rpx;
+  width: 160rpx;
+  height: 160rpx;
+}
+.resuil{
+  margin-top: 30rpx;
+  font-weight: 600;
+  letter-spacing: 3rpx;
+  font-size: 36rpx;
+}
+.btn{
+  width: 280rpx;
+  letter-spacing: 3rpx;
+  height: 70rpx;
+  font-weight: 500;
+  line-height: 70rpx;
+  border: 1px solid #3bb270;
+  color: #3bb270;
+  border-radius: 10rpx;
+  position: absolute;
+  bottom: 200rpx;
+  left: 50%;
+  margin-left: -130rpx;
+}
+
+.btn :hover, .btn:active{
+  color: #189b53;
+}

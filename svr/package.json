@@ -24,12 +24,15 @@
 	"dependencies": {
 		"@grpc/grpc-js": "^1.8.0",
 		"@grpc/proto-loader": "^0.6.0",
+		"body-parser": "^1.20.2",
 		"concurrently": "^8.2.0",
+		"cookie-parser": "^1.4.6",
 		"cross-env": "^5.2.0",
 		"dotenv": "^16.3.1",
 		"express": "^4.17.1",
 		"glob": "^10.3.1",
 		"google-protobuf": "^3.0.0",
+		"lru-cache": "^10.0.1",
 		"mocha": "^10.2.0",
 		"mysql2": "^2.1.0",
 		"openai": "^3.3.0",
@@ -40,6 +43,7 @@
 		"socket.io": "^2.3.0",
 		"terser": "^5.18.2",
 		"tl-ngrpc": "^1.0.1",
+		"uuid": "^9.0.1",
 		"vite": "^4.3.9"
 	}
 }

@@ -178,7 +178,7 @@ async function getDogManageInfo(params, tables, dbClient) {
 
 
 /**
- * 获取操作统计信息
+ * 获取公共聊天室操作统计信息
  * @param {*} params 
  * @param {*} tables 
  * @param {*} dbClient 
@@ -194,17 +194,37 @@ async function getDogChatingCommInfo(params, tables, dbClient) {
         }
         const limit = params.limit || 10;
 
-        const sql = `select name, room_id, content, socket_id, created_at from dog where name = '公共聊天室' order by created_at desc limit ${limit}`;
+        const sql = `select name, room_id, content, socket_id, created_at, flag from dog where name = '公共聊天室' and flag & ${tables.DogOther.Flag.IS_SET_TOP} = 0 order by created_at desc limit ${limit}`;
         const [list,] = await dbClient.query(sql);
+
+        const topSql = `select name, room_id, content, socket_id, created_at, flag from dog where name = '公共聊天室' and flag & ${tables.DogOther.Flag.IS_SET_TOP} = ${tables.DogOther.Flag.IS_SET_TOP} order by created_at desc limit 1`;
+        const [topList,] = await dbClient.query(topSql);
 
         let resultList = []
         list.forEach(element => {
             resultList.push({
                 room: element.room_id,
                 msg: element.content,
+                admin: utils.checkBit(element.flag, tables.DogOther.Flag.IS_DEV_ADMIN),
+                top: utils.checkBit(element.flag, tables.DogOther.Flag.IS_SET_TOP),
                 socketId: element.socket_id,
                 time: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
             })
+        });
+
+        topList.forEach(element => {
+            resultList.push({
+                room: element.room_id,
+                msg: element.content,
+                admin: utils.checkBit(element.flag, tables.DogOther.Flag.IS_DEV_ADMIN),
+                top: utils.checkBit(element.flag, tables.DogOther.Flag.IS_SET_TOP),
+                socketId: element.socket_id,
+                time: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
+            })
+        });
+
+        resultList.sort((a, b) => {
+            return new Date(b.time).getTime() - new Date(a.time).getTime()
         });
 
         resultList = resultList.reverse()
@@ -217,10 +237,54 @@ async function getDogChatingCommInfo(params, tables, dbClient) {
 }
 
 
+/**
+ * 获取反馈操作统计信息
+ * @param {*} params 
+ * @param {*} tables 
+ * @param {*} dbClient 
+ * @returns 
+ */
+async function getDogSendBugInfo(params, tables, dbClient) {
+    try{
+        if(!tables || !dbClient){
+            return [];
+        }
+        if(!params){
+            params = {};
+        }
+        const limit = params.limit || 10;
+
+        const sql = `select name, room_id, content, socket_id, created_at, flag from dog where room_id = 'tlrtcfile问题反馈' and name = '发送文本内容' order by created_at desc limit ${limit}`;
+        const [list,] = await dbClient.query(sql);
+
+        let resultList = []
+        list.forEach(element => {
+            let content = JSON.parse(element.content);
+            const isDevAdmin = utils.checkBit(element.flag, tables.DogOther.Flag.IS_DEV_ADMIN);
+            resultList.push({
+                type :  isDevAdmin ? "ANSWER" : "QUESTION",
+                nickName : isDevAdmin ? 'tl开发团队' : content.nickName,
+                room: element.room_id || content.room,
+                msg: utils.unescapeStr(content.content),
+                socketId : element.socket_id,
+                time: utils.formateDateTime(new Date(element.created_at), "yyyy-MM-dd hh:mm:ss"),
+            })
+        });
+
+        resultList = resultList.reverse();
+
+        return resultList;
+    }catch(e){
+        console.error(e);
+        return [];
+    }
+}
+
 module.exports = dbOpen ? {
     addDogData,
     getDogManageInfo,
     getDogChatingCommInfo,
+    getDogSendBugInfo
 } : {
     addDogData : () => {
         return {}
@@ -231,4 +295,7 @@ module.exports = dbOpen ? {
     getDogChatingCommInfo : () => {
         return [];
     },
+    getDogSendBugInfo: () => {
+        return [];
+    }
 }

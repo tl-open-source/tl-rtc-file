@@ -6,6 +6,8 @@ const utils = require("./../../utils/utils");
 const daoFile = require("./../../dao/file/file")
 const rtcCommData = require("./../rtcCommData/commData");
 const check = require("../../bussiness/check/content");
+const daoRelation = require("../../dao/relation/relation");
+
 
 /**
  * 取件码取件
@@ -50,7 +52,7 @@ async function getCodeFile(io, socket, tables, dbClient, data){
             ip: ip
         })
     
-        await daoDog.addDogData({
+        let recoderId = await daoDog.addDogData({
             name: "取件码取件",
             roomId: data.room || "",
             socketId: socket.id,
@@ -60,6 +62,14 @@ async function getCodeFile(io, socket, tables, dbClient, data){
             handshake: JSON.stringify(handshake),
             ip: ip
         }, tables, dbClient);
+
+        //添加用户-操作关联记录
+        if(socket.userId){
+            daoRelation.addUserDogRelation({
+                dogId : recoderId,
+                userId : socket.userId,
+            }, tables, dbClient);
+        }
         
         socket.emit(rtcClientEvent.getCodeFile, data);
 

@@ -5,6 +5,9 @@ const utils = require("../../utils/utils");
 const rtcConstant = require("../rtcConstant");
 const rtcClientEvent = rtcConstant.rtcClientEvent
 const check = require("../../bussiness/check/content");
+const daoRelation = require("../../dao/relation/relation");
+
+
 /**
  * 公共聊天频道
  * @param {*} io socketio对象
@@ -17,7 +20,7 @@ const check = require("../../bussiness/check/content");
 async function chatingComm(io, socket, tables, dbClient, data){
     try {
         data.msg = check.contentFilter(data.msg);
-
+        
         let cacheSwitchData = rtcCommData.getCacheSwitchData()
         let chatingComm = rtcCommData.getChatingComm()
 
@@ -35,8 +38,20 @@ async function chatingComm(io, socket, tables, dbClient, data){
         if (chatingComm.length < 10) {
             chatingComm.push(data)
         } else {
-            chatingComm.shift()
-            chatingComm.push(data)
+            let normalList = [];
+            let adminOrTopList = [];
+            chatingComm.forEach(item => {
+                if(item.admin || item.top){
+                    adminOrTopList.push(item)
+                }else{
+                    normalList.push(item)
+                }
+            })
+            normalList.shift()
+            normalList.unshift(...adminOrTopList)
+            normalList.push(data)
+
+            chatingComm = normalList;
         }
         rtcCommData.setChatingComm(chatingComm);
 
@@ -54,6 +69,14 @@ async function chatingComm(io, socket, tables, dbClient, data){
             handshake: JSON.stringify(handshake),
             ip: ip
         }, tables, dbClient);
+
+        //添加用户-操作关联记录
+        if(socket.userId){
+            daoRelation.addUserDogRelation({
+                dogId : recoderId,
+                userId : socket.userId,
+            }, tables, dbClient);
+        }
 
         bussinessNotify.sendChatingNotify({
             title: "公共聊天室",

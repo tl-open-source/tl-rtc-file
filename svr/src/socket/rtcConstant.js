@@ -132,6 +132,8 @@ let rtcClientEvent = {
     heartbeat : "heartbeat",
     //修改昵称
     changeNickName : "changeNickName",
+    //局域网房间发现列表
+    localNetRoom : "localNetRoom",
 }
 
 /**

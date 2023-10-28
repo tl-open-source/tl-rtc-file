@@ -8,9 +8,9 @@ export default {
     plugins: [
         copy({
             targets: [
-                { src: 'res/*.html', dest: 'res/dist' },
-                { src: 'res/image/*', dest: 'res/dist/image' },
-                { src: 'static/*', dest: 'res/dist/static' },
+                { src: 'web-res/*.html', dest: 'web-res/dist' },
+                { src: 'web-res/image/*', dest: 'web-res/dist/image' },
+                { src: 'static/*', dest: 'web-res/dist/static' },
             ],
             hook: 'writeBundle',
             verbose: true
@@ -19,16 +19,16 @@ export default {
     build: {
         rollupOptions: {
             input: Object.fromEntries(
-                glob.sync('res/*(js|css)/*.*(js|css)').map(file => [
+                glob.sync('web-res/*(js|css)/*.*(js|css)').map(file => [
                     path.relative(
-                        './res',
+                        './web-res',
                         file.slice(0, file.length - path.extname(file).length)
                     ),
                     fileURLToPath(new URL(file, url))
                 ])
             ),
             output: {
-                dir: "./res/dist/",
+                dir: "./web-res/dist/",
                 entryFileNames: "[name].min.js",
                 assetFileNames: "css/[name].min[extname]"
             },

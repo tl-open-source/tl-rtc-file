@@ -17,6 +17,9 @@ function initData(req, res) {
 	//ice服务器配置
 	const iceServers = utils.genTurnServerIceServersConfig(openTurn, useSecret, "tlrtcfile");
 
+	//系统房间
+	const systemRoomList = ['tlrtcfile问题反馈'];
+
 	if(process.env.tl_rtc_file_env_mode === 'http'){
 
 		let regexIP = /^((?:(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d?\d))$/;
@@ -29,29 +32,27 @@ function initData(req, res) {
 		}
 
 		let wsHost = conf.socket.host || ip + conf.socket.port;
-
-		let data = {
+	
+		res.json({
 			version : conf.version,
 			wsHost: "ws://" + wsHost,
 			rtcConfig: { iceServers },
 			options: webrtcConf.options,
 			logo : utils.genClientLogo(),
-		};
-	
-		res.json(data)
+			systemRoomList : systemRoomList
+		})
 	}else{
 
 		let wsHost = conf.socket.host || ip;
 
-		let data = {
+		res.json({
 			version : conf.version,
 			wsHost: "wss://" + wsHost,
 			rtcConfig: { iceServers },
 			options: webrtcConf.options,
 			logo : utils.genClientLogo(),
-		};
-	
-		res.json(data)
+			systemRoomList : systemRoomList
+		})
 	}	
 }
 

@@ -6,6 +6,8 @@ const utils = require("./../../utils/utils");
 const seafile = require("./../../bussiness/oss/seafile")
 const rtcCommData = require("./../rtcCommData/commData");
 const check = require("../../bussiness/check/content");
+const daoRelation = require("../../dao/relation/relation");
+
 
 /**
  * 生成取件码上传链接
@@ -66,7 +68,7 @@ async function prepareCodeFile(io, socket, tables, dbClient, data){
             ip: ip
         })
     
-        await daoDog.addDogData({
+        let recoderId = await daoDog.addDogData({
             name: "生成取件码上传链接",
             roomId: data.room || "",
             socketId: socket.id,
@@ -76,6 +78,14 @@ async function prepareCodeFile(io, socket, tables, dbClient, data){
             handshake: JSON.stringify(handshake),
             ip: ip
         }, tables, dbClient);
+
+        //添加用户-操作关联记录
+        if(socket.userId){
+            daoRelation.addUserDogRelation({
+                dogId : recoderId,
+                userId : socket.userId,
+            }, tables, dbClient);
+        }
         
         socket.emit(rtcClientEvent.prepareCodeFile, data);
 

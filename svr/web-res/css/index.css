@@ -34,6 +34,12 @@ body {
     border-radius: 8px !important;
 }
 
+@media screen and (max-width: 1100px){
+    .layui-layer-iframe{
+        overflow-y: hidden !important;
+    }
+}
+
 .language-mode{
     border-radius: 8px;
 }
@@ -60,19 +66,27 @@ body {
     position: absolute;
     right: 10px;
     float: right;
-    top: 20%;
+    top: 22%;
     display: grid;
     transition: top 0.5s;
 }
 
 .tl-rtc-file-side-tool a {
-    margin-top: 20px;
+    cursor: pointer;
+    border-radius: 50%;
+    padding: 10px;
+    margin-top: 5px;
+    transition: background .3s, box-shadow .3s;
+}
+
+.tl-rtc-file-side-tool a:hover{
+    background: #e8ebff;
+    box-shadow: #a9bcde40 0 7px 9px;
 }
 
 .tl-rtc-file-side-tool a i {
     font-size: 23px;
     font-weight: bold;
-    margin-right: 10px;
     cursor: pointer;
     color: black;
 }
@@ -207,12 +221,31 @@ body {
 }
 
 .tl-rtc-file-receive-list-icon{
-    position: fixed;
-    padding: 0px 10px 0px 10px;
+    position: absolute;
+    padding: 0 10px;
     right: 2%;
     bottom: 2%;
     font-size: 35px;
-    color: black;
+    color: #000;
+    display: inline-flex;
+}
+
+.tl-rtc-file-local-net-room{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    white-space: nowrap;
+    margin: 20px;
+    text-align: center;
+    background: white;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.tl-rtc-file-local-net-room:hover{
+    background: #e8ebff;
+    box-shadow: #a9bcde40 0 7px 9px;
 }
 
 .tl-rtc-file-tool {
@@ -709,11 +742,12 @@ body {
 
 
 .setting-main {
-    height: 100%;
+    height: 100% !important;
     background-color: #fff;
     position: relative;
     left: 0;
     top: 0;
+    height: auto;
 }
 
 .setting-main-body {
@@ -721,6 +755,43 @@ body {
     width: 100%;
     height: 100%;
     overflow: hidden;
+}
+
+.setting-main-body .layui-icon-help{
+    margin-left: 5px;
+    font-size: 12px;
+    border-radius: 50%;
+    background: #d6cd87;
+    padding: 2px;
+    cursor: pointer;
+}
+
+.setting-main-body-intro{
+    padding: 10px 20px;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    word-break: break-all;
+}
+
+.setting-main-body-intro svg{
+    width: 24px;
+    height: 24px;
+}
+
+.setting-main-body-file{
+    padding: 15px 50px;
+}
+
+.setting-main-body-file-top{
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    word-break: break-all;
+}
+
+.setting-main-body-intro div{
+    margin-left: 10px;
 }
 
 .setting-main-body ul {
@@ -739,6 +810,26 @@ body {
 .setting-main-body ul li {
     text-align: center;
     cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.setting-main-body ul li svg {
+    width: 40px;
+    height: 45px;
+}
+
+.setting-main-body .settingOpenIcon{
+    color: #4bd839;
+}
+.setting-main-body .settingOpenIcon, .setting-main-body .settingCloseIcon{
+    width: 14px;
+    height: 14px;
+    position: absolute;
+    top: 10px;
+}
+
+.setting-main-body .settingCloseIcon{
+    color: red;
 }
 
 .setting-main-body ul li cite {
@@ -749,7 +840,7 @@ body {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .setting-main-body ul li i {
@@ -942,6 +1033,81 @@ body {
     margin-left: 20%;
 }
 
+#tl-rtc-file-wx-login-image img{
+    width: 60%;
+    margin-left: 20%;
+    margin-top: 25px;
+    filter: blur(5px);
+}
+
+.tl-rtc-file-wx-login-scan-ok{
+    text-align: center;
+    position: relative;
+    margin-top: 40px;
+    margin-bottom: 50px;
+    width: 50%;
+    margin-left: 25%;
+}
+
+#tl-rtc-file-wx-login-title{
+    scale: 0.8;
+    margin-bottom: 10px;
+}
+
+.tl-rtc-file-login-user{
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 80%;
+    margin-left: 10%;
+}
+
+.tl-rtc-file-login-user-info{
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 80%;
+    margin-left: 10%;
+}
+
+.tl-rtc-file-login-user-info-avatar{
+    width: 50%;
+    margin-left: 25%;
+    margin-bottom: 10px;
+}
+
+.tl-rtc-file-login-user-info-avatar img{
+    width: 100%;
+    border-radius: 50%;
+}
+
+#tl-rtc-file-user-help{
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.tl-rtc-file-login-user-info-name{
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 30px;
+    word-break: break-all;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+.tl-rtc-file-logout{
+    width: 60%;
+    margin-left: 10%;
+    bottom: 20px;
+    position: absolute;
+}
+
+.tl-rtc-file-logout button{
+    width: 100%;
+    margin-bottom: 10px;
+}
+
 .isMediaing{
     width: 50%;
     margin-left: 50%;
@@ -1084,7 +1250,7 @@ body {
     bottom: 0px; 
     position: absolute; 
     width: 100%; 
-    padding: 20px;
+    padding: 0px 15px 10px 15px;
 }
 
 .chating_input_body textarea{
