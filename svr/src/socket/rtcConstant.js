@@ -48,6 +48,10 @@ const rtcServerEvent = {
     heartbeat : "heartbeat",
     //修改昵称
     changeNickName : "changeNickName",
+    //订阅网站通知
+    subscribeNofity : "subscribeNofity",
+    //局域网房间发现列表
+    localNetRoom : "localNetRoom",
 }
 
 /**
@@ -84,7 +88,7 @@ let rtcServerMessageEvent = {
     //开始远程画笔
     startRemoteDraw : "startRemoteDraw",
     //结束远程画笔
-    stopRemoteDraw : "stopRemoteDraw",
+    stopRemoteDraw : "stopRemoteDraw"
 }
 
 /**
@@ -134,6 +138,8 @@ let rtcClientEvent = {
     changeNickName : "changeNickName",
     //局域网房间发现列表
     localNetRoom : "localNetRoom",
+    //订阅网站通知
+    subscribeNofity : "subscribeNofity"
 }
 
 /**

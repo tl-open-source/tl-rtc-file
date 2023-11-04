@@ -18,15 +18,18 @@ let useIndexedDb = (window.localStorage.getItem("tl-rtc-file-receive-file-use-in
 let useFixedRoom = window.localStorage.getItem("tl-rtc-file-use-fixed-room") || "";
 // 是否开启局域网房间被发现
 let useLocalNetworkRoomShare = (window.localStorage.getItem("tl-rtc-file-use-local-network-room-share") || "true") === 'true';
-// 是否关闭消息红点
+// 是否开启消息红点
 let useMessageDot = (window.localStorage.getItem("tl-rtc-file-use-message-dot") || "true") === 'true';
+// 是否开启浏览器系统消息通知
+let useWebMsgNotify = (window.localStorage.getItem("tl-rtc-file-use-web-msg-notify") || "true") === 'true';
 
 axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
     let { data : {
         code, login, 
         token : userToken, 
         avatar, 
-        username
+        username,
+        subscribeNotify
     } } = await axios.get("/api/login/state");
 
     let resData = initData.data;
@@ -88,9 +91,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 isCameraEnabled : true,  //音视频场景下自己的摄像头是否开启
                 isAudioEnabled : true, //音视频场景下自己的麦克风是否开启
                 isLoudspeakerEnabled : true, //音视频场景下自己的扬声器是否开启
-                isCloseLogs : false, //是否关闭日志, 默认开启日志
+                useLogOutput : true, //是否输出日志, 默认输出日志
                 chatCommFilterGood : false, // 是否展示公共聊天频道的精选消息
                 chatCommFilterTop : false, // 是否展示公共聊天频道的置顶消息
+                useWebMsgNotify: useWebMsgNotify, //是否开启网页消息通知
                 useMessageDot : useMessageDot, //是否关闭消息提示红点, 默认开启
                 useFixedRoom: useFixedRoom, //是否使用自定义房间号，持久化，后续自动进入房间
                 useIndexedDb : useIndexedDb, // 是否需要将文件保存到indexedDb
@@ -126,7 +130,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 nickName: "", //本人名称
                 socketId: 0, //本人的id
                 roomId: "10086", //房间号
-                roomType : "file", //房间类型 video, live, audio ,file
+                roomType : "file", //房间类型 video, live, audio ,file, password
                 liveShareMode : "video", //直播类型 video, screen
                 liveShareRole : "owner", //直播身份 owner: 主播, viwer:观众
                 codeId: "", //取件码
@@ -135,8 +139,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 remoteMap: {}, //远程连接map
                 switchData: {}, //配置开关数据
                 chatRoomSingleSocketId : "", //私聊对方的socketId
-                avatar : avatar, //用户登录头像
-                username : username, //用户登录昵称
+                avatar : avatar || "/image/44826979.png", //用户登录头像
+                username : username || " -- ", //用户登录昵称
+                subscribeNotify : subscribeNotify || false, //是否已经订阅过网站
 
                 chunkSize: 16 * 1024, // 一块16kb 最大应该可以设置到64kb
                 currentSendAllSize: 0, // 统计发送文件总大小 (流量统计)
@@ -167,7 +172,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 popUpList: [], //消息数据
                 localNetRoomList : [], //局域网房间列表
                 preMouseMove : {}, //上一次鼠标移动的事件
-                ips: [], // 记录ip列表，检测是否支持p2p
+                ips: [], // 记录ip列表
                 popUpMsgDom : [], // 消息弹窗dom
                 videoDeviceList : [], //摄像头设备列表
                 audioDeviceList : [], //麦克风设备列表
@@ -249,7 +254,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 }
             },
             roomTypeName: function(){
-                return window.tlrtcfile.getRoomTypeZh(this.roomType)
+                return this.lang[window.tlrtcfile.getRoomType(this.roomType)]
             },
             canSaveToIndexedDb: function(){
                 return localforage.supports(localforage.INDEXEDDB)
@@ -330,6 +335,38 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                                     }, 500);
                                 }
                             });
+
+                            document.querySelector("#tl-rtc-file-user-log").addEventListener('click', async () => {
+                                layer.msg(that.lang.load_history_oper_log_succ)
+                            });
+
+                            document.querySelector("#tl-rtc-file-user-subscribe").addEventListener('click', async () => {
+                                if(that.subscribeNotify){
+                                    layer.msg(that.lang.alreay_subscribe)
+                                    return
+                                }
+
+                                layer.prompt({
+                                    formType: 0,
+                                    title: that.lang.email_subscribe_website_notify,
+                                    btn : [that.lang.confirm, that.lang.cancel],
+                                    value: "",
+                                    maxlength : 100,
+                                }, function (value, index, elem) {
+                                    if(!tlrtcfile.isEmail(value)){
+                                        layer.msg(that.lang.email_format_error)
+                                        return
+                                    }
+                                    
+                                    that.socket.emit("subscribeNofity", {
+                                        room: that.roomId,
+                                        email : value
+                                    })
+
+                                    layer.close(index);
+                                    return false
+                                });
+                            });
                         },
                         content: `
                             <div class="tl-rtc-file-login-user">
@@ -338,14 +375,26 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                                         <img src="${that.avatar}" alt="头像">
                                     </div>
                                     <div class="tl-rtc-file-login-user-info-name">
-                                        微信昵称: ${that.username}
+                                        ${that.lang.wchat_nickname}: ${that.username}
                                     </div>
                                     <div class="tl-rtc-file-login-user-info-name">
-                                        个人昵称: ${that.nickName}
+                                        ${that.lang.website_nickname}: ${that.nickName}
+                                    </div>
+                                    <div style="text-align: center;"> 
+                                        <div class="tl-rtc-file-user-oper">
+                                            <svg class="icon" aria-hidden="true" id="tl-rtc-file-user-log">
+                                                <use xlink:href="#icon-rtc-file-qunfengcaozuojilu"></use>
+                                            </svg>
+                                            <svg class="icon" aria-hidden="true" id="tl-rtc-file-user-subscribe">
+                                                <use xlink:href="#icon-rtc-file-dingyue"></use>
+                                            </svg>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="tl-rtc-file-logout">
-                                    <button id="tl-rtc-file-logout-btn" type="button" class="layui-btn">退出登录</button>  
+                                <div class="tl-rtc-file-login-user-btn">
+                                    <div class="tl-rtc-file-logout">
+                                        <button id="tl-rtc-file-logout-btn" type="button" class="layui-btn">${that.lang.logout}</button>
+                                    </div>
                                 </div>
                             </div>
                         `
@@ -450,6 +499,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 layer.prompt({
                     formType: 0,
                     title: that.lang.changeNickName,
+                    btn : [that.lang.confirm, that.lang.cancel],
                     value: "",
                     maxlength : 10,
                 }, function (value, index, elem) {
@@ -828,6 +878,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 layer.prompt({
                     formType: 0,
                     title: this.lang.please_enter_code,
+                    btn : [that.lang.confirm, that.lang.cancel],
                     value: this.codeId,
                 }, function (value, index, elem) {
                     if(value.length < 30 || tlrtcfile.containSymbol(value) || tlrtcfile.containChinese(value)){
@@ -893,6 +944,21 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                             that.sendChatingRoomSingle();
                         })
 
+                        let remoteRtc = that.getRemoteInfo(that.chatRoomSingleSocketId);
+                        let receiveChatRoomSingleList = [];
+                        if(remoteRtc && remoteRtc.receiveChatRoomSingleList){
+                            receiveChatRoomSingleList = remoteRtc.receiveChatRoomSingleList;
+                        }
+                        receiveChatRoomSingleList.forEach((item, index) => {
+                            const id = "tl-rtc-file-content-copy" + index;
+                            if(!document.getElementById(id)) return;
+                            document.getElementById(id).addEventListener('click', function () {
+                                tlrtcfile.copyTxt(id, item.content, function () {
+                                    layer.msg(that.lang.copy_success)
+                                });
+                                that.addUserLogs(that.lang.copy_success);
+                            });
+                        })
                     },
                     cancel: function (index, layero) {
                         this.chatRoomSingleSocketId = "";
@@ -910,6 +976,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                                                     <small>${this.lang.user}: <b>{{info.nickName}}</b></small> - 
                                                     <small>id: <b>{{info.socketId}}</b></small> - 
                                                     <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
+                                                    <svg class="icon" aria-hidden="true" style="margin-left: 5px;cursor: pointer;" id="tl-rtc-file-content-copy{{index}}">
+                                                        <use xlink:href="#icon-rtc-file-fuzhi"></use>
+                                                    </svg>
                                                 </div>
                                                 <div style="margin-top: 5px;word-break: break-all;width: 90%;"> 
                                                     <b style="font-weight: bold; font-size: large;">{{- info.content }}</b>
@@ -1053,8 +1122,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                     2 : 1800, // 队列只有两个弹窗排队时, 弹窗悬停时间1800ms
                     5 : 1600,
                     8 : 1300,
-                    10 : 900,
-                    20 : 700
+                    10 : 500,
+                    20 : 200
                 };
                 //轮训是否有弹窗排队中
                 if(!data){
@@ -1245,7 +1314,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
             // 设置昵称
             setNickName: function(){
                 if(window.tlrtcfile.genNickName){
-                    this.nickName = window.tlrtcfile.genNickName();
+                    this.nickName = window.tlrtcfile.genNickName(this.langMode);
                 }
             },
             // 打开公告
@@ -1496,15 +1565,18 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                     let that = this;
                     layer.prompt({
                         formType: 0,
-                        title: this.lang.please_enter_password
+                        title: this.lang.please_enter_password_room_num,
+                        btn : [that.lang.confirm, that.lang.cancel],
                     }, function (value, index, elem) {
                         that.roomId = value;
                         layer.close(index);
                         that.isPasswordRoom = !that.isPasswordRoom;
+                        that.roomType = "password";
 
                         layer.prompt({
                             formType: 1,
-                            title: that.lang.please_enter_password
+                            title: that.lang.please_enter_password,
+                            btn : [that.lang.confirm, that.lang.cancel],
                         }, function (value, index, elem) {
                             that.createPasswordRoom(value);
                             layer.close(index);
@@ -1560,6 +1632,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 }else{
                     layer.prompt({
                         formType: 0,
+                        btn : [that.lang.confirm, that.lang.cancel],
                         title: that.lang.please_enter_video_call_room_num
                     }, function (value, index, elem) {
                         that.roomId = value;
@@ -1624,6 +1697,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 }else{
                     layer.prompt({
                         formType: 0,
+                        btn : [that.lang.confirm, that.lang.cancel],
                         title: this.lang.please_enter_screen_sharing_room_num,
                     }, function (value, index, elem) {
                         that.roomId = value;
@@ -1848,6 +1922,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                     layer.prompt({
                         formType: 0,
                         title: this.lang.please_enter_audio_sharing_room_num,
+                        btn : [that.lang.confirm, that.lang.cancel],
                     }, function (value, index, elem) {
                         that.roomId = value;
                         that.createMediaRoom("audio");
@@ -2040,6 +2115,17 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         document.getElementById("tl-sendChatingComm").addEventListener('click',function(){
                             that.sendChatingComm();
                         })
+
+                        that.receiveChatCommList.forEach((item, index) => {
+                            const id = "tl-rtc-file-content-copy" + index;
+                            if(!document.getElementById(id)) return;
+                            document.getElementById(id).addEventListener('click', function () {
+                                tlrtcfile.copyTxt(id, item.msg, function () {
+                                    layer.msg(that.lang.copy_success)
+                                });
+                                that.addUserLogs(that.lang.copy_success);
+                            });
+                        })
                     },
                     content: `
                         <div class="layui-col-sm12" style="padding: 15px;">
@@ -2058,7 +2144,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                                             {{#  } }}
                                             <small>${this.lang.room}: <b>{{info.room}}</b></small> - 
                                             <small>${this.lang.user}: <b>{{info.socketId}}</b></small> - 
-                                            <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
+                                            <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small>
+                                            <svg class="icon" aria-hidden="true" style="margin-left: 5px;cursor: pointer;" id="tl-rtc-file-content-copy{{index}}">
+                                                <use xlink:href="#icon-rtc-file-fuzhi"></use>
+                                            </svg>
                                             {{#  if(info.admin) { }}
                                                 <svg class="icon" aria-hidden="true" style="width: 24px;height: 24px;color:#1e9fff;">
                                                     <use xlink:href="#icon-rtc-file-zhuip"></use>
@@ -2260,6 +2349,17 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                             document.getElementById("tl-sendChatingRoom").addEventListener("click",function(){
                                 that.sendChatingRoom();
                             })
+
+                            that.receiveChatRoomList.forEach((item, index) => {
+                                const id = "tl-rtc-file-content-copy" + index;
+                                if(!document.getElementById(id)) return;
+                                document.getElementById(id).addEventListener('click', function () {
+                                    tlrtcfile.copyTxt(id, item.content, function () {
+                                        layer.msg(that.lang.copy_success)
+                                    });
+                                    that.addUserLogs(that.lang.copy_success);
+                                });
+                            })
                         },
                         content: `
                             <div class="layui-col-sm12" style="padding: 15px;">
@@ -2283,6 +2383,9 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                                                         {{#  } }}
                                                         <small>id: <b>{{info.socketId}}</b></small> - 
                                                         <small>${this.lang.time}: <b>{{info.timeAgo}}</b></small> 
+                                                        <svg class="icon" aria-hidden="true" style="margin-left: 5px;cursor: pointer;" id="tl-rtc-file-content-copy{{index}}">
+                                                            <use xlink:href="#icon-rtc-file-fuzhi"></use>
+                                                        </svg>
                                                     </div>
                                                     <div style="margin-top: 5px;word-break: break-all;width: 90%;"> 
                                                         <b style="font-weight: bold; font-size: large;"> {{- info.content}} </b>
@@ -2454,7 +2557,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         langMode : this.langMode,
                         ua: this.isMobile ? 'mobile' : 'pc',
                         network : this.network,
-                        localNetRoom : this.useLocalNetworkRoomShare
+                        localNetRoom : this.useLocalNetworkRoomShare,
+                        ips : this.ips,
                     });
                     this.isJoined = true;
                     this.addPopup({
@@ -2486,7 +2590,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         ua: this.isMobile ? 'mobile' : 'pc',
                         network : this.network,
                         liveShareRole : this.liveShareRole,
-                        localNetRoom : this.useLocalNetworkRoomShare
+                        localNetRoom : this.useLocalNetworkRoomShare,
+                        ips : this.ips,
                     });
                     this.isJoined = true;
                     this.roomType = type;
@@ -2524,7 +2629,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         langMode : this.langMode,
                         ua: this.isMobile ? 'mobile' : 'pc',
                         network : this.network,
-                        localNetRoom : this.useLocalNetworkRoomShare
+                        localNetRoom : this.useLocalNetworkRoomShare,
+                        ips : this.ips,
                     });
                     this.isJoined = true;
                     this.addPopup({
@@ -3365,14 +3471,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         sdp: event.candidate.candidate
                     };
                     this.socket.emit('candidate', message);
-
-                    let ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
-                    let match = ipRegex.exec(event.candidate.candidate);
-                    let ipAddress = match && Array.isArray(match) && match.length > 0 ? match[1] : "unknow";
-                    if (ipAddress !== 'unknow') {
-                        this.ips.push(ipAddress);
-                    }
-                    this.addSysLogs("IP: " + ipAddress);
                 }
             },
             // offer
@@ -3418,7 +3516,22 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 let that = this;
 
                 this.socket.on("localNetRoom", data => {
-                    that.localNetRoomList = data.list || [];
+                    const { mode, list } = data;
+                    if(mode === 'connect'){
+                        that.localNetRoomList = data.list || [];
+                    }else if(mode === 'join'){
+                        let newList = that.localNetRoomList.filter(item => { return item.owner !== list[0].owner });
+                        newList.push(list[0]);
+                        that.localNetRoomList = newList;
+                    }else if(mode === 'exit'){
+                        let newList = that.localNetRoomList.filter(item => { return item.owner !== list[0].owner });
+                        if(list[0].count === 0){ //退出后房间没人了，清理
+                            that.localNetRoomList = newList;
+                        }else{ // 退出后房间还有人，更新
+                            newList.push(list[0]);
+                            that.localNetRoomList = newList;
+                        }
+                    }
                     if(that.localNetRoomList.length === 0 && that.showLocalNetRoom){
                         that.clickLocalNetRooms(true);
                     }
@@ -4032,6 +4145,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                     layer.prompt({
                         formType: 1,
                         title: that.lang.please_enter,
+                        btn : [that.lang.confirm, that.lang.cancel],
                     }, function (value, index, elem) {
                         that.socket.emit('manageConfirm', {
                             room: that.roomId,
@@ -4039,6 +4153,11 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         });
                         layer.close(index)
                     });
+                });
+
+                //关闭音视频
+                this.socket.on('subscribeNofity', function (data) {
+                    layer.msg(that.lang.subscribe_website_notify_succ)
                 });
 
                 this.socket.on('manage', function (data) {
@@ -4168,8 +4287,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                             })
                         })
 
-                        document.getElementById("closeLogs").addEventListener('click', function(){
-                            that.closeLogs();
+                        document.getElementById("logOutput").addEventListener('click', function(){
+                            that.logOutput();
                         })
 
                         document.getElementById("coffee").addEventListener('click', function(){
@@ -4198,6 +4317,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
 
                         document.getElementById("fileTransferSettingHelp").addEventListener('click', function(){
                             that.settingHelp();
+                        })
+
+                        document.getElementById("webMsgNotify").addEventListener('click', function(){
+                            that.webMsgNotify();
                         })
                     },
                     content: `
@@ -4340,13 +4463,13 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                                         </li>
                                         <li class="layui-col-xs4">
                                             <a title="${this.lang.log}">
-                                                <svg class="icon" aria-hidden="true" id="closeLogs">
+                                                <svg class="icon" aria-hidden="true" id="logOutput">
                                                     <use xlink:href="#icon-rtc-file-rizhiguanli"></use>
                                                 </svg>
-                                                <svg id="closeLogsOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.isCloseLogs ? 'display:none;' : ''}">
+                                                <svg id="logOutputOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.useLogOutput ? '' : 'display:none;'}">
                                                     <use xlink:href="#icon-rtc-file-zhengque"></use>
                                                 </svg>
-                                                <svg id="closeLogsClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.isCloseLogs ? 'display:none;' : ''}">
+                                                <svg id="logOutputClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.useLogOutput ? '' : 'display:none;'}">
                                                     <use xlink:href="#icon-rtc-file-cuowu"></use>
                                                 </svg>
                                                 <cite>${this.lang.log}</cite>
@@ -4392,6 +4515,20 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                                                     <use xlink:href="#icon-rtc-file-cuowu"></use>
                                                 </svg>
                                                 <cite>${this.lang.local_network_room_share}</cite>
+                                            </a>
+                                        </li>
+                                        <li class="layui-col-xs4">
+                                            <a title="${this.lang.web_msg_notify}">
+                                                <svg class="icon" aria-hidden="true" id="webMsgNotify">
+                                                    <use xlink:href="#icon-rtc-file-tongzhi"></use>
+                                                </svg>
+                                                <svg id="webMsgNotifyOpen" class="icon settingOpenIcon" aria-hidden="true" style="${this.useWebMsgNotify ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-zhengque"></use>
+                                                </svg>
+                                                <svg id="webMsgNotifyClose" class="icon settingCloseIcon" aria-hidden="true" style="${!this.useWebMsgNotify ? '' : 'display:none;'}">
+                                                    <use xlink:href="#icon-rtc-file-cuowu"></use>
+                                                </svg>
+                                                <cite>${this.lang.web_msg_notify}</cite>
                                             </a>
                                         </li>
                                     </ul>
@@ -4466,24 +4603,23 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 
                 layer.msg(this.lang.auto_join_fixed_room + ": " + this.useFixedRoom)
             },
-
             // 是否关闭日志输出
-            closeLogs: function(){
-                this.isCloseLogs = !this.isCloseLogs;
+            logOutput: function(){
+                this.useLogOutput = !this.useLogOutput;
 
-                if (this.isCloseLogs) {
-                    layer.msg(`${this.lang.logs_switch}${this.lang.on}`)
-                    $("#closeLogsOpen").css("display", "inline");
-                    $("#closeLogsClose").css("display", "none");
+                if (this.useLogOutput) {
+                    $("#logOutputOpen").css("display", "inline");
+                    $("#logOutputClose").css("display", "none");
                 } else {
-                    layer.msg(`${this.lang.logs_switch}${this.lang.off}`)
-                    $("#closeLogsOpen").css("display", "none");
-                    $("#closeLogsClose").css("display", "inline");
+                    $("#logOutputOpen").css("display", "none");
+                    $("#logOutputClose").css("display", "inline");
                 }
 
-                $("#closeLogs").removeClass("layui-anim-rotate")
+                layer.msg(`${this.lang.logs_switch}${this.useLogOutput ? this.lang.on : this.lang.off}`)
+
+                $("#logOutput").removeClass("layui-anim-rotate")
                 setTimeout(() => {
-                    $("#closeLogs").addClass("layui-anim-rotate")
+                    $("#logOutput").addClass("layui-anim-rotate")
                 }, 50)
             },
             // ai对话上下文开关
@@ -4507,42 +4643,63 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                     $("#aiContext").addClass("layui-anim-rotate")
                 }, 50)
             },
-            // 是否关闭消息红点提示
+            // 是否开启消息红点提示
             messageDot : function(){
+                this.useMessageDot = !this.useMessageDot;
+
                 if (this.useMessageDot) {
-                    window.localStorage.setItem("tl-rtc-file-use-message-dot", false)
-                    layer.msg(`${this.lang.messgae_dot_switch}${this.lang.off}`)
-                    $("#messageDotOpen").css("display", "none");
-                    $("#messageDotClose").css("display", "inline");
-                } else {
                     window.localStorage.setItem("tl-rtc-file-use-message-dot", true)
-                    layer.msg(`${this.lang.messgae_dot_switch}${this.lang.on}`)
                     $("#messageDotOpen").css("display", "inline");
                     $("#messageDotClose").css("display", "none");
+                } else {
+                    window.localStorage.setItem("tl-rtc-file-use-message-dot", false)
+                    $("#messageDotOpen").css("display", "none");
+                    $("#messageDotClose").css("display", "inline");
                 }
 
-                this.useMessageDot = !this.useMessageDot;
+                layer.msg(`${this.lang.messgae_dot_switch}${this.useMessageDot ? this.lang.on : this.lang.off}`)
 
                 $("#messageDot").removeClass("layui-anim-rotate")
                 setTimeout(() => {
                     $("#messageDot").addClass("layui-anim-rotate")
                 }, 50)
             },
-            // 是否开启局域网房间分享
-            localNetworkRoomShare : function(){
-                if(this.useLocalNetworkRoomShare){
-                    window.localStorage.setItem("tl-rtc-file-use-local-network-room-share", false)
-                    layer.msg(`${this.lang.local_network_room_share}${this.lang.off}`)
-                    $("#localNetworkRoomShareOpen").css("display", "none");
-                    $("#localNetworkRoomShareClose").css("display", "inline");
-                }else{
-                    window.localStorage.setItem("tl-rtc-file-use-local-network-room-share", true)
-                    layer.msg(`${this.lang.local_network_room_share}${this.lang.on}`)
-                    $("#localNetworkRoomShareOpen").css("display", "inline");
-                    $("#localNetworkRoomShareClose").css("display", "none");
+            // 开启系统消息提示弹窗
+            webMsgNotify: function(){
+                this.useWebMsgNotify = !this.useWebMsgNotify;
+
+                if (this.useWebMsgNotify) {
+                    window.localStorage.setItem("tl-rtc-file-use-web-message-notify", true)
+                    $("#webMsgNotifyOpen").css("display", "inline");
+                    $("#webMsgNotifyClose").css("display", "none");
+                } else {
+                    window.localStorage.setItem("tl-rtc-file-use-web-message-notify", false)
+                    $("#webMsgNotifyOpen").css("display", "none");
+                    $("#webMsgNotifyClose").css("display", "inline");
                 }
 
+                layer.msg(`${this.lang.web_msg_notify}${this.useWebMsgNotify ? this.lang.on : this.lang.off}`)
+
+                $("#webMsgNotify").removeClass("layui-anim-rotate")
+                setTimeout(() => {
+                    $("#webMsgNotify").addClass("layui-anim-rotate")
+                }, 50)
+            },
+            // 是否开启局域网房间分享
+            localNetworkRoomShare : function(){
                 this.useLocalNetworkRoomShare = !this.useLocalNetworkRoomShare;
+
+                if(this.useLocalNetworkRoomShare){
+                    window.localStorage.setItem("tl-rtc-file-use-local-network-room-share", true)
+                    $("#localNetworkRoomShareOpen").css("display", "inline");
+                    $("#localNetworkRoomShareClose").css("display", "none");
+                }else{
+                    window.localStorage.setItem("tl-rtc-file-use-local-network-room-share", false)
+                    $("#localNetworkRoomShareOpen").css("display", "none");
+                    $("#localNetworkRoomShareClose").css("display", "inline");
+                }
+
+                layer.msg(`${this.lang.local_network_room_share}${this.useLocalNetworkRoomShare ? this.lang.on : this.lang.off}`)
 
                 $("#localNetworkRoomShare").removeClass("layui-anim-rotate")
                 setTimeout(() => {
@@ -4567,6 +4724,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         formType: 0,
                         value: '',
                         title: that.lang.fixed_room,
+                        btn : [that.lang.confirm, that.lang.cancel],
                     }, function (value, index, elem) {
                         if (!that.switchData.allowChinese && window.tlrtcfile.containChinese(value)) {
                             layer.msg(that.lang.room_num_no_zh)
@@ -4642,6 +4800,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         formType: 0,
                         value: 'wss://',
                         title: that.lang.input_custom_ws_url,
+                        btn : [that.lang.confirm, that.lang.cancel],
                     }, function (value, index, elem) {
                         if(!/^wss?:\/\/[^\s/$.?#].[^\s]*$/.test(value)){
                             layer.msg(that.lang.ws_url_error)
@@ -4685,11 +4844,6 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                     window.location.reload()
                 }, 300);
             },
-            // 中继信息提示
-            useTurnMsg: function () {
-                layer.msg(this.lang.relay_on)
-                this.addUserLogs(this.lang.relay_on)
-            },
             // 当前网络状态
             networkMsg: function () {
                 layer.msg(this.lang.current_network + (this.network !== 'wifi' ? this.lang.mobile_data : this.network))
@@ -4712,7 +4866,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
             },
             // 记录日志
             addLogs: function (msg, type) {
-                if(this.isCloseLogs){
+                if(!this.useLogOutput){
                     return
                 }
                 if (this.logs.length > this.maxLogCount) {
@@ -4792,13 +4946,8 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                                 tlrtcfile.getQrCode("tl-rtc-file-room-share-image", content)
                             }
 
-                            document.querySelector("#shareUrl").setAttribute("data-clipboard-text", content);
-                            let clipboard = new ClipboardJS('#shareUrl');
-                            clipboard.on('success', function (e) {
-                                e.clearSelection();
-                                setTimeout(() => {
-                                    layer.msg(that.lang.copy_room_link)
-                                }, 500);
+                            tlrtcfile.copyTxt("shareUrl", content, function () {
+                                layer.msg(that.lang.copy_room_link)
                             });
                             that.addUserLogs(that.lang.copy_room_link);
                         },
@@ -5274,6 +5423,37 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                     }, 50)
                 }
             },
+            // 局域网房间功能开启进行的的ip上报
+            localNetRoomIpReport: async function () {
+                let that = this;
+                await new Promise((resolve, reject) => {
+                    const pc = new RTCPeerConnection(that.config);
+                    pc.createDataChannel('report');
+                    pc.createOffer().then(offer => pc.setLocalDescription(offer)).catch(reject);
+                    pc.addEventListener("icegatheringstatechange", (ev) => {
+                        if(pc.iceGatheringState === 'complete'){
+                            resolve(true)
+                        }
+                    });
+                    pc.onicecandidate = (e) => {
+                        if (e.candidate) {
+                            if(e.candidate.type !== 'relay'){
+                                let alreadyHas = that.ips.filter(item=>{
+                                    return item.address === e.candidate.address;  
+                                }).length > 0;
+                                if(!alreadyHas){
+                                    that.ips.push({
+                                        ipType : e.candidate.type,
+                                        address : e.candidate.address,
+                                        protocol : e.candidate.protocol,
+                                    })
+                                }
+                            }
+                        }
+                    };
+                });
+                this.socket.emit("localNetRoom", { ips : this.ips })
+            },  
             // 自动监听窗口变化，更新css
             reCaculateWindowSize: function () {
                 this.clientWidth = document.body.clientWidth;
@@ -5613,6 +5793,10 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
             this.addSysLogs(this.lang.debug_init);
             this.loadVConsoleJs();
             this.addSysLogs(this.lang.debug_init_done);
+
+            this.addSysLogs(this.lang.local_network_room_report_init);
+            this.localNetRoomIpReport();
+            this.addSysLogs(this.lang.local_network_room_report_init_done);
 
             this.addSysLogs(this.lang.current_relay_status + (this.useTurn ? this.lang.on : this.lang.off))
         }

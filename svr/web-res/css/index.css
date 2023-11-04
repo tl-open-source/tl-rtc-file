@@ -213,7 +213,7 @@ body {
     border-radius: 15px;
     color: white;
     background: #7187e685;
-    transition: font-size 0.3s;
+    transition: all .4s;
 }
 
 .tl-rtc-file-tool-list .swiper-slide {
@@ -1054,18 +1054,11 @@ body {
     margin-bottom: 10px;
 }
 
-.tl-rtc-file-login-user{
-    margin-top: 20px;
-    margin-bottom: 20px;
-    width: 80%;
-    margin-left: 10%;
-}
-
-.tl-rtc-file-login-user-info{
-    margin-top: 20px;
-    margin-bottom: 20px;
-    width: 80%;
-    margin-left: 10%;
+.tl-rtc-file-login-user, .tl-rtc-file-login-user-info{
+    margin: 10px;
+    text-align: center;
+    max-height: 250px;
+    overflow: hidden;
 }
 
 .tl-rtc-file-login-user-info-avatar{
@@ -1075,8 +1068,10 @@ body {
 }
 
 .tl-rtc-file-login-user-info-avatar img{
-    width: 100%;
+    width: 50%;
     border-radius: 50%;
+    box-shadow: #c2b6b63b 0 3px 10px 0px;
+    cursor: pointer;
 }
 
 #tl-rtc-file-user-help{
@@ -1096,16 +1091,36 @@ body {
     -webkit-box-orient: vertical;
 }
 
-.tl-rtc-file-logout{
-    width: 60%;
-    margin-left: 10%;
-    bottom: 20px;
+.tl-rtc-file-login-user-btn{
+    width: 80%;
     position: absolute;
+    margin-left: 8%;
 }
 
 .tl-rtc-file-logout button{
     width: 100%;
-    margin-bottom: 10px;
+    border-radius: 8px;
+    background: #79b0e8;
+}
+
+.tl-rtc-file-user-oper{
+    display: inline-flex;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.tl-rtc-file-user-oper svg{
+    font-size: 32px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 50%;
+    padding: 5px;
+    transition: all .3s;
+}
+
+.tl-rtc-file-user-oper svg:hover{
+    background: #f1f1f1;
 }
 
 .isMediaing{

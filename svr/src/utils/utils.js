@@ -49,7 +49,7 @@ function getLocalIP() {
 function isSameSubnet(ip1, ip2, subnetMask) {
     // 将IPv4或IPv6地址和子网掩码转换为数字形式
     function ipToNumber(ip) {
-        if (ip.includes(':')) { // IPv6
+        if (ip.indexOf(':') > -1) { // IPv6
             const parts = ip.split(':');
             return parts.map(part => parseInt(part, 16)).join('');
         } else { // IPv4
@@ -374,6 +374,15 @@ function checkBit(flag, bit){
     return (flag & bit) === bit;
 }
 
+/**
+ * 根据flag和bit设置对应的值
+ * @param {*} flag 
+ * @param {*} bit 
+ */
+function setBit(flag, bit){
+    return flag | bit;
+}
+
 
 
 module.exports = {
@@ -392,5 +401,6 @@ module.exports = {
     unescapeStr,
     escapeStr,
     isSameSubnet,
-    checkBit
+    checkBit,
+    setBit
 }

@@ -39,14 +39,14 @@ async function addWxUser(params, tables, dbClient) {
 				role: params.role,
 			});
 
-			return data && data.dataValues ? data.dataValues.id : 0;
+			return data && data.dataValues ? dataValues : { id : 0 };
 		}
 
 		if(users && users.length === 1){
-			return users[0].dataValues.id;
+			return users[0].dataValues;
 		}
 
-		return 0;
+		return { id : 0 };
     }catch(e){
         console.error(e);
         return {};
@@ -54,11 +54,46 @@ async function addWxUser(params, tables, dbClient) {
 }
 
 
+/**
+ * 更新用户标识
+ * @param {*} params 
+ * @param {*} tables 
+ * @param {*} dbClient 
+ */
+async function updateUserFlag(params, tables, dbClient){
+	if(!tables || !dbClient){
+		return {};
+	}
+	
+	if(!params){
+		params = {};
+	}
+
+	if(!params.id){
+		return {};
+	}
+
+	let data = await tables.User.update({
+		flag: params.flag,
+	}, {
+		where: {
+			id: params.id
+		}
+	});
+
+	utils.tlConsole("更新用户标识 : ", params, data)
+
+	return data;
+}
+
 
 module.exports = dbOpen ? {
-    addWxUser
+    addWxUser, updateUserFlag
 } : {
 	addWxUser : function(){
 		return {}
+	},
+	updateUserFlag : function(){
+		return  {}
 	}
 }

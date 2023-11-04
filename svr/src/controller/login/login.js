@@ -5,6 +5,7 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const wxapi = require("./../../bussiness/wxapi/wxapi")
 const { CookieKey } = require("./../../bussiness/cache/key")
 const scanCache = require("./../../bussiness/cache/scan/scanCache")
+const utils = require("../../utils/utils");
 const uuid = require("uuid")
 
 // 扫码状态
@@ -39,13 +40,14 @@ async function loginWechat(req, res) {
 
         const { session_key, openid, unionid } = openIdInfo;
 
-        const userId = await user.addWxUser({
+        const { userId, flag } = await user.addWxUser({
             openid: openid,
             avatar: userInfo.avatarUrl,
             uname: userInfo.nickName,
             pwd: '',
             solt: '',
             role: 'user',
+            flag : 0,
         }, tables, dbClient);
 
         //设置登录信息缓存
@@ -55,6 +57,7 @@ async function loginWechat(req, res) {
             userId : userId,
             avatar : userInfo.avatarUrl,
             nickName : userInfo.nickName,
+            flag : flag,
             loginTime : Date.now(),
         });
 
@@ -226,10 +229,15 @@ async function getTokenState(req, res){
     const loginInfo = scanCache.getLoginInfo(token);
 
     const avatar = loginInfo.avatar || "/image/44826979.png";
-    const username = loginInfo.nickName || "";
+    const username = loginInfo.nickName || " -- ";
+    const flag = loginInfo.flag || 0;
+    const subscribeNotify = utils.checkBit(flag, req.ctx.tables.UserOther.Flag.IS_SUBSCRIBE_WEBSITE_NOTIFY)
 
     if(Object.keys(loginInfo).length > 0){
-        res.json({ code: 200, login: true, token, avatar, username });
+        res.json({ 
+            code: 200, login: true, loginInfo,
+            token, avatar, username, subscribeNotify
+        });
     }else{
         res.json({ code: 200, login: false });
     }
@@ -276,7 +284,10 @@ async function getLoginInfo(req, res){
 
     const loginInfo = scanCache.getLoginInfo(token);
 
-    res.json({ code: 200, userId : loginInfo.userId });
+    res.json({ code: 200, userInfo :{
+        userId : loginInfo.userId,
+        flag : loginInfo.flag,
+    }});
 }
 
 

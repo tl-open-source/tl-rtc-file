@@ -21,12 +21,12 @@ const rtcLocalNetRoom = require("../rtcLocalNetRoom/localNetRoom");
  * @returns 
  */
 async function userCreateAndJoin(io, socket, tables, dbClient, data){
-    let {handshake, userAgent, ip, address} = utils.getSocketClientInfo(socket);
+    let { handshake, userAgent, ip, address } = utils.getSocketClientInfo(socket);
 
     let {
         room = '', type = 'file', nickName = '', password = '', 
         langMode = 'zh', ua = '', network = '', liveShareRole = '',
-        localNetRoom = false
+        localNetRoom = false, ips = []
     } = data;
 
     if (room && room.length > 15) {
@@ -66,7 +66,7 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
     io.sockets.connected[socket.id].langMode = langMode;
     io.sockets.connected[socket.id].ua = ua;
     io.sockets.connected[socket.id].network = network;
-    io.sockets.connected[socket.id].ip = ip;
+    io.sockets.connected[socket.id].ips = ips;
     const joinTime = utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")
     io.sockets.connected[socket.id].joinTime = joinTime;
     io.sockets.connected[socket.id].userAgent = userAgent;
@@ -120,26 +120,25 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
         });
         //设置为房主
         io.sockets.connected[socket.id].owner = true;
+        io.sockets.adapter.rooms[room].owner = socket.id;
 
-        //设置房主ip为房间号ip, address
-        io.sockets.adapter.rooms[room].ip = ip;
-        io.sockets.adapter.rooms[room].address = address;
-
-        //房间是否可以被局域网发现
-        io.sockets.adapter.rooms[room].localNetRoom = localNetRoom;
-        if(localNetRoom){
-            rtcLocalNetRoom.localNetRoom(io, socket, tables, dbClient, {
-                toAll : true
-            });
-        }
+        //设置房主上报的ip为房间号ip
+        io.sockets.adapter.rooms[room].ips = ips;
 
         //设置房间类型
         io.sockets.adapter.rooms[room].type = type;
+
+        //房间是否可以被局域网发现
+        io.sockets.adapter.rooms[room].localNetRoom = localNetRoom;
         
         //密码房间设置密码
         if(type === 'password'){
             io.sockets.adapter.rooms[room].password = password
         }
+
+        //房间创建时间
+        io.sockets.adapter.rooms[room].createTime = utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss");
+
     }else {
         //加入时，房间类型不匹配，提示并退出
         const createdRoomType = io.sockets.adapter.rooms[room].type;
@@ -244,9 +243,11 @@ async function userCreateAndJoin(io, socket, tables, dbClient, data){
         });
     }
 
+    //人数变更通知
     rtcCount.count(io, socket, tables, dbClient, data);
 
-    io.sockets.adapter.rooms[room].createTime = utils.formateDateTime(new Date(), "yyyy-MM-dd hh:mm:ss")
+    //局域网房间变动通知
+    rtcLocalNetRoom.localNetRoomForJoin(io, socket, tables, dbClient, { room });
 
     if(password && password.length > 0){
         bussinessNotify.sendCreateJoinPasswordRoomNotify({

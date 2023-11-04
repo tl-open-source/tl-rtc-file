@@ -48,6 +48,9 @@ window.tlrtcfile = {
     containSymbol: function (str) {
         return new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]").test(str)
     },
+    isEmail : function(str){
+        return /^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/.test(str);
+    },
     genNickNameRandom: function () {
         // 获取指定范围内的随机数
         function randomAccess(min, max) {
@@ -435,15 +438,13 @@ window.tlrtcfile = {
 
         return await getRTCStats(peerConnection);
     },
-    copyTxt: function (id, content) {
+    copyTxt: function (id, content, callback) {
         let that = this;
         document.querySelector("#" + id).setAttribute("data-clipboard-text", content);
         let clipboard = new ClipboardJS('#' + id);
         clipboard.on('success', function (e) {
             e.clearSelection();
-            if (window.layer) {
-                layer.msg("复制内容成功!")
-            }
+            callback && callback();
         });
     },
     getQrCode: function (id, content) {
@@ -483,23 +484,23 @@ window.tlrtcfile = {
             callback("keyup", event)
         })
     },
-     getRoomTypeZh: function (type){
+    getRoomType: function (type){
         if(type === 'file'){
-            return "文件房间"
+            return "file_room_type"
         }else if(type === 'live'){
-            return "直播房间"
+            return "live_room_type"
         }else if(type === 'video'){
-            return "音视频房间"
+            return "video_room_type"
         }else if(type === 'screen'){
-            return "屏幕共享房间"
+            return "screen_room_type"
         }else if(type === 'password'){
-            return "密码房间"
+            return "password_room_type"
         }else if(type === 'audio'){
-            return "语音连麦房间"
+            return "audio_room_type"
         }else if(type === 'system'){
-            return "系统房间"
+            return "system_room_type"
         }else{
-            return "未知类型房间"
+            return "unknown_room_type"
         }
     },
     scrollToBottom: function (dom, duration, timeout) {
@@ -551,8 +552,8 @@ window.tlrtcfile = {
             animateMargin()
         }, timeout);
     },
-    genNickName: function () {
-        let { adjectives, nouns } = this.nameDatabase()
+    genNickName: function (language) {
+        let { adjectives, nouns } = language === 'zh' ? this.nameDatabase() : this.nameDatabaseEn()
         let adjectiveIndex = Math.floor(Math.random() * adjectives.length);
         let nounIndex = Math.floor(Math.random() * nouns.length);
         let adjective = adjectives[adjectiveIndex];
@@ -616,6 +617,62 @@ window.tlrtcfile = {
             '刀锋之舞', '独步天下', '吞噬万物', '永恒之境', '灭世战神', '海量财富', '神话传说', '唯我独尊', '万剑归宗', '嗜血狂魔',
             '深海之王', '幻想之城', '天命之子'
         ]
+        return { adjectives, nouns }
+    },
+    nameDatabaseEn: function () {
+        const adjectives = [
+            "Humorous", "Funny", "Crazy", "Strange", "Quirky", "Boring", "Mysterious", "Magical", "Witty", "Playful",
+            "Clever", "Beautiful", "Cute", "Charming", "Cool", "Adorable", "Stylish", "Majestic", "Fierce", "Radiant",
+            "Clever", "Mischievous", "Tiny", "Delicate", "Tender", "Soft", "Friendly", "Humble", "Reserved", "Proud",
+            "Narcissistic", "Romantic", "Innocent", "Passionate", "Persistent", "Cold", "Spoiled", "Naive", "Passionate", "Mature",
+            "Melancholic", "Neurotic", "Lonely", "Nostalgic", "Fresh", "Elegant", "Elegant", "Aloof", "Sassy", "Rebellious",
+            "Irritable", "Violent", "Alluring", "Crafty", "Confident", "Insecure", "Pessimistic", "Optimistic", "Brave", "Timid", "Joyful",
+            "Painful", "Kind", "Evil", "Profound", "Sacred", "Plump", "Slender", "Obese", "Slender", "Handsome", "Ugly",
+            "Fragrant", "Stinky", "Passionate", "Indifferent", "Vibrant", "Clean", "Dirty", "Carefree", "Moody",
+            "Ordinary", "Extraordinary", "Shy", "Warm-hearted", "Witty", "Agile", "Dull", "Intelligent", "Ignorant", "Sincere", "Hypocritical",
+            "Frank", "Cautious", "Bold", "Humble", "Arrogant", "Serious", "Relaxed", "Anxious", "Hardworking", "Lazy", "Punctual",
+            "Late", "Strong", "Weak", "Intelligent", "Stupid", "Smart", "Clever", "Mischievous", "Naughty", "Lively", "Silent",
+            "Healthy", "Unhealthy", "Tall", "Short", "Long", "Short", "Fat", "Thin", "Happy", "Unhappy", "Sweet", "Bitter",
+            "Astute", "Foolish", "Intelligent", "High IQ", "Resourceful", "Clumsy", "Calm", "Impulsive", "Steady", "Frivolous",
+            "Gentle", "Rough", "Learner", "Hates Learning", "Eater", "Picky Eater", "Patient", "Impatient", "Friendly", "Aloof", "Tolerant",
+            "Stubborn", "Cautious", "Kind", "Malicious", "Calm", "Hysterical", "Opportunistic", "Pessimistic", "Optimistic", "Open-minded", "Narrow-minded",
+            "Loyal", "Untrustworthy", "Charming", "Boring", "Thoughtful", "Boring", "Strategic", "Shortsighted", "Understanding", "Selfish", "Frank",
+            "Curious", "Insensitive", "Social", "Reclusive", "Talkative", "Quiet", "Thoughtful", "Quick-witted", "Emotionally Rich", "Kind-hearted", "Confident",
+            "Innocent", "Pursuing Perfection", "Energetic", "Adventurous", "Creative", "Calm", "Goal-oriented", "Gentle", "Helpful",
+            "Smart and Quick-witted", "Loyal", "Quick-witted", "Generous", "Graceful and Multifaceted", "Fashionable", "Easy-going", "Elegant and Graceful",
+            "Resilient", "Independent", "Outgoing", "Introverted", "Passionate and Focused", "Energetic", "Humerous", "Thoughtful and Kind", "Sacrificing",
+            "Decisive", "Curious", "Warm-hearted", "Enthusiastic", "Lonely and Sad", "Romantic and Passionate", "Smiling", "Unrestrained", "Silly", "Carefree",
+            "Lazy", "Boring", "Low-key", "Sensitive", "Cold", "Focused", "Scornful", "Passionate", "Loyal", "Mysterious", "Proud", "Free", "Artistic",
+            "Fashionable", "Generous", "Talented", "Elegant", "Sunny", "Witty", "Naive and Romantic", "Cheerful", "Reserved and Calm", "Diligent", "Lazy",
+            "Responsible", "Desiring Freedom", "Emotional", "Rational", "Insecure", "Seeking Security", "Emotional", "Optimistic", "Pessimistic", "Realistic", "Idealistic",
+            "Approachable", "Arrogant", "Valuing Family", "Valuing Friendship", "Valuing Love", "Compassionate", "Sense of Justice", "Compassionate", "Childlike", "Confident", "Timid",
+            "Talkative", "Reserved", "Outgoing", "Introverted", "Curious", "Not Understanding Others", "Sociable", "Loves Being Alone", "Self-aware", "Loves Music", "Loves Reading",
+            "Loves Traveling", "Loves Food", "Loves Sports", "Loves Photography", "Loves Collecting", "Loves Shopping", "Hates Going Out", "Picky", "Self-reflective", "Doesn't Judge Others",
+            "Judges Others", "Tasteful", "Unhygienic", "Hygienic", "Loves Cleanliness", "Loves Chaos", "Loves Organization", "Loves Casualness", "Loves Tidiness"
+          ];
+          
+          const nouns = [
+            'Puppy', 'Kitten', 'Fawn', 'Bear Cub', 'Bunny', 'Lamb', 'Piglet', 'Foal', 'Little Lion', 'Little Tiger',
+            'Little Monkey', 'Little Fish', 'Little Turtle', 'Little Bird', 'Little Ant', 'Little Bee', 'Little Butterfly', 'Little Dragonfly', 'Little Crab', 'Little Octopus',
+            'Little Dolphin', 'Little Shark', 'Little Whale', 'Little Crocodile', 'Little Duck', 'Snowman', 'Little Ball', 'Little Basketball', 'Little Soccer', 'Little Volleyball',
+            'Little Baseball', 'Little Skateboard', 'Little Ice Cream', 'Little Umbrella', 'Little Glove', 'Little Movie', 'Little Blue Sky', 'Little Princess', 'Little Prince', 'Little Toy',
+            'Little Candy', 'Little Chocolate', 'Little Ice Cream', 'Little Cake', 'Little Pizza', 'Little Burger', 'Little Fried Chicken', 'Little Roast Duck', 'Little Fish Ball', 'Little Hot Pot',
+            'Little Skewer', 'Little Pancake', 'Little Deep-Fried Dough Stick', 'Little Rice Porridge', 'Little Yogurt', 'Little Tofu', 'Little Dumpling', 'Little Bun', 'Little Wonton',
+            'Little Noodles', 'Little Beef Noodles', 'Little Glutinous Rice Chicken', 'Little Steamed Dumpling', 'Little Fried Noodles', 'Little Steamed Bun', 'Little Roast Meat', 'Little Skewer', 'Little Peanut', 'Little Sun',
+            'Little Moon', 'Little Star', 'Little Rainbow', 'Little Windmill', 'Little Balloon', 'Little Piano', 'Little Guitar', 'Little Speaker', 'Little Microphone', 'Little Actor',
+            'Little Painter', 'Little Engineer', 'Little Doctor', 'Little Policeman', 'Little Firefighter', 'Little Driver', 'Little Farmer', 'Little Diver', 'Little Pilot', 'Little Basketball',
+            'Little Swimming Champion', 'Little Running Champion', 'Little Martial Arts Expert', 'Little Ballet Dancer', 'Little Sand Painter', 'Little Calligrapher', 'Little Jigsaw Expert', 'Little Toy Collector',
+            'Little Movie Producer', 'Little Space Traveler', 'Superhero', 'Invincible Demon King', 'Ultimate Overlord', 'Supreme Emperor', 'Giant from Heaven', 'Peerless Genius', 'Mythical Gate',
+            'Terrifying Monster', 'Wizard', 'Mysterious Swordsman', 'Immortal Legend', 'Cosmic Tyrant', 'Volcano of Hell', 'Endless Darkness', 'Shining Star', 'Radiant Light', 'Golden Knight',
+            'Doomsday Annihilator', 'Invincible', 'Crushing Everything', 'Peerless Master', 'Extraordinary', 'King of All', 'Dark Knight', 'War God', 'Center of Attention', 'Shocking the World',
+            'Domineering', 'Never Wavering', 'Empire Ruler', 'Unyielding', 'Ruthless King', 'Beyond Limits', 'Infinite Power', 'Shining Brightly', 'Endless Pursuit', 'Dance of the Blade',
+            'Solo World', 'Consuming Everything', 'Eternal Realm', 'Doomsday War God', 'Vast Wealth', 'Mythical Legend', 'Unrivaled', 'Master of a Thousand Swords', 'Bloodthirsty Demon', 'King of the Deep Sea',
+            'Fantasy City', 'Chosen One', 'Immortal Swordsman', 'Eternal Legend', 'Cosmic Overlord', 'Fire Volcano', 'Boundless Darkness', 'Shining Star', 'Infinite Quest', 'Dance of the Blade',
+            'Swallower of All Things', 'Eternal War God', 'Massive Fortune', 'Mythical Legend', 'Only One', 'Myriad Swords Return to the Origin', 'Bloodthirsty Madman', 'King of the Deep Sea', 'Fantasy City', 'Chosen One',
+            'Immortal Swordsman', 'Eternal Legend', 'Cosmic Overlord', 'Fire Volcano', 'Boundless Darkness', 'Shining Star', 'Infinite Quest', 'Dance of the Blade', 'Swallower of All Things', 'Eternal War God',
+            'Massive Fortune', 'Mythical Legend', 'Only One', 'Myriad Swords Return to the Origin', 'Bloodthirsty Madman', 'King of the Deep Sea', 'Fantasy City', 'Chosen One'
+          ];
+          
         return { adjectives, nouns }
     },
     previewCodeFile: function (options) {

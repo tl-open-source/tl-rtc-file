@@ -71,11 +71,6 @@
                     <use xlink:href="#icon-rtc-file-gongzhonghao"></use>
                 </svg>
             </a>
-            <a :title="lang.relay_on" id="useTurn" v-show="switchData.openUseTurnIcon && useTurn" @click="useTurnMsg">
-                <svg class="icon" aria-hidden="true" style="width: 20px;height: 20px;margin-right: 10px;">
-                    <use xlink:href="#icon-rtc-file-yunfuwuqi"></use>
-                </svg>
-            </a>
             <a :title="lang.other_language" id="language">
                 <svg class="icon" aria-hidden="true" style="width: 18px;height: 18px;margin-right: 10px;">
                     <use xlink:href="#icon-rtc-file-duoyuyan"></use>
@@ -1082,7 +1077,7 @@
             <div class="layui-col-sm2" style="width: 100%;">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        {{lang.log}} <b v-show="isCloseLogs" style="color: red;">{{lang.off}}</b> - {{lang.total}}:{{filterLogs.length}}
+                        {{lang.log}} <b v-show="!useLogOutput" style="color: red;">{{lang.off}}</b> - {{lang.total}}:{{filterLogs.length}}
                         <i @click="clickLogs" class="layui-icon layui-icon-close"
                             style="cursor: pointer; right: 10px;position: absolute;"></i>
                     </div>

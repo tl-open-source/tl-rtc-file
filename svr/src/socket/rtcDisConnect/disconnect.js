@@ -1,7 +1,8 @@
 const daoRoom = require("./../../dao/room/room")
 const rtcCount = require("./../rtcCount/count");
 const rtcConstant = require("../rtcConstant");
-const rtcClientEvent = rtcConstant.rtcClientEvent
+const rtcClientEvent = rtcConstant.rtcClientEvent;
+const rtcLocalNetRoom = require("../rtcLocalNetRoom/localNetRoom");
 
 /**
  * 断开连接的操作
@@ -18,7 +19,7 @@ async function disconnect(io, socket, tables, dbClient, data){
     
     await daoRoom.exitRoomBySid({ socket_id: socket.id }, tables, dbClient);
 
-    rtcCount.count(io, socket, tables, dbClient, data)
+    rtcCount.count(io, socket, tables, dbClient, data);
 }
 
 module.exports = {

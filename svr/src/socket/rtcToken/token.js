@@ -29,7 +29,7 @@ async function token(io, socket, tables, dbClient, data){
             "content-type": "application/json",
         },
         qs: {
-            token, key : "iamtsm-socket"
+            token, key : cfg.login.token.key
         },
     }, (err, res, body) => {
         if(err){
@@ -42,9 +42,9 @@ async function token(io, socket, tables, dbClient, data){
             return;
         }
 
-        socket.userId = body.userId;
+        socket.userInfo = body.userInfo;
 
-        utils.tlConsole("同步token信息成功 : ", token, body.userId)
+        utils.tlConsole("同步token信息成功 : ", token, body.userInfo)
     });
 }
 

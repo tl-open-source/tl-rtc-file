@@ -1,6 +1,11 @@
 // user
 module.exports = (sequelize, DataTypes) => {
 	return {
+		UserOther : {
+			Flag : {
+				IS_SUBSCRIBE_WEBSITE_NOTIFY : 0x1, //是否已订阅网站通知
+			}
+		},
 		User: sequelize.define('user', {
 			id: {
 				type: DataTypes.INTEGER,
@@ -36,6 +41,11 @@ module.exports = (sequelize, DataTypes) => {
 			role: {
 				type: DataTypes.STRING(15),
 				comment: '用户身份'
+			},
+			flag: {
+				type: DataTypes.INTEGER,
+				comment: '标志位',
+				defaultValue: 0,
 			}
 		}, {
 			timestamps: true,

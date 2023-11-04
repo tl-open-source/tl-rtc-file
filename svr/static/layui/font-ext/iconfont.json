@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "10906513",
+      "name": "通知",
+      "font_class": "tongzhi",
+      "unicode": "e635",
+      "unicode_decimal": 58933
+    },
+    {
+      "icon_id": "423509",
+      "name": "群蜂操作记录",
+      "font_class": "qunfengcaozuojilu",
+      "unicode": "e702",
+      "unicode_decimal": 59138
+    },
+    {
+      "icon_id": "28108444",
+      "name": "订阅",
+      "font_class": "dingyue",
+      "unicode": "e6af",
+      "unicode_decimal": 59055
+    },
+    {
       "icon_id": "8224818",
       "name": "置顶",
       "font_class": "zhiding",

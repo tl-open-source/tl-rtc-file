@@ -20,6 +20,7 @@ const rtcHeartbeat = require("./rtcHeartbeat/heartbeat");
 const rtcAddCodeFile = require("./rtcCodeFile/addCodeFile");
 const rtcGetCodeFile = require("./rtcCodeFile/getCodeFile");
 const rtcLocalNetRoom = require("./rtcLocalNetRoom/localNetRoom");
+const rtcSubscribe = require("./rtcSubscribe/subscribe");
 const rtcServerEvent = require("./rtcConstant").rtcServerEvent
 const rtcToken = require("./rtcToken/token")
 
@@ -31,11 +32,6 @@ module.exports = (io, socket, tables, dbClient) => {
 
     // 在线人数统计
     rtcCount.count(io, socket, tables, dbClient, {})
-
-    // 局域网房间发现列表
-    rtcLocalNetRoom.localNetRoom(io, socket, tables, dbClient, { 
-        toCurrentSocket : true 
-    })
 
     // 断开连接
     socket.on(rtcServerEvent.disconnect, (data)=>{
@@ -140,5 +136,15 @@ module.exports = (io, socket, tables, dbClient) => {
     // 修改昵称
     socket.on(rtcServerEvent.changeNickName, (data) => {
         rtcChangeNickName.changeNickName(io, socket, tables, dbClient, data)
+    });
+
+    // 订阅网站通知
+    socket.on(rtcServerEvent.subscribeNofity, (data) => {
+        rtcSubscribe.subscribeNofity(io, socket, tables, dbClient, data)
+    });
+
+    // 局域网房间发现列表
+    socket.on(rtcServerEvent.localNetRoom, (data)=>{
+        rtcLocalNetRoom.localNetRoomForConnect(io, socket, tables, dbClient, data)
     });
 }

@@ -22,49 +22,149 @@
 
     * [配置简要说明](ENV_SETTING.md)
 
+    * [主要功能](FEATURE_LIST.md)
+
+        * [发送文字](FEATURE_LIST.md)
+
+            * [公共聊天](FEATURE_LIST.md)
+
+            * [群聊](FEATURE_LIST.md)
+
+            * [私聊](FEATURE_LIST.md)
+
+            * [文字复制](FEATURE_LIST.md)
+
+            * [富文本](FEATURE_LIST.md)
+
+            * [图片](FEATURE_LIST.md)
+
+            * [表情](FEATURE_LIST.md)
+
+        * [发送文件](FEATURE_LIST.md)
+
+            * [群发](FEATURE_LIST.md)
+
+            * [私发](FEATURE_LIST.md)
+
+            * [排队发](FEATURE_LIST.md)
+
+            * [同时发](FEATURE_LIST.md)
+
+            * [多文件拖拽](FEATURE_LIST.md)
+
+            * [indexedDb存储](FEATURE_LIST.md)
+
+            * [在线文件预览](FEATURE_LIST.md)
+
+            * [文件暂存](FEATURE_LIST.md)
+
+            * [自定义文件分片大小](FEATURE_LIST.md)
+
+            * [自定义文件预览大小](FEATURE_LIST.md)
+
+        * [屏幕共享](FEATURE_LIST.md)
+
+            * [多人共享](FEATURE_LIST.md)
+
+            * [屏幕开关](FEATURE_LIST.md)
+
+            * [音频开关](FEATURE_LIST.md)
+
+        * [视频通话](FEATURE_LIST.md)
+
+            * [多人视频](FEATURE_LIST.md)
+
+            * [视频开关](FEATURE_LIST.md)
+            
+            * [摄像头切换](FEATURE_LIST.md)
+
+            * [音频开关](FEATURE_LIST.md)
+
+        * [开始直播](FEATURE_LIST.md)
+
+            * [视频直播](FEATURE_LIST.md)
+
+            * [屏幕直播](FEATURE_LIST.md)
+
+            * [视频开关](FEATURE_LIST.md)
+
+            * [摄像头切换](FEATURE_LIST.md)
+
+            * [音频开关](FEATURE_LIST.md)
+
+            * [开播端](FEATURE_LIST.md)
+
+            * [观众端](FEATURE_LIST.md)
+
+        * [语音连麦](FEATURE_LIST.md)
+
+            * [音频开关](FEATURE_LIST.md)
+
+        * [取件号码](FEATURE_LIST.md)
+
+            * [文件下载](FEATURE_LIST.md)
+
+        * [远程画笔](FEATURE_LIST.md)
+
+            * [多人画笔同步](FEATURE_LIST.md)
+
+        * [密码房间](FEATURE_LIST.md)
+
+            * [自定义密码](FEATURE_LIST.md)
+
+        * [屏幕录制](FEATURE_LIST.md)
+
+            * [录制文件下载](FEATURE_LIST.md)
+
+        * [chatGPT](FEATURE_LIST.md)
+
+    * [次要功能](FEATURE_LIST.md)
+
+        * [多语言版本](FEATURE_LIST.md)
+
+        * [微信扫码登录](FEATURE_LIST.md)
+
+        * [分享房间](FEATURE_LIST.md)
+
+        * [网站通知](FEATURE_LIST.md)
+
+        * [日志记录](FEATURE_LIST.md)
+
+            * [自定义日志数量限制](FEATURE_LIST.md)
+
+        * [中继设置](FEATURE_LIST.md)
+
+        * [自定义昵称](FEATURE_LIST.md)
+
+        * [在线人数统计](FEATURE_LIST.md)
+
+        * [消息红点开关](FEATURE_LIST.md)
+
+        * [固定房间号](FEATURE_LIST.md)
+
+        * [局域网房间扫描](FEATURE_LIST.md)
+
+        * [自定义socket地址](FEATURE_LIST.md)
+
+        * [后台管理统计](FEATURE_LIST.md)
+
+        * [后台开关设置](FEATURE_LIST.md)
+
+        * [敏感词过滤](FEATURE_LIST.md)
+
+        * [心跳检测](FEATURE_LIST.md)
+
+        * [webrtc连接展示](FEATURE_LIST.md)
+
+
+
 * [tl-rtc-file-开发手册](README_DEV.md)
 
     * [设计简介](dev/INTRO.md)
 
-    * [客户端](dev/client/CLIENT.md)
-
-        * [文字聊天](dev/client/CHAT.md)
-
-        * [文件传输](dev/client/FILE.md)
-
-        * [多人音视频](dev/client/VIDEO.md)
-
-        * [多人屏幕共享](dev/client/SCREEN.md)
-
-        * [单人直播](dev/client/LIVE.md)
-
-        * [多人语音](dev/client/AUDIO.md)
-
-        * [文件暂存/取件码](dev/client/FILE_CODE.md)
-
-        * [多人画笔](dev/client/DRAW.md)
-
-        * [屏幕录制](dev/client/RECODE.md)
+    * [客户端](dev/CLIENT.md)
 
     * [服务端](dev/SVR.md)
-
-        * [文字聊天](dev/svr/CHAT.md)
-
-        * [文件传输](dev/svr/FILE.md)
-
-        * [多人音视频](dev/svr/VIDEO.md)
-
-        * [多人屏幕共享](dev/svr/SCREEN.md)
-
-        * [单人直播](dev/svr/LIVE.md)
-
-        * [多人语音](dev/svr/AUDIO.md)
-
-        * [文件暂存/取件码](dev/svr/FILE_CODE.md)
-
-        * [多人画笔](dev/svr/DRAW.md)
-
-        * [屏幕录制](dev/svr/RECODE.md)
 
 * [tl-rtc-file-设置选项说明](SETTING.md)
 

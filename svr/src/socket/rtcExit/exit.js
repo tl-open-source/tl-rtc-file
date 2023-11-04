@@ -3,8 +3,8 @@ const bussinessNotify = require("./../../bussiness/notify/notifyHandler")
 const rtcCount = require("./../rtcCount/count");
 const utils = require("./../../utils/utils");
 const rtcConstant = require("../rtcConstant");
-const rtcClientEvent = rtcConstant.rtcClientEvent
-
+const rtcClientEvent = rtcConstant.rtcClientEvent;
+const rtcLocalNetRoom = require("../rtcLocalNetRoom/localNetRoom");
 
 /**
  * 退出房间
@@ -47,6 +47,9 @@ async function exit(io, socket, tables, dbClient, data){
         }
 
         rtcCount.count(io, socket, tables, dbClient, data);
+
+        //局域网房间变动通知
+        rtcLocalNetRoom.localNetRoomForExit(io, socket, tables, dbClient, { room });
 
     } catch (e) {
         socket.emit(rtcClientEvent.tips, {
