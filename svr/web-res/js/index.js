@@ -5380,7 +5380,7 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 });
 
                 // 删除的文件如果是最后一个文件，关闭下接收文件弹窗
-                if(this.receiveFileRecoderList === 0){
+                if(this.receiveFileRecoderList.length === 0){
                     this.clickReceiveFile(true)
                 }
             },
