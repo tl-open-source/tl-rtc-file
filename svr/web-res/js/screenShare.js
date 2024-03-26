@@ -11,7 +11,7 @@ var screenShare = new Vue({
         return {
             stream: null,
             times: 0,
-            interverlId: 0,
+            intervalId: 0,
             track: null,
         }
     },
@@ -82,7 +82,7 @@ var screenShare = new Vue({
             }
 
             //计算时间
-            this.interverlId = setInterval(() => {
+            this.intervalId = setInterval(() => {
                 that.times += 1;
                 window.Bus.$emit("changeScreenShareTimes", that.times)
                 $("#screenShareIcon").css("color","#fb0404")
@@ -107,7 +107,7 @@ var screenShare = new Vue({
                 this.stream.getTracks().forEach(track => track.stop());
             }
 
-            clearInterval(this.interverlId);
+            clearInterval(this.intervalId);
 
             window.Bus.$emit("changeScreenShareTimes", 0)
 

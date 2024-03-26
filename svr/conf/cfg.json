@@ -1,5 +1,5 @@
 {
-	"version": "10.5.1",
+	"version": "10.5.2",
 	"socket": {
 		"port": "请到 tlrtcfile.env 中进行配置",
 		"host": "请到 tlrtcfile.env 中进行配置"

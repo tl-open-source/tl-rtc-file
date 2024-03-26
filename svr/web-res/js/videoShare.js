@@ -10,7 +10,7 @@ var videoShare = new Vue({
         return {
             stream: null,
             times: 0,
-            interverlId: 0,
+            intervalId: 0,
             track: null,
             videoDeviceList: [], // 摄像头列表
             audioDeviceList: [], // 麦克风列表
@@ -53,7 +53,7 @@ var videoShare = new Vue({
             if(window.navigator.mediaDevices && window.navigator.mediaDevices.getUserMedia){
                 media = window.navigator.mediaDevices.getUserMedia(defaultConstraints);
             } else if (window.navigator.mozGetUserMedia) {
-                media = navagator.mozGetUserMedia(defaultConstraints);
+                media = navigator.mozGetUserMedia(defaultConstraints);
             } else if (window.navigator.getUserMedia) {
                 media = window.navigator.getUserMedia(defaultConstraints)
             } else if (window.navigator.webkitGetUserMedia) {
@@ -117,7 +117,7 @@ var videoShare = new Vue({
             }
 
             //计算时间
-            this.interverlId = setInterval(() => {
+            this.intervalId = setInterval(() => {
                 that.times += 1;
                 window.Bus.$emit("changeVideoShareTimes", that.times)
                 
@@ -143,7 +143,7 @@ var videoShare = new Vue({
                 this.stream.getTracks().forEach(track => track.stop());
             }
 
-            clearInterval(this.interverlId);
+            clearInterval(this.intervalId);
 
             window.Bus.$emit("changeVideoShareTimes", 0);
 

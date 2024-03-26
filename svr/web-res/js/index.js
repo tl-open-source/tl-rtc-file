@@ -21,7 +21,7 @@ let useLocalNetworkRoomShare = (window.localStorage.getItem("tl-rtc-file-use-loc
 // 是否开启消息红点
 let useMessageDot = (window.localStorage.getItem("tl-rtc-file-use-message-dot") || "true") === 'true';
 // 是否开启浏览器系统消息通知
-let useWebMsgNotify = (window.localStorage.getItem("tl-rtc-file-use-web-msg-notify") || "true") === 'true';
+let useWebMsgNotify = (window.localStorage.getItem("tl-rtc-file-use-web-msg-notify") || "") === 'true';
 
 axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
     let { data : {
@@ -1134,6 +1134,36 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                         }, 1000);
                     })
                     return
+                }
+
+                //如果开启了系统弹窗 && 当前页面没有焦点
+                if(this.webMsgNotify && !document.hasFocus()){
+                    //修改标签页title
+                    let title = document.title;
+                    let msg = data.title + " " + data.message;
+                    let time = 0;
+                    let timer = null;
+                    timer = setInterval(() => {
+                        time++;
+                        if(time % 2 === 0){
+                            document.title = msg;
+                        }else{
+                            document.title = title;
+                        }
+                        if(time > 10){
+                            clearInterval(timer);
+                            document.title = title;
+                        }
+                    }, 500);
+
+                    //浏览器系统桌面消息通知
+                    if(window.Notification && Notification.permission === 'granted'){
+                        new Notification("tl-rtc-file通知" + data.title, {
+                            body: data.message,
+                            dir: 'auto',
+                            icon: '../image/44826979.png'
+                        })
+                    }
                 }
 
                 let levelTime = 1800;
@@ -4669,6 +4699,17 @@ axios.get("/api/comm/initData?turn="+useTurn, {}).then(async (initData) => {
                 this.useWebMsgNotify = !this.useWebMsgNotify;
 
                 if (this.useWebMsgNotify) {
+                    // 开启通知开关的时候，如果没有通知权限，请求浏览器通知权限
+                    if (window.Notification) {
+                        if(Notification.permission !== "granted"){
+                            Notification.requestPermission(function (status) {
+                                if (Notification.permission !== status) {
+                                    Notification.permission = status;
+                                }
+                            });
+                        }
+                    }
+                    
                     window.localStorage.setItem("tl-rtc-file-use-web-message-notify", true)
                     $("#webMsgNotifyOpen").css("display", "inline");
                     $("#webMsgNotifyClose").css("display", "none");

@@ -13,7 +13,7 @@ const screen = new Vue({
             mediaRecorder: null, //录制对象
             recording: null, //录制文件
             times: 0,   //录制时间
-            interverlId: 0, //计时器id
+            intervalId: 0, //计时器id
             size: 0, //录制文件大小
             isScreen : false, //是否正在录制
         }
@@ -89,7 +89,7 @@ const screen = new Vue({
             this.mediaRecorder.start(10);
 
             //计算时间
-            this.interverlId = setInterval(() => {
+            this.intervalId = setInterval(() => {
                 that.times += 1;
                 if(that.times < 10){
                     $("#screenTimes").text("录制中: 0" + that.times + "秒")
@@ -121,7 +121,7 @@ const screen = new Vue({
             this.stream.getTracks().forEach(track => track.stop());
             this.recording = window.URL.createObjectURL(new Blob(this.chunks, { type: 'video/webm' }));
 
-            clearInterval(this.interverlId);
+            clearInterval(this.intervalId);
 
             this.mediaRecorder = null;
             this.chunks = [];
